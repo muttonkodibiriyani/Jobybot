@@ -1,0 +1,50 @@
+{
+  "country": "UK",
+  "currency": "GBP",
+  "language": "English",
+  "visa_note": "Skilled Worker visa requires sponsor licence (most big companies have it). Salary threshold £38,700 (2025). High Potential Individual visa for top university graduates (no sponsor needed).",
+  "demand": "London = financial+tech capital of Europe. Manchester/Edinburgh strong. Senior PM £80-130k.",
+  "contacts": [
+    {"company": "Hays UK",              "email": "info@hays.com",            "category": "Recruiter"},
+    {"company": "Michael Page UK",      "email": "info@michaelpage.co.uk",   "category": "Recruiter"},
+    {"company": "Robert Walters UK",    "email": "uk@robertwalters.com",     "category": "Recruiter"},
+    {"company": "Robert Half UK",       "email": "uk@roberthalf.co.uk",      "category": "Recruiter"},
+    {"company": "Reed UK",              "email": "info@reed.co.uk",          "category": "Recruiter"},
+    {"company": "Adecco UK",            "email": "info@adecco.co.uk",        "category": "Recruiter"},
+    {"company": "Randstad UK",          "email": "info@randstad.co.uk",      "category": "Recruiter"},
+    {"company": "PageGroup UK",         "email": "info@pagegroup.com",       "category": "Recruiter"},
+
+    {"company": "Revolut",              "email": "careers@revolut.com",      "category": "Tech"},
+    {"company": "Monzo",                "email": "hello@monzo.com",          "category": "Tech"},
+    {"company": "Wise",                 "email": "careers@wise.com",         "category": "Tech"},
+    {"company": "Deliveroo",            "email": "careers@deliveroo.com",    "category": "Tech"},
+    {"company": "Just Eat Takeaway",    "email": "careers@just-eat.com",     "category": "Tech"},
+    {"company": "ARM Holdings",         "email": "careers@arm.com",          "category": "Tech"},
+    {"company": "Ocado",                "email": "careers@ocado.com",        "category": "Tech"},
+    {"company": "Skyscanner",           "email": "careers@skyscanner.net",   "category": "Tech"},
+
+    {"company": "HSBC",                 "email": "careers@hsbc.com",         "category": "Employer"},
+    {"company": "Barclays",             "email": "careers@barclays.com",     "category": "Employer"},
+    {"company": "Lloyds Banking Group", "email": "careers@lloydsbanking.com","category": "Employer"},
+    {"company": "NatWest",              "email": "careers@natwest.com",      "category": "Employer"},
+    {"company": "Standard Chartered",   "email": "careers@sc.com",           "category": "Employer"},
+    {"company": "BT Group",             "email": "careers@bt.com",           "category": "Employer"},
+    {"company": "Vodafone UK",          "email": "uk-careers@vodafone.com",  "category": "Employer"},
+
+    {"company": "Google UK",            "email": "uk-careers@google.com",    "category": "Tech"},
+    {"company": "Microsoft UK",         "email": "uk-careers@microsoft.com", "category": "Tech"},
+    {"company": "Amazon UK",            "email": "uk-careers@amazon.com",    "category": "Tech"},
+    {"company": "Apple UK",             "email": "uk-careers@apple.com",     "category": "Tech"},
+    {"company": "Meta UK",              "email": "uk-careers@meta.com",      "category": "Tech"},
+
+    {"company": "Deloitte UK",          "email": "ukrecruitment@deloitte.co.uk","category": "Consulting"},
+    {"company": "KPMG UK",              "email": "ukfmrecruitment@kpmg.co.uk","category": "Consulting"},
+    {"company": "PwC UK",               "email": "ukcareers@pwc.com",        "category": "Consulting"},
+    {"company": "EY UK",                "email": "ukcareers@uk.ey.com",      "category": "Consulting"},
+    {"company": "Accenture UK",         "email": "uk.careers@accenture.com", "category": "Consulting"},
+    {"company": "TCS UK",               "email": "careers.uk@tcs.com",       "category": "Consulting"},
+    {"company": "Infosys UK",           "email": "careers_uk@infosys.com",   "category": "Consulting"},
+    {"company": "Wipro UK",             "email": "careers.uk@wipro.com",     "category": "Consulting"},
+    {"company": "Capgemini UK",         "email": "careers.uk@capgemini.com", "category": "Consulting"}
+  ]
+}

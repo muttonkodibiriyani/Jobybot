@@ -1,0 +1,41 @@
+{
+  "country": "Australia",
+  "currency": "AUD",
+  "language": "English",
+  "visa_note": "Subclass 482 (TSS) employer-sponsored. Skilled Independent 189 via points. ENS 186 for PR. Indian community large.",
+  "demand": "Strong banking/fintech/mining-tech. Sydney/Melbourne/Brisbane all have good PM markets.",
+  "contacts": [
+    {"company": "Hays Australia",       "email": "info@hays.com.au",         "category": "Recruiter"},
+    {"company": "Michael Page AU",      "email": "info@michaelpage.com.au",  "category": "Recruiter"},
+    {"company": "Robert Half AU",       "email": "australia@roberthalf.com.au","category":"Recruiter"},
+    {"company": "Randstad Australia",   "email": "info@randstad.com.au",     "category": "Recruiter"},
+    {"company": "SEEK",                 "email": "info@seek.com.au",         "category": "Recruiter"},
+    {"company": "Hudson Recruitment",   "email": "info@hudson.com",          "category": "Recruiter"},
+
+    {"company": "Atlassian",            "email": "careers@atlassian.com",    "category": "Tech"},
+    {"company": "Canva",                "email": "careers@canva.com",        "category": "Tech"},
+    {"company": "Afterpay (Block)",     "email": "careers@afterpay.com",     "category": "Tech"},
+    {"company": "REA Group",            "email": "careers@rea-group.com",    "category": "Tech"},
+    {"company": "SafetyCulture",        "email": "careers@safetyculture.com","category": "Tech"},
+    {"company": "Commonwealth Bank",    "email": "careers@cba.com.au",       "category": "Employer"},
+    {"company": "Westpac",              "email": "careers@westpac.com.au",   "category": "Employer"},
+    {"company": "ANZ",                  "email": "careers@anz.com",          "category": "Employer"},
+    {"company": "NAB",                  "email": "careers@nab.com.au",       "category": "Employer"},
+    {"company": "Telstra",              "email": "careers@telstra.com",      "category": "Employer"},
+    {"company": "Optus",                "email": "careers@optus.com.au",     "category": "Employer"},
+    {"company": "BHP",                  "email": "careers@bhp.com",          "category": "Employer"},
+
+    {"company": "Google Australia",     "email": "au-careers@google.com",    "category": "Tech"},
+    {"company": "Microsoft Australia",  "email": "au-careers@microsoft.com", "category": "Tech"},
+    {"company": "Amazon Australia",     "email": "au-careers@amazon.com",    "category": "Tech"},
+
+    {"company": "Deloitte Australia",   "email": "careers@deloitte.com.au",  "category": "Consulting"},
+    {"company": "KPMG Australia",       "email": "careers@kpmg.com.au",      "category": "Consulting"},
+    {"company": "PwC Australia",        "email": "careers@au.pwc.com",       "category": "Consulting"},
+    {"company": "EY Australia",         "email": "careers@au.ey.com",        "category": "Consulting"},
+    {"company": "Accenture Australia",  "email": "au.careers@accenture.com", "category": "Consulting"},
+    {"company": "TCS Australia",        "email": "careers.au@tcs.com",       "category": "Consulting"},
+    {"company": "Infosys Australia",    "email": "careers_au@infosys.com",   "category": "Consulting"},
+    {"company": "Wipro Australia",      "email": "careers.au@wipro.com",     "category": "Consulting"}
+  ]
+}

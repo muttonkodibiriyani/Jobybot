@@ -1,0 +1,19 @@
+Dear {{ company }} Talent Team,
+
+I would like to express interest in product, data, or digital roles at
+{{ company }}.
+
+{{ summary }}
+
+Key strengths:
+• End-to-end product ownership (discovery → delivery → scale)
+• Stakeholder management at C-suite level
+• {{ location }}, {{ visa }}, {{ notice }} notice
+• CV attached
+
+Happy to follow up with a brief intro call.
+
+Best regards,
+{{ name }}
+{{ email }} | {{ phone }}
+{{ linkedin }}

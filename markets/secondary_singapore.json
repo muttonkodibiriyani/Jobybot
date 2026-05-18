@@ -1,0 +1,48 @@
+{
+  "country": "Singapore",
+  "currency": "SGD",
+  "language": "English (official)",
+  "visa_note": "Employment Pass for >SGD 5500/mo. Tech.Pass for top talent. Large Indian diaspora.",
+  "demand": "Very strong tech hub - fintech, cloud, AI, e-commerce. Salaries SGD 100-200k for senior PM/BA.",
+  "contacts": [
+    {"company": "Michael Page Singapore", "email": "info@michaelpage.com.sg",  "category": "Recruiter"},
+    {"company": "Robert Half Singapore",  "email": "singapore@roberthalf.com", "category": "Recruiter"},
+    {"company": "Hays Singapore",         "email": "singapore@hays.com.sg",    "category": "Recruiter"},
+    {"company": "Randstad Singapore",     "email": "info.sg@randstad.com",     "category": "Recruiter"},
+    {"company": "Adecco Singapore",       "email": "info.sg@adecco.com",       "category": "Recruiter"},
+    {"company": "Kelly Services SG",      "email": "ask.singapore@kellyservices.com.sg","category":"Recruiter"},
+    {"company": "ManpowerGroup SG",       "email": "info.sg@manpowergroup.com","category": "Recruiter"},
+    {"company": "PageGroup Tech SG",      "email": "tech.sg@pagegroup.com",    "category": "Recruiter"},
+    {"company": "Frazer Jones",           "email": "singapore@frazerjones.com","category": "Recruiter"},
+    {"company": "Robert Walters SG",      "email": "singapore@robertwalters.com.sg","category":"Recruiter"},
+
+    {"company": "Grab",                   "email": "careers@grab.com",         "category": "Tech"},
+    {"company": "Sea / Shopee",           "email": "careers@shopee.com",       "category": "Tech"},
+    {"company": "Lazada",                 "email": "careers@lazada.com",       "category": "Tech"},
+    {"company": "GoTo Group",             "email": "careers@gotocompany.com",  "category": "Tech"},
+    {"company": "DBS Bank",               "email": "careers@dbs.com",          "category": "Employer"},
+    {"company": "OCBC Bank",              "email": "careers@ocbc.com",         "category": "Employer"},
+    {"company": "UOB",                    "email": "careers@uobgroup.com",     "category": "Employer"},
+    {"company": "Singtel",                "email": "careers@singtel.com",      "category": "Employer"},
+    {"company": "StarHub",                "email": "careers@starhub.com",      "category": "Employer"},
+    {"company": "M1",                     "email": "careers@m1.com.sg",        "category": "Employer"},
+
+    {"company": "Google Singapore",       "email": "singapore-careers@google.com","category": "Tech"},
+    {"company": "Microsoft Singapore",    "email": "sg-careers@microsoft.com", "category": "Tech"},
+    {"company": "Amazon AWS SG",          "email": "sg-careers@amazon.com",    "category": "Tech"},
+    {"company": "Meta Singapore",         "email": "sg-careers@meta.com",      "category": "Tech"},
+    {"company": "Apple Singapore",        "email": "sg-careers@apple.com",     "category": "Tech"},
+    {"company": "Salesforce APAC",        "email": "apac-careers@salesforce.com","category": "Tech"},
+
+    {"company": "Deloitte SG",            "email": "sgcareers@deloitte.com",   "category": "Consulting"},
+    {"company": "KPMG Singapore",         "email": "kpmgsg-careers@kpmg.com.sg","category": "Consulting"},
+    {"company": "PwC Singapore",          "email": "sg.recruitment@pwc.com",   "category": "Consulting"},
+    {"company": "EY Singapore",           "email": "sg.careers@sg.ey.com",     "category": "Consulting"},
+    {"company": "Accenture Singapore",    "email": "sg.careers@accenture.com", "category": "Consulting"},
+    {"company": "McKinsey SG",            "email": "singapore_recruiting@mckinsey.com","category": "Consulting"},
+    {"company": "Bain Singapore",         "email": "singapore.recruiting@bain.com","category": "Consulting"},
+    {"company": "BCG Singapore",          "email": "Singapore_Recruitment@bcg.com","category": "Consulting"},
+    {"company": "TCS Singapore",          "email": "careers.sg@tcs.com",       "category": "Consulting"},
+    {"company": "Infosys Singapore",      "email": "careers_sg@infosys.com",   "category": "Consulting"}
+  ]
+}

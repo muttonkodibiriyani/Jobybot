@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+venv/
+.venv/
+env/
+ENV/
+
+# Secrets & user data
+.env
+*.pdf
+!docs/*.pdf
+data/
+logs/
+*.db
+*.db-journal
+*.log
+chrome_profile/
+sent_log.json
+daily_cap.json
+resume_profile.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Build artefacts
+build/
+dist/
+*.egg
+.build_log.txt
+BUILD_TASK.md

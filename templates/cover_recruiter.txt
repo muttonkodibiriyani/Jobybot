@@ -1,0 +1,19 @@
+Dear Recruiter,
+
+I am writing to introduce myself and express interest in any roles you may be
+sourcing — particularly Product Manager, Data Product Manager, AI Product
+Manager, or Senior Business Analyst positions.
+
+{{ summary }}
+
+Key credentials:
+• Currently {{ location }}, {{ visa }}, {{ notice }} notice
+• Open to roles in UAE, Singapore, Germany, Netherlands, Ireland and Canada
+• CV attached
+
+Would welcome a brief intro call at your convenience.
+
+Best regards,
+{{ name }}
+{{ email }} | {{ phone }}
+{{ linkedin }}

@@ -1,0 +1,45 @@
+{
+  "country": "Ireland",
+  "currency": "EUR",
+  "language": "English (official)",
+  "visa_note": "Critical Skills Employment Permit — Tech roles >€32k qualify; >€64k = streamlined fast-track. Path to citizenship after 5 years.",
+  "demand": "Dublin = European HQ for Google/Meta/LinkedIn/Microsoft/Apple/AWS/Stripe/Salesforce. Massive tech demand.",
+  "contacts": [
+    {"company": "Hays Ireland",         "email": "info@hays.ie",             "category": "Recruiter"},
+    {"company": "Robert Walters Ireland","email": "ireland@robertwalters.com","category": "Recruiter"},
+    {"company": "Morgan McKinley",      "email": "info@morganmckinley.com",  "category": "Recruiter"},
+    {"company": "Sigmar Recruitment",   "email": "info@sigmar.ie",           "category": "Recruiter"},
+    {"company": "Cpl Resources",        "email": "info@cpl.ie",              "category": "Recruiter"},
+    {"company": "Lincoln Recruitment",  "email": "info@lincoln.ie",          "category": "Recruiter"},
+    {"company": "Brightwater",          "email": "info@brightwater.ie",      "category": "Recruiter"},
+    {"company": "Reed Ireland",         "email": "ireland@reed.com",         "category": "Recruiter"},
+
+    {"company": "Google Ireland",       "email": "ireland-careers@google.com","category": "Tech"},
+    {"company": "Meta Ireland",         "email": "ie-careers@meta.com",      "category": "Tech"},
+    {"company": "LinkedIn Ireland",     "email": "ie-careers@linkedin.com",  "category": "Tech"},
+    {"company": "Microsoft Ireland",    "email": "ie-careers@microsoft.com", "category": "Tech"},
+    {"company": "Amazon Ireland",       "email": "ie-careers@amazon.com",    "category": "Tech"},
+    {"company": "Apple Ireland",        "email": "ie-careers@apple.com",     "category": "Tech"},
+    {"company": "Stripe Ireland",       "email": "ie-jobs@stripe.com",       "category": "Tech"},
+    {"company": "Salesforce Ireland",   "email": "ie-careers@salesforce.com","category": "Tech"},
+    {"company": "Intercom",             "email": "careers@intercom.com",     "category": "Tech"},
+    {"company": "Hubspot Ireland",      "email": "ie-careers@hubspot.com",   "category": "Tech"},
+    {"company": "Workday Ireland",      "email": "ie-careers@workday.com",   "category": "Tech"},
+    {"company": "Indeed Ireland",       "email": "ie-careers@indeed.com",    "category": "Tech"},
+    {"company": "Airbnb Ireland",       "email": "ie-careers@airbnb.com",    "category": "Tech"},
+    {"company": "TikTok Ireland",       "email": "ie-careers@tiktok.com",    "category": "Tech"},
+
+    {"company": "Bank of Ireland",      "email": "careers@boi.com",          "category": "Employer"},
+    {"company": "AIB",                  "email": "careers@aib.ie",           "category": "Employer"},
+    {"company": "Permanent TSB",        "email": "careers@permanenttsb.ie",  "category": "Employer"},
+
+    {"company": "Deloitte Ireland",     "email": "careers@deloitte.ie",      "category": "Consulting"},
+    {"company": "KPMG Ireland",         "email": "careers@kpmg.ie",          "category": "Consulting"},
+    {"company": "PwC Ireland",          "email": "careers@ie.pwc.com",       "category": "Consulting"},
+    {"company": "EY Ireland",           "email": "careers@ie.ey.com",        "category": "Consulting"},
+    {"company": "Accenture Ireland",    "email": "ie.careers@accenture.com", "category": "Consulting"},
+    {"company": "TCS Ireland",          "email": "careers.ie@tcs.com",       "category": "Consulting"},
+    {"company": "Infosys Ireland",      "email": "careers_ie@infosys.com",   "category": "Consulting"},
+    {"company": "Wipro Ireland",        "email": "careers.ie@wipro.com",     "category": "Consulting"}
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "country": "Canada",
+  "currency": "CAD",
+  "language": "English / French (English in tech)",
+  "visa_note": "Express Entry (Canadian Experience Class) or Provincial Nominee. Open Work Permit for spouse of student/worker. Very Indian-friendly.",
+  "demand": "Toronto/Vancouver/Montreal tech hubs. Strong banking/fintech. PR pathway in 1-3 years.",
+  "contacts": [
+    {"company": "Robert Half Canada",     "email": "canada@roberthalf.ca",     "category": "Recruiter"},
+    {"company": "Hays Canada",            "email": "canada@hays.com",          "category": "Recruiter"},
+    {"company": "Randstad Canada",        "email": "info@randstad.ca",         "category": "Recruiter"},
+    {"company": "Adecco Canada",          "email": "info.ca@adecco.com",       "category": "Recruiter"},
+    {"company": "Aerotek Canada",         "email": "canada@aerotek.com",       "category": "Recruiter"},
+    {"company": "TalentMinded",           "email": "info@talentminded.ca",     "category": "Recruiter"},
+    {"company": "Express Employment",     "email": "info@expresspros.com",     "category": "Recruiter"},
+    {"company": "Procom",                 "email": "info@procom.ca",           "category": "Recruiter"},
+
+    {"company": "Shopify",                "email": "careers@shopify.com",      "category": "Tech"},
+    {"company": "RBC",                    "email": "careers@rbc.com",          "category": "Employer"},
+    {"company": "TD Bank",                "email": "careers@td.com",           "category": "Employer"},
+    {"company": "BMO",                    "email": "careers@bmo.com",          "category": "Employer"},
+    {"company": "Scotiabank",             "email": "careers@scotiabank.com",   "category": "Employer"},
+    {"company": "CIBC",                   "email": "careers@cibc.com",         "category": "Employer"},
+    {"company": "Manulife",               "email": "careers@manulife.com",     "category": "Employer"},
+    {"company": "Sun Life",               "email": "careers@sunlife.com",      "category": "Employer"},
+    {"company": "Bell Canada",            "email": "careers@bell.ca",          "category": "Employer"},
+    {"company": "Rogers Communications",  "email": "careers@rogers.com",       "category": "Employer"},
+    {"company": "Telus",                  "email": "careers@telus.com",        "category": "Employer"},
+    {"company": "Hootsuite",              "email": "careers@hootsuite.com",    "category": "Tech"},
+    {"company": "Lightspeed",             "email": "careers@lightspeed.com",   "category": "Tech"},
+    {"company": "Wealthsimple",           "email": "careers@wealthsimple.com", "category": "Tech"},
+
+    {"company": "Microsoft Canada",       "email": "ca-careers@microsoft.com", "category": "Tech"},
+    {"company": "Amazon Canada",          "email": "ca-careers@amazon.com",    "category": "Tech"},
+    {"company": "Google Canada",          "email": "ca-careers@google.com",    "category": "Tech"},
+    {"company": "Apple Canada",           "email": "ca-careers@apple.com",     "category": "Tech"},
+    {"company": "Meta Canada",            "email": "ca-careers@meta.com",      "category": "Tech"},
+
+    {"company": "Deloitte Canada",        "email": "careers@deloitte.ca",      "category": "Consulting"},
+    {"company": "KPMG Canada",            "email": "careers@kpmg.ca",          "category": "Consulting"},
+    {"company": "PwC Canada",             "email": "careers@ca.pwc.com",       "category": "Consulting"},
+    {"company": "EY Canada",              "email": "careers@ca.ey.com",        "category": "Consulting"},
+    {"company": "Accenture Canada",       "email": "ca.careers@accenture.com", "category": "Consulting"},
+    {"company": "TCS Canada",             "email": "careers.ca@tcs.com",       "category": "Consulting"},
+    {"company": "Infosys Canada",         "email": "careers_ca@infosys.com",   "category": "Consulting"}
+  ]
+}

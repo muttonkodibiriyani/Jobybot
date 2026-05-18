@@ -32,6 +32,12 @@ from sources.remoteok        import RemoteOK
 
 # ── Logging setup ─────────────────────────────────────────────────
 def setup_logging(level: str) -> None:
+    # Force UTF-8 on Windows consoles to avoid cp1252 errors with emoji
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    except Exception:
+        pass
     logger.remove()
     logger.add(sys.stdout, level=level,
                format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | {message}")
@@ -40,6 +46,7 @@ def setup_logging(level: str) -> None:
                level=level,
                rotation="10 MB",
                retention=5,
+               encoding="utf-8",
                format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}")
 
 

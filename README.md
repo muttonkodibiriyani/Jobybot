@@ -79,6 +79,11 @@ Curated markets:
 - **Gmail account** with an [App Password](https://myaccount.google.com/apppasswords) (2FA must be enabled)
 - **Resume PDF** (any standard CV)
 
+### 🆕 For non-technical users
+👉 **Read [`HOW_TO_RUN.md`](HOW_TO_RUN.md)** — step-by-step guide, no jargon, screenshots-style instructions
+👉 **Read [`COMMANDS.md`](COMMANDS.md)** — every PowerShell command you'll ever need, organized by scenario
+👉 **Double-click [`JOBYBOT.bat`](JOBYBOT.bat)** after install — opens an interactive menu (no commands to type!)
+
 ### Windows
 
 ```powershell

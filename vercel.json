@@ -3,11 +3,5 @@
   "buildCommand": "cd website && npm install && npm run build",
   "outputDirectory": "website/.next",
   "installCommand": "echo \"Root install skipped — runs inside website/ via buildCommand\"",
-  "framework": "nextjs",
-  "crons": [
-    {
-      "path": "/api/cron/notify-pending",
-      "schedule": "0 9 * * *"
-    }
-  ]
+  "framework": "nextjs"
 }

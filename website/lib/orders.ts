@@ -1,9 +1,11 @@
 /**
- * Order storage with two backends:
- *   1. Local SQLite (better-sqlite3) — for self-host / dev / VPS.
- *   2. Vercel KV (if KV_REST_API_URL is set) — for serverless / Vercel.
- *
- * The runtime picks the right backend automatically.
+ * Order storage with three backends, picked at runtime:
+ *   1. Vercel KV (if KV_REST_API_URL is set) — serverless, persistent.
+ *   2. Local SQLite (better-sqlite3) — for self-host / dev / VPS.
+ *   3. In-memory fallback — only when neither of the above is available
+ *      (e.g. Vercel Hobby without KV). Data is lost when the function
+ *      cold-starts; this exists so the site keeps loading instead of
+ *      500-ing while you set up KV.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -37,6 +39,10 @@ export interface Refund {
 
 const USE_KV = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 const DB_PATH = process.env.ORDERS_DB_PATH ?? "./data/orders.db";
+// On Vercel serverless the filesystem under the project is read-only;
+// only /tmp is writable. Detect that and redirect SQLite there.
+const IS_VERCEL = !!process.env.VERCEL;
+const RUNTIME_DB_PATH = IS_VERCEL ? "/tmp/orders.db" : DB_PATH;
 
 // ───── SQLite backend ─────
 type Stmt = {
@@ -46,13 +52,25 @@ type Stmt = {
 };
 type Sqlite = { prepare: (s: string) => Stmt; exec: (s: string) => void };
 let _db: Sqlite | null = null;
+let _sqliteUnavailable = false;
 
 function ensureLocalDb(): Sqlite {
   if (_db) return _db;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const Database = require("better-sqlite3");
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-  const db = new Database(DB_PATH);
+  if (_sqliteUnavailable) throw new Error("sqlite-unavailable");
+  let Database: new (p: string) => Sqlite;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    Database = require("better-sqlite3");
+  } catch (e) {
+    // better-sqlite3 is now an optionalDependency; on Vercel it may not
+    // install a usable binary. Surface a clear error so the in-memory
+    // fallback can take over.
+    _sqliteUnavailable = true;
+    console.warn("[orders] better-sqlite3 not available:", (e as Error).message);
+    throw new Error("sqlite-unavailable");
+  }
+  fs.mkdirSync(path.dirname(RUNTIME_DB_PATH), { recursive: true });
+  const db = new Database(RUNTIME_DB_PATH);
   db.exec(`
     CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY,
@@ -95,6 +113,20 @@ function ensureLocalDb(): Sqlite {
   `);
   _db = db as Sqlite;
   return _db;
+}
+
+// ───── In-memory fallback ─────
+// Only used when neither KV nor SQLite is available. Survives only
+// within the same warm Lambda instance. Acceptable until KV is wired.
+const _mem = {
+  orders: new Map<string, Order>(),
+  refunds: new Map<string, Refund>(),
+  events: [] as Array<{ event: string; ip: string; detail: string; at: string }>,
+};
+function memAvailable(): boolean {
+  if (USE_KV) return false;
+  if (!_sqliteUnavailable) return false;
+  return true;
 }
 
 function toRefund(row: Record<string, unknown>): Refund {
@@ -150,21 +182,25 @@ export async function saveOrder(o: Order): Promise<void> {
       body: JSON.stringify(o),
       headers: { "Content-Type": "application/json" },
     });
-    // Maintain a list of all order ids
     await kvFetch(`sadd/orders:all/${o.id}`, { method: "POST" });
     await kvFetch(`sadd/orders:${o.status}/${o.id}`, { method: "POST" });
     return;
   }
-  const db = ensureLocalDb();
-  db.prepare(
-    `INSERT OR REPLACE INTO orders
-     (id,name,email,phone,amount_inr,txn_ref,txn_time,screenshot_path,status,created_at,approved_at,notes)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-  ).run(
-    o.id, o.name, o.email, o.phone, o.amountInr,
-    o.txnRef, o.txnTime, o.screenshotPath ?? null,
-    o.status, o.createdAt, o.approvedAt ?? null, o.notes ?? null,
-  );
+  try {
+    const db = ensureLocalDb();
+    db.prepare(
+      `INSERT OR REPLACE INTO orders
+       (id,name,email,phone,amount_inr,txn_ref,txn_time,screenshot_path,status,created_at,approved_at,notes)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+    ).run(
+      o.id, o.name, o.email, o.phone, o.amountInr,
+      o.txnRef, o.txnTime, o.screenshotPath ?? null,
+      o.status, o.createdAt, o.approvedAt ?? null, o.notes ?? null,
+    );
+  } catch {
+    if (memAvailable()) _mem.orders.set(o.id, { ...o });
+    else throw new Error("No order storage available. Configure KV.");
+  }
 }
 
 export async function listOrders(status?: Order["status"]): Promise<Order[]> {
@@ -179,12 +215,22 @@ export async function listOrders(status?: Order["status"]): Promise<Order[]> {
     }
     return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
-  const db = ensureLocalDb();
-  const stmt = status
-    ? db.prepare("SELECT * FROM orders WHERE status=? ORDER BY created_at DESC")
-    : db.prepare("SELECT * FROM orders ORDER BY created_at DESC");
-  const rows = (status ? stmt.all(status) : stmt.all()) as Record<string, unknown>[];
-  return rows.map(toOrder);
+  try {
+    const db = ensureLocalDb();
+    const stmt = status
+      ? db.prepare("SELECT * FROM orders WHERE status=? ORDER BY created_at DESC")
+      : db.prepare("SELECT * FROM orders ORDER BY created_at DESC");
+    const rows = (status ? stmt.all(status) : stmt.all()) as Record<string, unknown>[];
+    return rows.map(toOrder);
+  } catch {
+    if (memAvailable()) {
+      const all = Array.from(_mem.orders.values()).filter(
+        (o) => !status || o.status === status,
+      );
+      return all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }
+    return [];
+  }
 }
 
 export async function updateOrderStatus(id: string, status: Order["status"], notes = ""): Promise<Order | null> {
@@ -205,15 +251,28 @@ export async function updateOrderStatus(id: string, status: Order["status"], not
     await kvFetch(`sadd/orders:${status}/${id}`, { method: "POST" });
     return o;
   }
-  const db = ensureLocalDb();
-  const now = new Date().toISOString();
-  db.prepare(
-    "UPDATE orders SET status=?, approved_at=?, notes=? WHERE id=?",
-  ).run(status, status === "approved" ? now : null, notes, id);
-  const row = db.prepare("SELECT * FROM orders WHERE id=?").get(id) as
-    | Record<string, unknown>
-    | undefined;
-  return row ? toOrder(row) : null;
+  try {
+    const db = ensureLocalDb();
+    const now = new Date().toISOString();
+    db.prepare(
+      "UPDATE orders SET status=?, approved_at=?, notes=? WHERE id=?",
+    ).run(status, status === "approved" ? now : null, notes, id);
+    const row = db.prepare("SELECT * FROM orders WHERE id=?").get(id) as
+      | Record<string, unknown>
+      | undefined;
+    return row ? toOrder(row) : null;
+  } catch {
+    if (memAvailable()) {
+      const o = _mem.orders.get(id);
+      if (!o) return null;
+      o.status = status;
+      o.notes = notes;
+      if (status === "approved") o.approvedAt = new Date().toISOString();
+      _mem.orders.set(id, o);
+      return o;
+    }
+    return null;
+  }
 }
 
 export async function getOrder(id: string): Promise<Order | null> {
@@ -221,11 +280,16 @@ export async function getOrder(id: string): Promise<Order | null> {
     const { result: raw } = (await kvFetch(`get/order:${id}`)) as { result: string | null };
     return raw ? JSON.parse(raw) : null;
   }
-  const db = ensureLocalDb();
-  const row = db.prepare("SELECT * FROM orders WHERE id=?").get(id) as
-    | Record<string, unknown>
-    | undefined;
-  return row ? toOrder(row) : null;
+  try {
+    const db = ensureLocalDb();
+    const row = db.prepare("SELECT * FROM orders WHERE id=?").get(id) as
+      | Record<string, unknown>
+      | undefined;
+    return row ? toOrder(row) : null;
+  } catch {
+    if (memAvailable()) return _mem.orders.get(id) ?? null;
+    return null;
+  }
 }
 
 export function newOrderId(): string {
@@ -250,15 +314,20 @@ export async function saveRefund(r: Refund): Promise<void> {
     await kvFetch(`sadd/refunds:${r.status}/${r.id}`, { method: "POST" });
     return;
   }
-  const db = ensureLocalDb();
-  db.prepare(
-    `INSERT OR REPLACE INTO refunds
-     (id, order_id, email, phone, reason, status, created_at, processed_at, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(
-    r.id, r.orderId, r.email, r.phone, r.reason, r.status,
-    r.createdAt, r.processedAt ?? null, r.notes ?? null,
-  );
+  try {
+    const db = ensureLocalDb();
+    db.prepare(
+      `INSERT OR REPLACE INTO refunds
+       (id, order_id, email, phone, reason, status, created_at, processed_at, notes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(
+      r.id, r.orderId, r.email, r.phone, r.reason, r.status,
+      r.createdAt, r.processedAt ?? null, r.notes ?? null,
+    );
+  } catch {
+    if (memAvailable()) _mem.refunds.set(r.id, { ...r });
+    else throw new Error("No refund storage available. Configure KV.");
+  }
 }
 
 export async function listRefunds(status?: Refund["status"]): Promise<Refund[]> {
@@ -273,12 +342,22 @@ export async function listRefunds(status?: Refund["status"]): Promise<Refund[]> 
     }
     return out.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
-  const db = ensureLocalDb();
-  const stmt = status
-    ? db.prepare("SELECT * FROM refunds WHERE status=? ORDER BY created_at DESC")
-    : db.prepare("SELECT * FROM refunds ORDER BY created_at DESC");
-  const rows = (status ? stmt.all(status) : stmt.all()) as Record<string, unknown>[];
-  return rows.map(toRefund);
+  try {
+    const db = ensureLocalDb();
+    const stmt = status
+      ? db.prepare("SELECT * FROM refunds WHERE status=? ORDER BY created_at DESC")
+      : db.prepare("SELECT * FROM refunds ORDER BY created_at DESC");
+    const rows = (status ? stmt.all(status) : stmt.all()) as Record<string, unknown>[];
+    return rows.map(toRefund);
+  } catch {
+    if (memAvailable()) {
+      const all = Array.from(_mem.refunds.values()).filter(
+        (r) => !status || r.status === status,
+      );
+      return all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }
+    return [];
+  }
 }
 
 export async function updateRefundStatus(
@@ -303,30 +382,50 @@ export async function updateRefundStatus(
     await kvFetch(`sadd/refunds:${status}/${id}`, { method: "POST" });
     return r;
   }
-  const db = ensureLocalDb();
-  const now = new Date().toISOString();
-  db.prepare(
-    "UPDATE refunds SET status=?, processed_at=?, notes=? WHERE id=?",
-  ).run(status, status === "refunded" ? now : null, notes, id);
-  const row = db.prepare("SELECT * FROM refunds WHERE id=?").get(id) as
-    | Record<string, unknown>
-    | undefined;
-  return row ? toRefund(row) : null;
+  try {
+    const db = ensureLocalDb();
+    const now = new Date().toISOString();
+    db.prepare(
+      "UPDATE refunds SET status=?, processed_at=?, notes=? WHERE id=?",
+    ).run(status, status === "refunded" ? now : null, notes, id);
+    const row = db.prepare("SELECT * FROM refunds WHERE id=?").get(id) as
+      | Record<string, unknown>
+      | undefined;
+    return row ? toRefund(row) : null;
+  } catch {
+    if (memAvailable()) {
+      const r = _mem.refunds.get(id);
+      if (!r) return null;
+      r.status = status;
+      r.notes = notes;
+      if (status === "refunded") r.processedAt = new Date().toISOString();
+      _mem.refunds.set(id, r);
+      return r;
+    }
+    return null;
+  }
 }
 
 // ───── Security events ─────
 export async function logSecurityEvent(event: string, ip: string, detail = ""): Promise<void> {
+  const at = new Date().toISOString();
   if (USE_KV) {
-    // Keep the last ~500 events in a list
-    await kvFetch(`lpush/sec:events/${encodeURIComponent(JSON.stringify({ event, ip, detail, at: new Date().toISOString() }))}`, {
+    await kvFetch(`lpush/sec:events/${encodeURIComponent(JSON.stringify({ event, ip, detail, at }))}`, {
       method: "POST",
     });
     return;
   }
-  const db = ensureLocalDb();
-  db.prepare(
-    "INSERT INTO security_events (event, ip, detail, at) VALUES (?, ?, ?, ?)",
-  ).run(event, ip || "", detail, new Date().toISOString());
+  try {
+    const db = ensureLocalDb();
+    db.prepare(
+      "INSERT INTO security_events (event, ip, detail, at) VALUES (?, ?, ?, ?)",
+    ).run(event, ip || "", detail, at);
+  } catch {
+    if (memAvailable()) {
+      _mem.events.unshift({ event, ip: ip || "", detail, at });
+      if (_mem.events.length > 500) _mem.events.length = 500;
+    }
+  }
 }
 
 export async function recentSecurityEvents(limit = 50): Promise<Array<{
@@ -335,17 +434,22 @@ export async function recentSecurityEvents(limit = 50): Promise<Array<{
   detail: string;
   at: string;
 }>> {
-  if (USE_KV) return []; // KV path not wired for listing here yet
-  const db = ensureLocalDb();
-  const rows = db.prepare(
-    "SELECT * FROM security_events ORDER BY id DESC LIMIT ?",
-  ).all(limit) as Record<string, unknown>[];
-  return rows.map((r) => ({
-    event: String(r.event),
-    ip: String(r.ip ?? ""),
-    detail: String(r.detail ?? ""),
-    at: String(r.at),
-  }));
+  if (USE_KV) return [];
+  try {
+    const db = ensureLocalDb();
+    const rows = db.prepare(
+      "SELECT * FROM security_events ORDER BY id DESC LIMIT ?",
+    ).all(limit) as Record<string, unknown>[];
+    return rows.map((r) => ({
+      event: String(r.event),
+      ip: String(r.ip ?? ""),
+      detail: String(r.detail ?? ""),
+      at: String(r.at),
+    }));
+  } catch {
+    if (memAvailable()) return _mem.events.slice(0, limit);
+    return [];
+  }
 }
 
 export async function countSecurityEventsSince(
@@ -354,9 +458,18 @@ export async function countSecurityEventsSince(
   sinceIso: string,
 ): Promise<number> {
   if (USE_KV) return 0;
-  const db = ensureLocalDb();
-  const row = db.prepare(
-    "SELECT COUNT(*) AS n FROM security_events WHERE event=? AND ip=? AND at >= ?",
-  ).get(event, ip, sinceIso) as { n: number } | undefined;
-  return row?.n ?? 0;
+  try {
+    const db = ensureLocalDb();
+    const row = db.prepare(
+      "SELECT COUNT(*) AS n FROM security_events WHERE event=? AND ip=? AND at >= ?",
+    ).get(event, ip, sinceIso) as { n: number } | undefined;
+    return row?.n ?? 0;
+  } catch {
+    if (memAvailable()) {
+      return _mem.events.filter(
+        (e) => e.event === event && e.ip === ip && e.at >= sinceIso,
+      ).length;
+    }
+    return 0;
+  }
 }

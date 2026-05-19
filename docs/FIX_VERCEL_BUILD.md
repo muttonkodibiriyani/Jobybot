@@ -85,3 +85,24 @@ npm run build
 
 If that succeeds locally, the Vercel build will also succeed
 (assuming the same env vars are configured in Vercel).
+
+## Second error you may hit: Hobby cron limit
+
+If you see:
+
+> Hobby accounts are limited to daily cron jobs. This cron expression
+> (`*/30 * * * *`) would run more than once per day. Upgrade to the
+> Pro plan to unlock all Cron Jobs features on Vercel.
+
+This is a Vercel free-plan restriction. We solved it by:
+
+1. Switching `vercel.json` cron to once-a-day (`0 9 * * *`) — Hobby-safe.
+2. Adding a free **GitHub Actions** workflow
+   (`.github/workflows/cron-notify-pending.yml`) that runs every 30
+   minutes and curls the same endpoint with the `CRON_SECRET` header.
+
+Set `CRON_SECRET` as a repo secret on GitHub at
+`Settings → Secrets and variables → Actions → New repository secret`,
+using the same value you set in Vercel env vars. The workflow takes
+over for the every-30-min job. See `docs/GO_LIVE_CHECKLIST.md` section
+C for the click-by-click walkthrough.

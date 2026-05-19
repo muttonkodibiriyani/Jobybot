@@ -80,7 +80,8 @@ Curated markets:
 - **Resume PDF** (any standard CV)
 
 ### 🆕 For non-technical users
-👉 **Read [`docs/POWERSHELL_COMPLETE.md`](docs/POWERSHELL_COMPLETE.md)** — every PowerShell command (jobs, logs, stop, schedule, limits, security)
+👉 **Read [`docs/POWERSHELL_COMPLETE.md`](docs/POWERSHELL_COMPLETE.md)** — every PowerShell command (fixed, copy-paste ready)
+👉 **Double-click [`TEST_ALL_COMMANDS.bat`](TEST_ALL_COMMANDS.bat)** — runs all safe commands to verify install
 👉 **Read [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)** — complete guide: what the bot does, all scenarios, one-click files
 👉 **Read [`docs/SECURITY.md`](docs/SECURITY.md)** — how secrets are protected
 👉 **Read [`HOW_TO_RUN.md`](HOW_TO_RUN.md)** — first-time setup (15 minutes)

@@ -4,6 +4,8 @@ import sqlite3
 import datetime
 import os
 
+import _root  # noqa: F401
+
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 try:

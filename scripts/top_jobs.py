@@ -1,8 +1,13 @@
 """Helper: print top 20 highest-matched jobs."""
-import sys, sqlite3, os
-sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+import sys
+import sqlite3
+import os
 
-db = "data/jobybot.db"
+import _root  # noqa: F401 — chdir to project root
+
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+db = os.path.join("data", "jobybot.db")
 if not os.path.exists(db):
     print("(No jobs database yet — run the bot first)")
     sys.exit(0)

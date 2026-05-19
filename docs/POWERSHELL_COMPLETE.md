@@ -1,419 +1,234 @@
-# Jobybot — Complete PowerShell Command Reference
+# Jobybot — PowerShell Commands (FIXED — tested pattern)
 
-**Every command in one place.** Copy → paste → Enter. No coding needed.
+**Problem with old snippets:** `$py` was undefined, `python -c @"..."@` breaks on Windows, and `Start-Process` needs **full paths**.
 
-| Also use | Purpose |
-|----------|---------|
-| **JOBYBOT.bat** | Visual menu (easiest) |
-| **RUN_BOT_NOW.bat** | One cycle: search + email now |
-| **SETUP_FOR_FRIENDS.bat** | First-time install + auto-schedule (share with friends) |
-| **SECURITY_CHECK.bat** | Lock secrets + audit safety |
-| **COMMANDS.md** | Shorter cheat sheet (sections 1–20) |
+**Fix:** Use scripts in the `powershell\` folder — each one works on its own.
 
-Open PowerShell in the Jobybot folder: **Shift + right-click** the folder → **Open in Terminal**.
+---
+
+## Step 0 — Run this once per PowerShell window
 
 ```powershell
-cd "$env:USERPROFILE\Downloads\Jobybot"   # change path if yours differs
-$py = ".\.venv\Scripts\python.exe"
+cd "C:\Users\tharakeswara.reddy\Downloads\Jobybot"
+```
+
+Change the path if your folder is not in Downloads.
+
+---
+
+## Test everything automatically
+
+Double-click **`TEST_ALL_COMMANDS.bat`**  
+Or:
+
+```powershell
+cd "C:\Users\tharakeswara.reddy\Downloads\Jobybot"
+PowerShell -NoProfile -ExecutionPolicy Bypass -File ".\TEST_ALL_COMMANDS.ps1"
 ```
 
 ---
 
-## Table of contents
+## All commands (copy one line at a time)
 
-1. [Is the bot running?](#1-is-the-bot-running)
-2. [Start / stop / restart](#2-start--stop--restart)
-3. [Emergency shutdown](#3-emergency-shutdown)
-4. [View jobs (all sources)](#4-view-jobs-all-sources)
-5. [Job search by website](#5-job-search-by-website)
-6. [Emails sent & limits](#6-emails-sent--limits)
-7. [Change daily email limit](#7-change-daily-email-limit)
-8. [Schedule & timing](#8-schedule--timing)
-9. [Enable / disable job sources](#9-enable--disable-job-sources)
-10. [Edit all settings (.env)](#10-edit-all-settings-env)
-11. [All log files](#11-all-log-files)
-12. [Health check & test email](#12-health-check--test-email)
-13. [Backup / reset / update](#13-backup--reset--update)
-14. [Windows auto-start & tasks](#14-windows-auto-start--tasks)
-15. [Security commands](#15-security-commands)
-16. [Daily check (one paste)](#16-daily-check-one-paste)
+Replace the folder path if yours is different.
 
----
-
-## 1. Is the bot running?
+### 1. Is the bot running?
 
 ```powershell
-Get-Process python -ErrorAction SilentlyContinue |
-  Where-Object { try { $_.Path -like "*Jobybot*" } catch { $false } } |
-  Format-Table Id, ProcessName, StartTime, Path -AutoSize
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\01-Is-Running.ps1"
 ```
 
-If you see a row, the bot is running. Note the **Id** (PID).
+### 2. Statistics (jobs / emails today / cap)
 
 ```powershell
-# Scheduled task status (if you used install / auto-start)
-Get-ScheduledTask -TaskName "Jobybot" -ErrorAction SilentlyContinue |
-  Select-Object TaskName, State
-schtasks /Query /TN "JobybotDaily" /FO LIST 2>$null
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\02-Stats.ps1"
 ```
 
----
-
-## 2. Start / stop / restart
-
-### Run one full cycle now (search + email + inbox HTML)
+### 3. Top 20 jobs
 
 ```powershell
-& $py jobybot.py run
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\03-Top-Jobs.ps1"
 ```
 
-Or double-click **RUN_BOT_NOW.bat**.
-
-### Start 24/7 scheduler (window visible)
+### 4. Last 20 emails sent
 
 ```powershell
-& $py jobybot.py schedule
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\04-Recent-Emails.ps1"
 ```
 
-Stop with **Ctrl+C** in that window.
-
-### Start 24/7 in background (hidden)
+### 5. Jobs count per website (LinkedIn, Indeed, Bayt…)
 
 ```powershell
-Start-Process -WindowStyle Hidden -FilePath $py `
-  -ArgumentList "jobybot.py","schedule" -WorkingDirectory $PWD
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\05-Jobs-By-Source.ps1"
 ```
 
-### Search jobs only (no emails)
+### 6. List all jobs in database
 
 ```powershell
-& $py jobybot.py search
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\06-List-All-Jobs.ps1"
 ```
 
-### Send emails only (no search)
+### 7. Jobs added today
 
 ```powershell
-& $py jobybot.py email
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\07-Jobs-Today.ps1"
 ```
 
-### Stop Jobybot only (safe)
+### 8. LinkedIn jobs only
 
 ```powershell
-Get-Process python -ErrorAction SilentlyContinue |
-  Where-Object { try { $_.Path -like "*Jobybot*" } catch { $false } } |
-  Stop-Process -Force
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\08-LinkedIn-Jobs.ps1"
 ```
 
-### Stop by PID (if you know it)
+Indeed / Bayt / NaukriGulf / RemoteOK — edit `08-LinkedIn-Jobs.ps1` last line to pass another name, or:
 
 ```powershell
-Stop-Process -Id 12345 -Force   # replace 12345 with real PID
+cd "C:\Users\tharakeswara.reddy\Downloads\Jobybot"
+.\.venv\Scripts\python.exe scripts\jobs_by_source_name.py Indeed
 ```
 
-### Restart after config change
+### 9. Health check
 
 ```powershell
-Get-Process python -ErrorAction SilentlyContinue |
-  Where-Object { try { $_.Path -like "*Jobybot*" } catch { $false } } |
-  Stop-Process -Force
-Start-Sleep -Seconds 3
-Start-Process -WindowStyle Hidden -FilePath $py `
-  -ArgumentList "jobybot.py","schedule" -WorkingDirectory $PWD
-Write-Host "Restarted."
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\09-Doctor.ps1"
 ```
 
----
-
-## 3. Emergency shutdown
-
-Stops bot + removes auto-start + daily task. Type nothing else required.
+### 10. Send test email to yourself
 
 ```powershell
-Get-Process python -ErrorAction SilentlyContinue |
-  Where-Object { try { $_.Path -like "*Jobybot*" } catch { $false } } |
-  Stop-Process -Force
-
-Remove-Item "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\Jobybot Scheduler.lnk" -ErrorAction SilentlyContinue
-schtasks /Delete /TN "JobybotDaily" /F 2>$null
-schtasks /Delete /TN "Jobybot" /F 2>$null
-Unregister-ScheduledTask -TaskName "Jobybot" -Confirm:$false -ErrorAction SilentlyContinue
-
-Write-Host "EMERGENCY SHUTDOWN COMPLETE" -ForegroundColor Red
-Write-Host "Data safe in: $PWD\data\"
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\10-Test-Email.ps1"
 ```
 
-Or: **JOBYBOT.bat** → option **4** (type `YES`).
-
----
-
-## 4. View jobs (all sources)
-
-### Statistics summary
+### 11. Live log (Ctrl+C to stop watching)
 
 ```powershell
-& $py jobybot.py stats
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\11-Tail-Log.ps1"
 ```
 
-### Top 20 matched jobs (readable)
+### 12. Open job inbox in browser
 
 ```powershell
-& $py scripts\top_jobs.py
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\12-Open-Inbox.ps1"
 ```
 
-### Open HTML inbox (best for applying)
+### 13. Stop bot
 
 ```powershell
-Start-Process data\click_apply_inbox.html
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\13-Stop-Bot.ps1"
 ```
 
-### All jobs in database (PowerShell)
+### 14. Emergency shutdown (stop + remove auto-start)
 
 ```powershell
-& $py -c @"
-import sqlite3
-c = sqlite3.connect('data/jobybot.db')
-rows = c.execute('''
-  SELECT match_score, source, title, company, location, url
-  FROM jobs WHERE status='found'
-  ORDER BY match_score DESC
-''').fetchall()
-for r in rows:
-    print(f'[{r[0]:3}] {r[1]:12} | {r[2][:45]:45} @ {r[3]} | {r[4]}')
-print(f'\nTotal: {len(rows)} jobs')
-"@
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\14-Emergency-Shutdown.ps1"
 ```
 
-### Jobs found today
+### 15. Start bot in background (hourly schedule)
 
 ```powershell
-& $py -c @"
-import sqlite3, datetime
-today = datetime.date.today().isoformat()
-c = sqlite3.connect('data/jobybot.db')
-n = c.execute('SELECT COUNT(*) FROM jobs WHERE found_at LIKE ?', (today+'%',)).fetchone()[0]
-print(f'Jobs added today: {n}')
-"@
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\15-Start-Background.ps1"
 ```
 
----
-
-## 5. Job search by website
-
-Jobybot searches these sites (public APIs / pages — **no login**):
-
-| Source | `.env` flag | What it searches |
-|--------|-------------|------------------|
-| **LinkedIn** | `ENABLE_LINKEDIN_SEARCH=true` | Public guest job search (Easy Apply filter) |
-| **Indeed** | `ENABLE_INDEED=true` | Indeed job listings by title + location |
-| **Bayt** | `ENABLE_BAYT=true` | Bayt.com (Gulf) |
-| **Naukri Gulf** | `ENABLE_NAUKRIGULF=true` | NaukriGulf |
-| **RemoteOK** | `ENABLE_REMOTEOK=true` | Remote tech jobs |
-
-**Note:** There is no separate “Google Jobs” scraper. Google does not provide a free API for this; Jobybot uses the sites above. `ENABLE_GULFTALENT` / `ENABLE_COMPANY_CAREERS` in `.env` are reserved for future use.
-
-### Count jobs per source
+### 16. Daily check (status + stats + log)
 
 ```powershell
-& $py scripts\jobs_by_source.py
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\16-Daily-Check.ps1"
 ```
 
-### Show only LinkedIn jobs
+### 17. Run one full cycle (search + email — 15–30 min)
 
 ```powershell
-& $py -c @"
-import sqlite3
-c = sqlite3.connect('data/jobybot.db')
-for r in c.execute(\"SELECT match_score, title, company, url FROM jobs WHERE source='LinkedIn' AND status='found' ORDER BY match_score DESC LIMIT 30\"):
-    print(f'[{r[0]}] {r[1]} @ {r[2]}\n  {r[3]}\n')
-"@
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\17-Run-One-Cycle.ps1"
 ```
 
-Replace `'LinkedIn'` with `Indeed`, `Bayt`, `NaukriGulf`, or `RemoteOK`.
+Or double-click **`RUN_BOT_NOW.bat`**.
 
-### Force a fresh search from all enabled sources
+### 18. Search jobs only
 
 ```powershell
-& $py jobybot.py search
-Start-Process data\click_apply_inbox.html
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\18-Search-Only.ps1"
 ```
 
----
-
-## 6. Emails sent & limits
-
-### Recent emails
+### 19. Send emails only
 
 ```powershell
-& $py scripts\recent_emails.py
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\19-Email-Only.ps1"
 ```
 
-### Today's email count vs cap
+### 20. Edit settings (.env)
 
 ```powershell
-& $py jobybot.py stats
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\tharakeswara.reddy\Downloads\Jobybot\powershell\20-Edit-Env.ps1"
 ```
 
-### Who was emailed from a company
-
-```powershell
-& $py -c @"
-import sqlite3
-company = 'Deloitte'   # change name
-c = sqlite3.connect('data/jobybot.db')
-for r in c.execute('SELECT sent_at, recipient FROM emails_sent WHERE company LIKE ? ORDER BY sent_at DESC', ('%'+company+'%',)):
-    print(r[0][:19], r[1])
-"@
-```
-
----
-
-## 7. Change daily email limit
-
-1. Open settings:
-
-```powershell
-notepad .env
-```
-
-2. Change (example — **200 per day**):
-
-```env
-DAILY_EMAIL_CAP=200
-```
-
-3. Save (`Ctrl+S`) and restart bot (section 2).
-
-**Lower** if Gmail marks mail as spam (e.g. `100`). **Raise** only if your Gmail account can handle volume.
-
----
-
-## 8. Schedule & timing
-
-All in `.env`:
-
-| Setting | Default | Meaning |
-|---------|---------|---------|
-| `RUN_INTERVAL_MINUTES` | `60` | How often the bot runs search + email when in `schedule` mode |
-| `DAILY_SUMMARY_HOUR` | `9` | Hour (24h) for daily summary email to you |
-| `MIN_DELAY_SEC` / `MAX_DELAY_SEC` | `30` / `120` | Random pause between each outbound email |
-
-### Change to every 2 hours
-
-```powershell
-# Edit .env: RUN_INTERVAL_MINUTES=120
-notepad .env
-```
-
-Then restart the bot (section 2).
-
-### View when scheduler last logged activity
-
-```powershell
-Get-Content data\jobybot.log -Tail 20 | Select-String "CYCLE|Search complete|Email blast"
-```
-
----
-
-## 9. Enable / disable job sources
-
-Edit `.env`:
+Change email limit: set `DAILY_EMAIL_CAP=200`  
+Change schedule: set `RUN_INTERVAL_MINUTES=60`  
+Toggle LinkedIn / Indeed / Bayt:
 
 ```env
 ENABLE_LINKEDIN_SEARCH=true
 ENABLE_INDEED=true
-ENABLE_NAUKRIGULF=true
 ENABLE_BAYT=true
+ENABLE_NAUKRIGULF=true
 ENABLE_REMOTEOK=true
 ```
 
-Set any line to `false` to skip that site. Restart bot after saving.
-
 ---
 
-## 10. Edit all settings (.env)
+## Shorter commands (if you are already in the Jobybot folder)
+
+After `cd` to Jobybot:
 
 ```powershell
-notepad .env
-```
+cd "C:\Users\tharakeswara.reddy\Downloads\Jobybot"
+. .\powershell\Jobybot-Init.ps1
 
-| Variable | What it controls |
-|----------|------------------|
-| `USER_NAME`, `USER_EMAIL`, `USER_PHONE`, `USER_LINKEDIN` | Your identity in emails |
-| `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD` | Sending mail (App Password only) |
-| `TARGET_TITLES` | Job titles to search |
-| `PRIMARY_MARKET`, `SECONDARY_MARKETS` | Countries |
-| `DAILY_EMAIL_CAP` | Max emails per day |
-| `MATCH_THRESHOLD` | Minimum score (0–100) to keep a job |
-| `RESUME_PATH` | Path to your PDF CV |
-
-Never share `.env` or commit it to GitHub.
-
----
-
-## 11. All log files
-
-| File | Contents |
-|------|----------|
-| `data\jobybot.log` | Main activity (search, emails, errors) |
-| `data\scheduler-stdout.log` | Background scheduler output |
-| `data\scheduler.log` | Older startup shortcut log (if used) |
-
-### Last 50 lines
-
-```powershell
-Get-Content data\jobybot.log -Tail 50
-```
-
-### Live tail (updates automatically)
-
-```powershell
-Get-Content data\jobybot.log -Tail 30 -Wait
-```
-
-### Errors and warnings only
-
-```powershell
-Get-Content data\jobybot.log -Tail 200 | Select-String -Pattern "ERROR|WARN|auth|cap|failed" -CaseSensitive:$false
-```
-
-### Open in Notepad
-
-```powershell
-notepad data\jobybot.log
-```
-
-### Clear old log (bot keeps running; optional)
-
-```powershell
-Stop-Process -Id (Get-Process python | Where-Object { $_.Path -like "*Jobybot*" }).Id -Force -ErrorAction SilentlyContinue
-Start-Sleep 2
-"" | Set-Content data\jobybot.log -Encoding UTF8
-# Restart bot after
+Invoke-Jobybot -Args @("stats")
+Invoke-Jobybot -Args @("run")
+Invoke-Jobybot -Args @("search")
+Invoke-Jobybot -Args @("email")
+Invoke-Jobybot -Args @("doctor")
+Invoke-JobybotScript "top_jobs.py"
+Invoke-JobybotScript "recent_emails.py"
+Invoke-JobybotScript "jobs_by_source.py"
+Invoke-JobybotScript "emails_by_company.py" "Deloitte"
+Stop-JobybotProcess
+Start-JobybotSchedulerBackground
 ```
 
 ---
 
-## 12. Health check & test email
+## Logs (plain PowerShell — no script file needed)
 
 ```powershell
-& $py jobybot.py doctor
-```
-
-```powershell
-& $py scripts\test_email.py
-```
-
-```powershell
-& $py jobybot.py init
+cd "C:\Users\tharakeswara.reddy\Downloads\Jobybot"
+Get-Content .\data\jobybot.log -Tail 50
+Get-Content .\data\jobybot.log -Tail 30 -Wait
+Get-Content .\data\jobybot.log -Tail 200 | Select-String "ERROR|WARN|cap|auth"
+notepad .\data\jobybot.log
+Get-Content .\data\scheduler-stdout.log -Tail 30 -ErrorAction SilentlyContinue
 ```
 
 ---
 
-## 13. Backup / reset / update
-
-### Backup to Desktop
+## Auto-start / security
 
 ```powershell
+cd "C:\Users\tharakeswara.reddy\Downloads\Jobybot"
+PowerShell -ExecutionPolicy Bypass -File .\scripts\enable_autostart.ps1
+PowerShell -ExecutionPolicy Bypass -File .\scripts\disable_autostart.ps1
+PowerShell -ExecutionPolicy Bypass -File .\scripts\secure_permissions.ps1
+PowerShell -ExecutionPolicy Bypass -File .\scripts\security_audit.ps1
+```
+
+Or double-click **SECURITY_CHECK.bat**.
+
+---
+
+## Backup
+
+```powershell
+cd "C:\Users\tharakeswara.reddy\Downloads\Jobybot"
 $backup = "$env:USERPROFILE\Desktop\Jobybot-Backup-$(Get-Date -Format 'yyyy-MM-dd-HHmm')"
 New-Item -ItemType Directory -Path $backup -Force | Out-Null
 Copy-Item ".env" $backup -ErrorAction SilentlyContinue
@@ -422,98 +237,14 @@ Copy-Item "*.pdf" $backup -ErrorAction SilentlyContinue
 Write-Host "Backup: $backup"
 ```
 
-### Reset bot memory (keeps .env)
-
-```powershell
-Get-Process python -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "*Jobybot*" } | Stop-Process -Force
-$backup = "$env:USERPROFILE\Desktop\Jobybot-PreReset-$(Get-Date -Format 'yyyy-MM-dd-HHmm')"
-Copy-Item "data" $backup -Recurse -ErrorAction SilentlyContinue
-Remove-Item "data" -Recurse -Force -ErrorAction SilentlyContinue
-& $py jobybot.py init
-```
-
-### Update from GitHub
-
-Double-click **SYNC_GITHUB.bat** or:
-
-```powershell
-git pull origin main
-& $py -m pip install -r requirements.txt --upgrade
-```
-
 ---
 
-## 14. Windows auto-start & tasks
+## Quick map
 
-### Enable (startup folder + 9 AM safety task)
-
-```powershell
-PowerShell -ExecutionPolicy Bypass -File ".\scripts\enable_autostart.ps1"
-```
-
-Or **JOBYBOT.bat** → option **15**.
-
-### Disable
-
-```powershell
-PowerShell -ExecutionPolicy Bypass -File ".\scripts\disable_autostart.ps1"
-```
-
-Or **JOBYBOT.bat** → option **16**.
-
----
-
-## 15. Security commands
-
-Run after install and monthly:
-
-```powershell
-PowerShell -ExecutionPolicy Bypass -File ".\scripts\secure_permissions.ps1"
-PowerShell -ExecutionPolicy Bypass -File ".\scripts\security_audit.ps1"
-```
-
-Or double-click **SECURITY_CHECK.bat**.
-
-Read **docs/SECURITY.md** for what Jobybot does and does not do (no remote access, no open ports).
-
-**Never:**
-- Email your `.env` or `resume.pdf` to anyone
-- Upload `.env` to cloud drives shared publicly
-- Run Jobybot from a copy sent in a random chat — use official GitHub ZIP only
-
----
-
-## 16. Daily check (one paste)
-
-```powershell
-cd "$env:USERPROFILE\Downloads\Jobybot"
-$py = ".\.venv\Scripts\python.exe"
-Write-Host "`n========== JOBYBOT DAILY CHECK ==========`n" -ForegroundColor Cyan
-$proc = Get-Process python -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "*Jobybot*" }
-if ($proc) { Write-Host "RUNNING  PID $($proc.Id)  since $($proc.StartTime)" -ForegroundColor Green }
-else        { Write-Host "NOT RUNNING — start with RUN_BOT_NOW.bat or jobybot.py schedule" -ForegroundColor Red }
-& $py jobybot.py stats
-& $py scripts\jobs_by_source.py
-Write-Host "`n--- Last log lines ---" -ForegroundColor Cyan
-Get-Content data\jobybot.log -Tail 8 -ErrorAction SilentlyContinue
-Write-Host "`n=========================================`n" -ForegroundColor Cyan
-```
-
----
-
-## Quick reference card
-
-| I want to… | Command / file |
-|------------|----------------|
-| Install everything | **SETUP_FOR_FRIENDS.bat** |
-| Control panel | **JOBYBOT.bat** |
-| Run now | **RUN_BOT_NOW.bat** |
-| Stop | Section 2 stop commands |
-| Panic stop | Section 3 |
-| See jobs | `top_jobs.py` or inbox HTML |
-| Change email limit | `notepad .env` → `DAILY_EMAIL_CAP` |
-| Change schedule | `notepad .env` → `RUN_INTERVAL_MINUTES` |
-| Logs | `Get-Content data\jobybot.log -Tail 30 -Wait` |
-| Security | **SECURITY_CHECK.bat** |
-
-🍀 Good luck with your job search.
+| Goal | File to run |
+|------|-------------|
+| Test all safe commands | `TEST_ALL_COMMANDS.bat` |
+| Menu | `JOBYBOT.bat` |
+| Run now | `RUN_BOT_NOW.bat` |
+| Full command list | this file |
+| Friend install | `SETUP_FOR_FRIENDS.bat` |

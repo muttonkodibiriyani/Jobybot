@@ -1,8 +1,13 @@
 """Helper: print last 20 emails sent."""
-import sys, sqlite3, os
-sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+import sys
+import sqlite3
+import os
 
-db = "data/jobybot.db"
+import _root  # noqa: F401
+
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+db = os.path.join("data", "jobybot.db")
 if not os.path.exists(db):
     print("(No emails sent yet)")
     sys.exit(0)

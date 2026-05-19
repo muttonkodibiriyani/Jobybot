@@ -1,19 +1,19 @@
-$root = Split-Path -Parent $PSScriptRoot
-Set-Location $root
-$venvPy = Join-Path $root ".venv\Scripts\python.exe"
-$bot = Join-Path $root "jobybot.py"
+. (Join-Path (Split-Path $PSScriptRoot -Parent) "powershell\Jobybot-Init.ps1")
+
+$venvPy = (Resolve-Path $JobybotPy).Path
+$bot = Join-Path $JobybotRoot "jobybot.py"
 
 $wsh = New-Object -ComObject WScript.Shell
 $lnkPath = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\Jobybot Scheduler.lnk"
 $lnk = $wsh.CreateShortcut($lnkPath)
 $lnk.TargetPath = "cmd.exe"
-$lnk.Arguments = "/c `"$venvPy`" `"$bot`" schedule >> `"$root\data\scheduler.log`" 2>&1"
-$lnk.WorkingDirectory = $root
+$lnk.Arguments = "/c `"$venvPy`" `"$bot`" schedule >> `"$JobybotRoot\data\scheduler.log`" 2>&1"
+$lnk.WorkingDirectory = $JobybotRoot
 $lnk.WindowStyle = 7
 $lnk.Save()
 Write-Host "[OK] Startup shortcut: $lnkPath" -ForegroundColor Green
 
-$batPath = Join-Path $root "_run_scheduler.bat"
+$batPath = Join-Path $JobybotRoot "_run_scheduler.bat"
 @"
 @echo off
 cd /d "%~dp0"

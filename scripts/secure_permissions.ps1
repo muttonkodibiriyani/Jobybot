@@ -1,6 +1,4 @@
-# Lock .env, database, and logs so only YOUR Windows user can read them.
-$ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
+$root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 
 $user = "$env:USERDOMAIN\$env:USERNAME"
@@ -16,12 +14,6 @@ function Lock-Item($path) {
 
 Lock-Item (Join-Path $root ".env")
 Lock-Item (Join-Path $root "data")
-if (Test-Path (Join-Path $root "data\jobybot.db")) {
-    Lock-Item (Join-Path $root "data\jobybot.db")
-}
-Get-ChildItem (Join-Path $root "data") -Filter "*.log" -ErrorAction SilentlyContinue | ForEach-Object {
-    Lock-Item $_.FullName
-}
+Get-ChildItem (Join-Path $root "data") -ErrorAction SilentlyContinue | ForEach-Object { Lock-Item $_.FullName }
 
 Write-Host "[OK] Permissions tightened on .env and data\" -ForegroundColor Green
-Write-Host "     Other users on this PC should not read your Gmail App Password." -ForegroundColor Gray

@@ -51,3 +51,8 @@ website/fix-tags.py
 
 # Local commit message scratch
 .git-commit-msg.txt
+
+# Vercel import file (contains real secrets, never commit)
+.env.vercel-import
+.env.vercel*
+

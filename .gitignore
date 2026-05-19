@@ -49,6 +49,12 @@ releases/*.zip
 !releases/.gitkeep
 website/fix-tags.py
 
+# Root-level Node (added so Vercel detects Next.js at the repo root —
+# real app still lives in /website. Lockfile IS committed so Vercel
+# reproduces deterministic installs.)
+node_modules/
+.next/
+
 # Local commit message scratch
 .git-commit-msg.txt
 

@@ -39,3 +39,11 @@ dist/
 *.egg
 .build_log.txt
 BUILD_TASK.md
+
+# Website build
+website/node_modules/
+website/.next/
+website/.env.local
+releases/*.zip
+!releases/.gitkeep
+website/fix-tags.py

@@ -6,6 +6,15 @@ Everything you need, in order.
 
 ---
 
+## Website & sales
+
+| Item | Link |
+|------|------|
+| Marketing site (Next.js) | [`website/README.md`](../website/README.md) |
+| Build installer ZIP | `scripts/package-release.ps1` |
+
+---
+
 ## Start here
 
 | Audience | Document | Purpose |

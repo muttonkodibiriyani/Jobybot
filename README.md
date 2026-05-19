@@ -72,6 +72,20 @@ Curated markets:
 
 ---
 
+## 🌐 Marketing website (Pro sales)
+
+Customer-facing site with Uber/Amazon-style UI, Stripe checkout, and installer download:
+
+```powershell
+cd website
+npm install
+npm run dev
+```
+
+See [`website/README.md`](website/README.md) — deploy to Vercel, configure Stripe, build `releases/Jobybot-Pro-Setup.zip` with `scripts/package-release.ps1`.
+
+---
+
 ## ⚡ Quick install (5 minutes)
 
 ### Prerequisites

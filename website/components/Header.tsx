@@ -6,9 +6,9 @@ import { Logo } from "./Logo";
 
 const links = [
   { href: "/#how", label: "How it works" },
-  { href: "/#markets", label: "Markets" },
+  { href: "/demo", label: "Demo" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/#faq", label: "FAQ" },
+  { href: "/buy-india", label: "Buy in India" },
 ];
 
 export function Header() {
@@ -34,11 +34,17 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link href="https://github.com/muttonkodibiriyani/Jobybot" className="btn-secondary !py-2.5 !text-sm">
-            Community
+          <Link
+            href="/signup"
+            className="btn-secondary !py-2.5 !text-sm"
+          >
+            Sign up
           </Link>
-          <Link href="/pricing" className="btn-primary !py-2.5 !text-sm">
-            Get Jobybot Pro
+          <Link
+            href="/buy-india"
+            className="btn-primary !py-2.5 !text-sm"
+          >
+            Buy ₹2,999
           </Link>
         </div>
 
@@ -67,13 +73,15 @@ export function Header() {
               {l.label}
             </Link>
           ))}
-          <Link href="/pricing" className="btn-primary mt-2 w-full" onClick={() => setOpen(false)}>
-            Get Jobybot Pro
+          <Link
+            href="/buy-india"
+            className="btn-primary mt-2 w-full"
+            onClick={() => setOpen(false)}
+          >
+            Buy ₹2,999
           </Link>
         </div>
       ) : null}
     </header>
   );
 }
-
-

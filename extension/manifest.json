@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Jobybot Apply Helper",
+  "version": "0.1.0",
+  "description": "Pre-fills LinkedIn Easy Apply / Indeed / Bayt / Workday forms with your saved profile. You click Submit.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://*.indeed.com/*",
+    "https://*.bayt.com/*",
+    "https://*.naukrigulf.com/*",
+    "https://*.workday.com/*",
+    "https://*.myworkdayjobs.com/*",
+    "https://*.greenhouse.io/*",
+    "https://*.lever.co/*",
+    "https://*.ashbyhq.com/*",
+    "https://*.smartrecruiters.com/*"
+  ],
+  "action": {
+    "default_title": "Jobybot — fill this form"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

@@ -14,12 +14,17 @@ from typing import List, Dict, Any
 import click
 from loguru import logger
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from config import get_settings, Settings
 from core import db
 from core.resume_parser import build_profile, load_profile
 from core.job_matcher import score_job
 from core.email_finder import find_email
 from core.email_sender import send_application
+from core.email_validator import validate_email
+from core.bounce_tracker import scan_bounces
+from core.dashboard import render_dashboard, DASHBOARD_HTML
 from core.utils import jitter_sleep
 
 # Job sources
@@ -59,9 +64,11 @@ def country_locations(country: str) -> List[str]:
         "Germany":     ["Berlin, Germany", "Munich, Germany", "Frankfurt, Germany"],
         "Netherlands": ["Amsterdam, Netherlands"],
         "Ireland":     ["Dublin, Ireland"],
+        "Sweden":      ["Stockholm, Sweden", "Gothenburg, Sweden"],
         "Canada":      ["Toronto, Canada", "Vancouver, Canada"],
         "Australia":   ["Sydney, Australia", "Melbourne, Australia"],
         "UK":          ["London, United Kingdom", "Manchester, United Kingdom"],
+        "India":       ["Bangalore, India", "Hyderabad, India", "Mumbai, India", "Pune, India"],
     }
     return cmap.get(country, [country])
 
@@ -88,6 +95,12 @@ def load_market(country: str) -> Dict[str, Any]:
     if not fpath.exists():
         return {"contacts": []}
     return json.loads(fpath.read_text(encoding="utf-8"))
+
+
+def is_gdpr_market(country: str) -> bool:
+    """EU + Sweden + UK PECR -> no cold email blast; apply via official site."""
+    m = load_market(country)
+    return bool(m.get("gdpr_strict") or m.get("apply_via_website_only"))
 
 
 # ── HTML click sheet ──────────────────────────────────────────────
@@ -149,41 +162,60 @@ h1{color:#0a66c2;margin-top:0}
 
 # ── Core ops ──────────────────────────────────────────────────────
 def do_search(settings: Settings) -> int:
-    """Search all sources × all titles × all markets. Returns new jobs added."""
+    """Parallel search: all sources × titles × markets. Returns new jobs added."""
     profile = load_profile()
     sources = active_sources(settings)
     new_total = 0
 
-    target_locations = []
+    target_locations: List[str] = []
     for country in settings.all_markets:
         target_locations += country_locations(country)
 
+    tasks: List[tuple] = []
     for country in settings.all_markets:
-        locations = country_locations(country)
-        for title in settings.titles_list:
-            for loc in locations:
+        for loc in country_locations(country):
+            for title in settings.titles_list:
                 for src in sources:
-                    try:
-                        jobs = src.search(title, loc)
-                        for j in jobs[: settings.hourly_job_limit]:
-                            j["match_score"] = score_job(j, profile, target_locations)
-                            if j["match_score"] < settings.match_threshold:
-                                continue
-                            if db.upsert_job(j):
-                                new_total += 1
-                                logger.info(
-                                    f"  + [{j['match_score']}] {j['title'][:50]} "
-                                    f"@ {j['company']} ({src.name}, {country})"
-                                )
-                    except Exception as e:
-                        logger.warning(f"  {src.name} {title} {loc}: {e}")
-                    time.sleep(random.uniform(1, 2))
+                    tasks.append((src, title, loc, country))
+
+    db.log_event("search_start", f"{len(tasks)} tasks across {len(settings.all_markets)} markets")
+    logger.info(f"Search plan: {len(tasks)} (source × title × location) calls — running in parallel")
+
+    def _one(src, title, loc):
+        try:
+            return src.search(title, loc)
+        except Exception as e:
+            logger.warning(f"  {src.name} {title} {loc}: {e}")
+            return []
+
+    # Concurrency: 8 workers is plenty for HTTP and respects target sites
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        future_map = {ex.submit(_one, t[0], t[1], t[2]): t for t in tasks}
+        for fut in as_completed(future_map):
+            src, title, loc, country = future_map[fut]
+            jobs = fut.result() or []
+            for j in jobs[: settings.hourly_job_limit]:
+                j["match_score"] = score_job(j, profile, target_locations)
+                if j["match_score"] < settings.match_threshold:
+                    continue
+                if db.upsert_job(j):
+                    new_total += 1
+                    logger.info(
+                        f"  + [{j['match_score']}] {j['title'][:50]} "
+                        f"@ {j['company']} ({src.name}, {country})"
+                    )
+
+    db.log_event("search_done", f"+{new_total} new jobs")
     logger.success(f"Search complete: {new_total} new jobs added")
     return new_total
 
 
 def do_email_blast(settings: Settings) -> int:
-    """Send personalized emails to recruiters & employers in active markets."""
+    """Send personalized emails to recruiters & employers in active markets.
+
+    Skips GDPR-strict markets entirely (Germany, NL, Ireland, Sweden, UK PECR).
+    Pre-validates emails to cut bounces. Tracks each event for the dashboard.
+    """
     profile = load_profile()
     sent = 0
 
@@ -191,7 +223,13 @@ def do_email_blast(settings: Settings) -> int:
         logger.warning(f"Daily cap ({settings.daily_email_cap}) already reached")
         return 0
 
+    db.log_event("blast_start", "")
     for country in settings.all_markets:
+        if is_gdpr_market(country):
+            logger.info(f"[{country}] GDPR strict — apply via official websites only (skipping email blast)")
+            db.log_event("gdpr_skip", country)
+            continue
+
         market = load_market(country)
         contacts = market.get("contacts", [])
         logger.info(f"\n[{country}] {len(contacts)} contacts")
@@ -199,6 +237,7 @@ def do_email_blast(settings: Settings) -> int:
         for c in contacts:
             if db.emails_sent_today() >= settings.daily_email_cap:
                 logger.warning("Daily cap reached, stopping")
+                db.log_event("blast_capped", str(sent))
                 return sent
 
             ok = send_application(
@@ -212,8 +251,21 @@ def do_email_blast(settings: Settings) -> int:
                 sent += 1
             jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
 
+    db.log_event("blast_done", f"{sent} sent")
     logger.success(f"Email blast complete: {sent} new emails sent")
     return sent
+
+
+def do_bounce_scan(settings: Settings) -> int:
+    """Read Gmail mailbox for delivery failure notifications and mark bad emails."""
+    try:
+        n = scan_bounces(settings.gmail_address, settings.gmail_app_password)
+        if n:
+            db.log_event("bounces_marked", f"{n} bad addresses")
+        return n
+    except Exception as e:
+        logger.warning(f"Bounce scan error: {e}")
+        return 0
 
 
 def do_followups(settings: Settings) -> int:
@@ -296,7 +348,9 @@ def search() -> None:
     n = do_search(settings)
     jobs = db.get_jobs(status="found", limit=200)
     update_inbox_html(jobs)
+    render_dashboard(settings.daily_email_cap)
     logger.success(f"{n} new jobs. Inbox: {INBOX_HTML.absolute()}")
+    logger.info(f"Dashboard: {DASHBOARD_HTML.absolute()}")
 
 
 @cli.command()
@@ -319,18 +373,24 @@ def run() -> None:
     logger.info(f"CYCLE START: {dt.datetime.now()}")
     logger.info("─" * 50)
 
+    bounces = do_bounce_scan(settings)
+    if bounces:
+        logger.warning(f"Quarantined {bounces} bounced address(es)")
+
     new = do_search(settings)
     sent = do_email_blast(settings)
     fups = do_followups(settings)
 
     jobs = db.get_jobs(status="found", limit=200)
     update_inbox_html(jobs)
+    render_dashboard(settings.daily_email_cap)
 
     s = db.stats_summary()
     logger.success(
-        f"Done: +{new} jobs, {sent} emails, {fups} followups. "
+        f"Done: +{new} jobs, {sent} emails, {fups} followups, {bounces} bounces. "
         f"Today total emails: {s['emails_today']}/{settings.daily_email_cap}"
     )
+    logger.info(f"Dashboard: {DASHBOARD_HTML.absolute()}")
 
 
 @cli.command()
@@ -348,11 +408,13 @@ def schedule() -> None:
 
     def cycle() -> None:
         try:
+            do_bounce_scan(settings)
             do_search(settings)
             do_email_blast(settings)
             do_followups(settings)
             jobs = db.get_jobs(status="found", limit=200)
             update_inbox_html(jobs)
+            render_dashboard(settings.daily_email_cap)
         except Exception as e:
             logger.exception(f"Cycle error: {e}")
 

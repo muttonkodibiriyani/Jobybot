@@ -4,6 +4,8 @@
   "language": "English",
   "visa_note": "Skilled Worker visa requires sponsor licence (most big companies have it). Salary threshold £38,700 (2025). High Potential Individual visa for top university graduates (no sponsor needed).",
   "demand": "London = financial+tech capital of Europe. Manchester/Edinburgh strong. Senior PM £80-130k.",
+  "gdpr_strict": true,
+  "uk_pecr_note": "UK PECR allows B2B prospecting but requires soft opt-out; treat strict.",
   "contacts": [
     {"company": "Hays UK",              "email": "info@hays.com",            "category": "Recruiter"},
     {"company": "Michael Page UK",      "email": "info@michaelpage.co.uk",   "category": "Recruiter"},

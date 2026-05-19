@@ -14,6 +14,7 @@ from loguru import logger
 
 from . import db
 from .cover_letter import render, subject_for
+from .email_validator import validate_email
 
 
 def send_email(
@@ -84,6 +85,12 @@ def send_application(
         logger.warning("Daily email cap reached — skipping")
         return False
 
+    valid, reason = validate_email(recipient)
+    if not valid:
+        logger.warning(f"✗ skip {recipient} ({reason})")
+        db.log_event("skip_invalid_email", f"{recipient}: {reason}")
+        return False
+
     ctx = {
         "name":     settings.user_name,
         "email":    settings.user_email,
@@ -116,8 +123,13 @@ def send_application(
 
     if ok:
         db.log_email(recipient, company, category, subject, job_id, followup)
+        db.log_event("email_sent", f"{recipient} ({company})")
         logger.success(f"→ {recipient} ({company})")
     else:
+        # SMTP-level rejection — quarantine the address so we never retry
+        if reason.startswith("recipient_refused") or reason.startswith("smtp_5"):
+            db.mark_invalid_email(recipient, reason)
+        db.log_event("email_failed", f"{recipient}: {reason}")
         logger.warning(f"✗ {recipient}: {reason}")
 
     return ok

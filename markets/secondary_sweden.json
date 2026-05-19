@@ -1,0 +1,26 @@
+{
+  "country": "Sweden",
+  "currency": "SEK",
+  "language": "English widely used in tech",
+  "visa_note": "EU Blue Card / Work Permit; tech skill shortage list includes PM/BA roles. Spotify, Klarna, King, Northvolt all hire English speakers.",
+  "demand": "Stockholm = Nordic tech capital (Spotify, Klarna, iZettle, Truecaller, Mojang). Gothenburg = Volvo Cars + tech. Strong PM/data demand.",
+  "gdpr_strict": true,
+  "apply_via_website_only": true,
+  "career_sites": [
+    {"company": "Spotify",        "url": "https://www.lifeatspotify.com/jobs"},
+    {"company": "Klarna",         "url": "https://jobs.klarna.com/"},
+    {"company": "King (Activision)","url": "https://careers.king.com/"},
+    {"company": "Truecaller",     "url": "https://www.truecaller.com/careers"},
+    {"company": "Northvolt",      "url": "https://northvolt.com/career"},
+    {"company": "Volvo Cars",     "url": "https://www.volvocars.com/intl/v/careers"},
+    {"company": "Ericsson",       "url": "https://www.ericsson.com/en/careers"},
+    {"company": "iZettle / PayPal","url": "https://www.paypal.com/us/jobs"},
+    {"company": "H&M",            "url": "https://career.hm.com/"},
+    {"company": "Tink",           "url": "https://tink.com/jobs/"},
+    {"company": "Sinch",          "url": "https://www.sinch.com/careers/"},
+    {"company": "Mojang Studios", "url": "https://www.mojang.com/careers"},
+    {"company": "Bonnier",        "url": "https://www.bonnier.com/careers"},
+    {"company": "Volvo Group",    "url": "https://www.volvogroup.com/en/careers.html"}
+  ],
+  "contacts": []
+}

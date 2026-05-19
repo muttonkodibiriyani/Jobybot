@@ -4,6 +4,8 @@
   "language": "English (official)",
   "visa_note": "Critical Skills Employment Permit — Tech roles >€32k qualify; >€64k = streamlined fast-track. Path to citizenship after 5 years.",
   "demand": "Dublin = European HQ for Google/Meta/LinkedIn/Microsoft/Apple/AWS/Stripe/Salesforce. Massive tech demand.",
+  "gdpr_strict": true,
+  "apply_via_website_only": true,
   "contacts": [
     {"company": "Hays Ireland",         "email": "info@hays.ie",             "category": "Recruiter"},
     {"company": "Robert Walters Ireland","email": "ireland@robertwalters.com","category": "Recruiter"},

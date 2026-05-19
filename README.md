@@ -16,11 +16,16 @@ Job hunting after a layoff is brutal — you need volume to land interviews. Job
 
 It runs on your own laptop, every hour, around the clock:
 
-- 🔍 **Searches** LinkedIn, Indeed, NaukriGulf, Bayt, RemoteOK for roles matching your resume
+- 🔍 **Searches in parallel** LinkedIn, Indeed, NaukriGulf, Bayt, RemoteOK across every market (8 threads, ~5× faster than before)
+- ✅ **Validates every recipient** before sending — MX records via fallback DNS, role-on-free-provider filter, known-bad cache
+- 🛑 **Tracks bounces** by reading your Gmail inbox for `Mailer-Daemon` NDRs; bad addresses are quarantined forever
+- 🇪🇺 **GDPR-safe mode** — never emails Germany / Netherlands / Ireland / Sweden / UK; still finds jobs there and adds them to your inbox so you apply on official sites
 - 🎯 **Scores** each job against your resume profile (skills + title + location + seniority)
-- ✉️ **Emails** curated lists of recruiters and major employers in 8 markets, with your CV attached
+- ✉️ **Emails** curated lists of recruiters and major employers in non-GDPR markets, with your CV attached
 - 📨 **Follows up** automatically after 7 days
-- 📋 **Generates** a live HTML inbox of high-match Easy Apply jobs you can click and submit in 30 seconds
+- 📊 **Live HTML dashboard** (`DASHBOARD.bat`) shows emails today/cap, jobs by source, last 100 events, top matched jobs, recent bounces — refreshes every 60 s
+- 🖱️ **Browser bookmarklet + Chrome extension** in `extension/` pre-fill any LinkedIn Easy Apply / Indeed / Bayt / Workday / Greenhouse / Lever apply form — you click Submit
+- 📋 **Live HTML inbox** of high-match jobs you can click and submit in 30 seconds
 - 📊 **Tracks everything** in SQLite so nothing is ever sent twice
 
 Curated markets:
@@ -31,7 +36,8 @@ Curated markets:
 | 🥈 Secondary | 🇸🇬 Singapore | Tech.Pass / EP, large Indian community, English official |
 | 🥈 Secondary | 🇩🇪 Germany | EU Blue Card, IT shortage list, sponsorship common |
 | 🥈 Secondary | 🇳🇱 Netherlands | Highly Skilled Migrant, 30% tax ruling, English-friendly |
-| 🥈 Secondary | 🇮🇪 Ireland | Critical Skills Permit, Dublin = tech HQ of Europe |
+| 🥈 Secondary | 🇮🇪 Ireland | Critical Skills Permit, Dublin = tech HQ of Europe (GDPR-strict) |
+| 🥈 Secondary | 🇸🇪 **Sweden** | Spotify / Klarna / Mojang — Nordic tech capital (GDPR-strict) |
 | 🥈 Secondary | 🇨🇦 Canada | Express Entry, very Indian-friendly PR pathway |
 | 🥈 Secondary | 🇦🇺 Australia | Skilled visas, strong demand |
 | 🥈 Secondary | 🇬🇧 UK | Skilled Worker visa, London = financial+tech capital |
@@ -72,9 +78,17 @@ Curated markets:
 
 ---
 
-## 🌐 Marketing website (Pro sales)
+## 🌐 Marketing website (Pro sales · India + global)
 
-Customer-facing site with Uber/Amazon-style UI, Stripe checkout, and installer download:
+Customer-facing site with Uber/Amazon-style UI:
+
+* `/` and `/pricing` — landing + USD/AED/INR pricing
+* `/buy-india` — UPI QR + form upload (txn ref, time, screenshot) for the India market
+* `/signup` — secure account capture (name, email, phone)
+* `/demo` — embedded demo video (set `NEXT_PUBLIC_DEMO_VIDEO_URL`)
+* `/admin` and `/admin/login` — owner verification dashboard, approve to email installer
+* `/api/india-order`, `/api/admin/orders`, `/api/cron/notify-pending` — payment + verify + every-30-min reminder cron
+* `/sitemap.xml`, `/robots.txt`, JSON-LD product schema for Google ranking
 
 ```powershell
 cd website
@@ -82,7 +96,13 @@ npm install
 npm run dev
 ```
 
-See [`website/README.md`](website/README.md) — deploy to Vercel, configure Stripe, build `releases/Jobybot-Pro-Setup.zip` with `scripts/package-release.ps1`.
+Pay with UPI flow:
+1. Customer scans QR on `/buy-india`, pays via GPay / PhonePe / Paytm
+2. Submits form with transaction ref + time + screenshot
+3. Admin gets an email + sees them in `/admin`
+4. Owner approves → customer instantly receives installer download link
+
+See [`website/README.md`](website/README.md) — deploy to Vercel, configure Stripe + UPI VPA, build `releases/Jobybot-Pro-Setup.zip` with `scripts/package-release.ps1`.
 
 ---
 
@@ -106,6 +126,9 @@ See [`website/README.md`](website/README.md) — deploy to Vercel, configure Str
 | [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | Non-technical overview |
 | [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) | `.env` reference |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Security hardening |
+| [`docs/DELIVERABILITY.md`](docs/DELIVERABILITY.md) | **NEW** — email validation, bounce tracking, GDPR mode |
+| [`docs/AUTO_APPLY.md`](docs/AUTO_APPLY.md) | **NEW** — honest take on LinkedIn/Indeed auto-apply + the safe path |
+| [`docs/BOOKMARKLET.md`](docs/BOOKMARKLET.md) | **NEW** — 1-click form pre-fill (bookmarklet + Chrome extension) |
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Fix common errors |
 | [`SHARE_WITH_FRIENDS.md`](SHARE_WITH_FRIENDS.md) | Share safely |
 
@@ -116,6 +139,8 @@ See [`website/README.md`](website/README.md) — deploy to Vercel, configure Str
 | [`SETUP_FOR_FRIENDS.bat`](SETUP_FOR_FRIENDS.bat) | New PC: install + auto-schedule |
 | [`START_AUTOSCHEDULE.bat`](START_AUTOSCHEDULE.bat) | Start 24/7 bot + login auto-start |
 | [`RUN_BOT_NOW.bat`](RUN_BOT_NOW.bat) | Search + email **right now** |
+| [`DASHBOARD.bat`](DASHBOARD.bat) | **NEW** — open the live activity dashboard |
+| [`CHECK_BOUNCES.bat`](CHECK_BOUNCES.bat) | **NEW** — scan Gmail for delivery failures and quarantine bad addresses |
 | [`JOBYBOT.bat`](JOBYBOT.bat) | Interactive menu |
 | [`TEST_ALL_COMMANDS.bat`](TEST_ALL_COMMANDS.bat) | Test all scripts |
 | [`SECURITY_CHECK.bat`](SECURITY_CHECK.bat) | Lock secrets + audit |

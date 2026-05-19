@@ -4,6 +4,8 @@
   "language": "English in tech roles; German preferred but not required for big tech",
   "visa_note": "EU Blue Card for >€45,300/yr roles. Indian-friendly; large Indian tech community in Berlin/Munich.",
   "demand": "Strong demand - SAP ecosystem, automotive tech, fintech (N26, Solaris). Senior PM €80-130k.",
+  "gdpr_strict": true,
+  "apply_via_website_only": true,
   "contacts": [
     {"company": "Michael Page Germany",   "email": "muenchen@michaelpage.de",  "category": "Recruiter"},
     {"company": "Hays Germany",           "email": "info@hays.de",             "category": "Recruiter"},

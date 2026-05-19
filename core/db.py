@@ -67,6 +67,28 @@ def init_db() -> None:
                 jobs_found   INTEGER DEFAULT 0,
                 applies      INTEGER DEFAULT 0
             );
+
+            CREATE TABLE IF NOT EXISTS invalid_emails (
+                email       TEXT PRIMARY KEY,
+                reason      TEXT,
+                bounced_at  TEXT NOT NULL,
+                bounce_code TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS validation_cache (
+                email       TEXT PRIMARY KEY,
+                valid       INTEGER NOT NULL,
+                reason      TEXT,
+                checked_at  TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS run_log (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                event       TEXT NOT NULL,
+                detail      TEXT,
+                at          TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_runlog_at ON run_log(at);
             """
         )
 
@@ -194,16 +216,93 @@ def get_cached_email(company: str) -> Optional[str]:
         return r["resolved_email"] if r else None
 
 
+# ─── Invalid emails (bounces) ────────────────────────────────────
+def mark_invalid_email(email: str, reason: str, code: str = "") -> None:
+    with _conn() as c:
+        c.execute(
+            "INSERT OR REPLACE INTO invalid_emails (email, reason, bounced_at, bounce_code) "
+            "VALUES (?, ?, ?, ?)",
+            (email.lower(), reason, dt.datetime.utcnow().isoformat(), code),
+        )
+
+
+def is_invalid_email(email: str) -> bool:
+    with _conn() as c:
+        r = c.execute(
+            "SELECT 1 FROM invalid_emails WHERE email=?", (email.lower(),)
+        ).fetchone()
+        return bool(r)
+
+
+def get_invalid_emails(limit: int = 200) -> List[Dict[str, Any]]:
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT * FROM invalid_emails ORDER BY bounced_at DESC LIMIT ?", (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+# ─── Validation cache ────────────────────────────────────────────
+def cache_validation(email: str, valid: bool, reason: str) -> None:
+    with _conn() as c:
+        c.execute(
+            "INSERT OR REPLACE INTO validation_cache (email, valid, reason, checked_at) "
+            "VALUES (?, ?, ?, ?)",
+            (email.lower(), 1 if valid else 0, reason, dt.datetime.utcnow().isoformat()),
+        )
+
+
+def get_validation(email: str) -> Optional[Dict[str, Any]]:
+    with _conn() as c:
+        r = c.execute(
+            "SELECT * FROM validation_cache WHERE email=?", (email.lower(),)
+        ).fetchone()
+        return dict(r) if r else None
+
+
+# ─── Run log (dashboard) ─────────────────────────────────────────
+def log_event(event: str, detail: str = "") -> None:
+    with _conn() as c:
+        c.execute(
+            "INSERT INTO run_log (event, detail, at) VALUES (?, ?, ?)",
+            (event, detail, dt.datetime.utcnow().isoformat()),
+        )
+
+
+def get_run_log(limit: int = 50) -> List[Dict[str, Any]]:
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT * FROM run_log ORDER BY id DESC LIMIT ?", (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def jobs_by_source() -> List[Dict[str, Any]]:
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT source, COUNT(*) AS n FROM jobs WHERE status='found' "
+            "GROUP BY source ORDER BY n DESC"
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
 # ─── Stats ────────────────────────────────────────────────────────
 def stats_summary() -> Dict[str, Any]:
+    today = dt.date.today().isoformat()
     with _conn() as c:
         total_jobs    = c.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
         total_applied = c.execute("SELECT COUNT(*) FROM jobs WHERE status='applied'").fetchone()[0]
         total_emails  = c.execute("SELECT COUNT(*) FROM emails_sent").fetchone()[0]
         today_emails  = emails_sent_today()
+        bounces       = c.execute("SELECT COUNT(*) FROM invalid_emails").fetchone()[0]
+        jobs_today    = c.execute(
+            "SELECT COUNT(*) FROM jobs WHERE found_at LIKE ?", (today + "%",)
+        ).fetchone()[0]
         return {
             "total_jobs":      total_jobs,
             "total_applied":   total_applied,
             "total_emails":    total_emails,
             "emails_today":    today_emails,
+            "jobs_today":      jobs_today,
+            "bounces":         bounces,
         }

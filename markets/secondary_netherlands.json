@@ -4,6 +4,8 @@
   "language": "English (Dutch optional, most companies operate in English)",
   "visa_note": "Highly Skilled Migrant scheme - €5008/mo min salary. 30% ruling = tax-free for 5 years. Indian-friendly.",
   "demand": "Strong fintech, e-commerce, AI. Amsterdam/Rotterdam tech scene very international. Senior PM €70-110k.",
+  "gdpr_strict": true,
+  "apply_via_website_only": true,
   "contacts": [
     {"company": "Michael Page Netherlands","email": "info@michaelpage.nl",     "category": "Recruiter"},
     {"company": "Hays Netherlands",        "email": "info@hays.nl",            "category": "Recruiter"},

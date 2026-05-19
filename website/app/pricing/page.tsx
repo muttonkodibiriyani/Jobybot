@@ -15,32 +15,55 @@ export default function PricingPage() {
         </p>
       </div>
 
-      <article className="card mx-auto mt-12 max-w-lg border-2 border-accent shadow-lift">
-        <p className="text-sm font-semibold text-accent">Most popular</p>
-        <h2 className="mt-2 text-2xl font-bold">{plan.name}</h2>
-        <p className="mt-1 text-ink-muted">{plan.description}</p>
-        <p className="mt-6 flex items-baseline gap-2">
-          <span className="text-5xl font-bold tracking-tight">{plan.priceDisplay.USD}</span>
-          <span className="text-ink-muted">one-time</span>
-        </p>
-        <p className="mt-1 text-sm text-ink-muted">
-          Also shown at checkout: {plan.priceDisplay.AED} · {plan.priceDisplay.INR}
-        </p>
-        <ul className="mt-8 space-y-3 border-t border-surface-border pt-8">
-          {plan.features.map((f) => (
-            <li key={f} className="flex gap-3 text-sm">
-              <span className="text-success font-bold" aria-hidden>
-                ✓
-              </span>
-              {f}
-            </li>
-          ))}
-        </ul>
-        <CheckoutButton className="mt-10 w-full" />
-        <p className="mt-4 text-center text-xs text-ink-muted">
-          Secure checkout by Stripe. Download link immediately after payment.
-        </p>
-      </article>
+      <div className="mt-12 grid gap-6 lg:grid-cols-2">
+        <article className="card border-2 border-accent shadow-lift">
+          <p className="text-sm font-semibold text-accent">India · UPI</p>
+          <h2 className="mt-2 text-2xl font-bold">{plan.name}</h2>
+          <p className="mt-1 text-ink-muted">{plan.description}</p>
+          <p className="mt-6 flex items-baseline gap-2">
+            <span className="text-5xl font-bold tracking-tight">{plan.priceDisplay.INR}</span>
+            <span className="text-ink-muted">one-time</span>
+          </p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Pay by GPay, PhonePe, Paytm — manual verification in ~30 min.
+          </p>
+          <ul className="mt-8 space-y-3 border-t border-surface-border pt-8">
+            {plan.features.map((f) => (
+              <li key={f} className="flex gap-3 text-sm">
+                <span className="text-success font-bold" aria-hidden>✓</span>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <Link href="/buy-india" className="btn-primary mt-10 w-full text-center">
+            Pay with UPI →
+          </Link>
+          <p className="mt-4 text-center text-xs text-ink-muted">
+            Scan QR · upload screenshot · we email your installer.
+          </p>
+        </article>
+
+        <article className="card">
+          <p className="text-sm font-semibold text-ink-muted">International · card</p>
+          <h2 className="mt-2 text-2xl font-bold">{plan.name}</h2>
+          <p className="mt-1 text-ink-muted">{plan.description}</p>
+          <p className="mt-6 flex items-baseline gap-2">
+            <span className="text-5xl font-bold tracking-tight">{plan.priceDisplay.USD}</span>
+            <span className="text-ink-muted">one-time</span>
+          </p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Also accepted: {plan.priceDisplay.AED}
+          </p>
+          <p className="mt-8 border-t border-surface-border pt-8 text-sm text-ink-muted">
+            Card / Apple Pay / Google Pay via Stripe. Instant download after
+            payment.
+          </p>
+          <CheckoutButton className="mt-8 w-full" />
+          <p className="mt-4 text-center text-xs text-ink-muted">
+            Secure checkout by Stripe.
+          </p>
+        </article>
+      </div>
 
       <p className="mt-12 text-center text-sm text-ink-muted">
         Want free?{" "}

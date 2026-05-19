@@ -79,18 +79,33 @@ Curated markets:
 - **Gmail account** with an [App Password](https://myaccount.google.com/apppasswords) (2FA must be enabled)
 - **Resume PDF** (any standard CV)
 
-### 🆕 For non-technical users
-👉 **Read [`docs/POWERSHELL_COMPLETE.md`](docs/POWERSHELL_COMPLETE.md)** — every PowerShell command (fixed, copy-paste ready)
-👉 **Double-click [`TEST_ALL_COMMANDS.bat`](TEST_ALL_COMMANDS.bat)** — runs all safe commands to verify install
-👉 **Read [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)** — complete guide: what the bot does, all scenarios, one-click files
-👉 **Read [`docs/SECURITY.md`](docs/SECURITY.md)** — how secrets are protected
-👉 **Read [`HOW_TO_RUN.md`](HOW_TO_RUN.md)** — first-time setup (15 minutes)
-👉 **Read [`COMMANDS.md`](COMMANDS.md)** — every PowerShell command, copy-paste ready
-👉 **Double-click [`JOBYBOT.bat`](JOBYBOT.bat)** — interactive menu (start / stop / stats / emergency)
-👉 **Double-click [`RUN_BOT_NOW.bat`](RUN_BOT_NOW.bat)** — search jobs + send emails immediately
-👉 **Double-click [`SETUP_FOR_FRIENDS.bat`](SETUP_FOR_FRIENDS.bat)** — share with friends: install + auto-schedule (they use their own `.env`)
-👉 **Double-click [`SECURITY_CHECK.bat`](SECURITY_CHECK.bat)** — lock `.env` permissions + security audit
-👉 **Double-click [`SYNC_GITHUB.bat`](SYNC_GITHUB.bat)** — pull latest version from GitHub
+### 📚 Full documentation
+
+**Start here:** [`docs/INDEX.md`](docs/INDEX.md) — master index of every guide and script.
+
+| Guide | Description |
+|-------|-------------|
+| [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | **Daily ops:** start, stop, 30-min schedule, emails, apply inbox |
+| [`docs/POWERSHELL_COMPLETE.md`](docs/POWERSHELL_COMPLETE.md) | All PowerShell commands (tested) |
+| [`HOW_TO_RUN.md`](HOW_TO_RUN.md) | First-time Windows install |
+| [`COMMANDS.md`](COMMANDS.md) | PowerShell cheat sheet |
+| [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | Non-technical overview |
+| [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) | `.env` reference |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Security hardening |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Fix common errors |
+| [`SHARE_WITH_FRIENDS.md`](SHARE_WITH_FRIENDS.md) | Share safely |
+
+### 🆕 One-click (Windows)
+
+| File | Action |
+|------|--------|
+| [`SETUP_FOR_FRIENDS.bat`](SETUP_FOR_FRIENDS.bat) | New PC: install + auto-schedule |
+| [`START_AUTOSCHEDULE.bat`](START_AUTOSCHEDULE.bat) | Start 24/7 bot + login auto-start |
+| [`RUN_BOT_NOW.bat`](RUN_BOT_NOW.bat) | Search + email **right now** |
+| [`JOBYBOT.bat`](JOBYBOT.bat) | Interactive menu |
+| [`TEST_ALL_COMMANDS.bat`](TEST_ALL_COMMANDS.bat) | Test all scripts |
+| [`SECURITY_CHECK.bat`](SECURITY_CHECK.bat) | Lock secrets + audit |
+| [`SYNC_GITHUB.bat`](SYNC_GITHUB.bat) | Pull from GitHub |
 
 ### Windows
 

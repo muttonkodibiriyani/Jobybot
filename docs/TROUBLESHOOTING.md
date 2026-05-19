@@ -34,7 +34,7 @@ If still empty, check `data/resume_profile.json` to see what was extracted, then
 Normal for cold outreach. Mitigations already built in:
 - Plain text body (no spammy HTML)
 - Personalized subject with your name
-- Reasonable rate limit (default 80/day)
+- Reasonable rate limit (default 200/day)
 
 To improve further:
 - Use your own custom domain Gmail (Google Workspace) instead of `@gmail.com`
@@ -64,7 +64,7 @@ sudo loginctl enable-linger $USER
 
 ## "Daily cap reached too fast"
 
-Lower `DAILY_EMAIL_CAP=40` or wait for next UTC midnight. Each market has 30-80 contacts so 80/day spreads naturally.
+Lower `DAILY_EMAIL_CAP=100` if Gmail flags mail as spam, or wait until the next calendar day. Each market has dozens of contacts; 200/day lets you reach more recruiters while staying within Gmail norms.
 
 ## "Want to add more contacts"
 

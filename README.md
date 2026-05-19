@@ -1,6 +1,6 @@
 # 🎯 Jobybot
 
-> **Lost your job? Apply to 50+ jobs every single day, automatically.**
+> **Lost your job? Apply to 200+ outreach touches every single day, automatically.**
 > Free. Open-source. Self-hosted. No SaaS fees. Runs 24/7 in the background.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -80,9 +80,12 @@ Curated markets:
 - **Resume PDF** (any standard CV)
 
 ### 🆕 For non-technical users
-👉 **Read [`HOW_TO_RUN.md`](HOW_TO_RUN.md)** — step-by-step guide, no jargon, screenshots-style instructions
-👉 **Read [`COMMANDS.md`](COMMANDS.md)** — every PowerShell command you'll ever need, organized by scenario
-👉 **Double-click [`JOBYBOT.bat`](JOBYBOT.bat)** after install — opens an interactive menu (no commands to type!)
+👉 **Read [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)** — complete guide: what the bot does, all scenarios, one-click files
+👉 **Read [`HOW_TO_RUN.md`](HOW_TO_RUN.md)** — first-time setup (15 minutes)
+👉 **Read [`COMMANDS.md`](COMMANDS.md)** — every PowerShell command, copy-paste ready
+👉 **Double-click [`JOBYBOT.bat`](JOBYBOT.bat)** — interactive menu (start / stop / stats / emergency)
+👉 **Double-click [`RUN_BOT_NOW.bat`](RUN_BOT_NOW.bat)** — search jobs + send emails immediately
+👉 **Double-click [`SYNC_GITHUB.bat`](SYNC_GITHUB.bat)** — pull latest version from GitHub
 
 ### Windows
 
@@ -135,7 +138,7 @@ TARGET_TITLES="Product Manager,Senior Product Manager,Business Analyst"
 PRIMARY_MARKET=UAE
 SECONDARY_MARKETS="Singapore,Germany,Netherlands,Ireland,Canada,UK"
 
-DAILY_EMAIL_CAP=80
+DAILY_EMAIL_CAP=200
 RUN_INTERVAL_MINUTES=60
 MATCH_THRESHOLD=50
 ```
@@ -206,13 +209,13 @@ Cumulative:
 ## ❓ FAQ
 
 **Will recruiters know this is a bot?**
-The emails are personalized per category (recruiter / employer / consulting / tech / retail) with your real name, phone, LinkedIn, and a human-written cover letter. They look like the cold outreach emails any motivated job-seeker would send. Volume is the same as a person sending ~80 emails a day, which is well within normal active-search behaviour.
+The emails are personalized per category (recruiter / employer / consulting / tech / retail) with your real name, phone, LinkedIn, and a human-written cover letter. They look like the cold outreach emails any motivated job-seeker would send. Volume is the same as a person sending up to ~200 emails a day during an active search, which is still below Gmail's hard limits for most accounts.
 
 **How many interviews should I expect?**
 Real numbers from our beta users (Dubai PM/BA roles): ~3-8 recruiter calls per week after the first 3 days. Conversion depends entirely on your resume quality and how well-targeted your titles are.
 
 **Is this against Gmail / LinkedIn ToS?**
-- **Gmail:** Sending personalized job-application emails from your own account is normal use. We respect rate limits (default 80/day) which is far below Gmail's hard limits (500-2000/day depending on account age).
+- **Gmail:** Sending personalized job-application emails from your own account is normal use. We respect rate limits (default 200/day) which is below Gmail's hard limits (500-2000/day depending on account age).
 - **LinkedIn:** We only use LinkedIn's **public guest search** (no login, no scraping inside logged-in pages). We never automate clicks on Easy Apply itself — we just give you direct URLs to open manually.
 
 **Will my emails go to spam?**

@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     secondary_markets: str = Field("Singapore,Germany,Netherlands,Ireland,Canada,UK")
 
     # Limits
-    daily_email_cap:      int = Field(80)
+    daily_email_cap:      int = Field(200)
     hourly_job_limit:     int = Field(20)
     match_threshold:      int = Field(50)
     run_interval_minutes: int = Field(60)

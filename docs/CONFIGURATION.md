@@ -30,7 +30,7 @@ All Jobybot behaviour is controlled via `.env` in the project root.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DAILY_EMAIL_CAP` | `80` | Max emails sent in 24h |
+| `DAILY_EMAIL_CAP` | `200` | Max emails sent per calendar day |
 | `HOURLY_JOB_LIMIT` | `20` | Max new jobs added per source per cycle |
 | `MATCH_THRESHOLD` | `50` | Min match score (0-100) to keep a job |
 | `RUN_INTERVAL_MINUTES` | `60` | Scheduler cycle frequency |

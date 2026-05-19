@@ -4,6 +4,16 @@
 
 This guide gets your job application bot running on your own computer in **15 minutes**. It will then automatically search for jobs and email recruiters every hour, every day, while you sleep.
 
+### ⚡ Already installed? One-click shortcuts
+
+| Double-click this file | What happens |
+|------------------------|--------------|
+| **JOBYBOT.bat** | Full menu (start, stop, stats, emergency stop) |
+| **RUN_BOT_NOW.bat** | Search all job sites + send emails **right now** (one cycle) |
+| **SYNC_GITHUB.bat** | Download latest updates from GitHub |
+
+Full non-IT guide with every PowerShell command: **`docs/USER_GUIDE.md`** · Cheat sheet: **`COMMANDS.md`**
+
 ---
 
 ## 📋 What you need before starting
@@ -164,7 +174,7 @@ PowerShell -ExecutionPolicy Bypass -File install.ps1
 After installation, the bot starts immediately:
 - Searches LinkedIn, Indeed, NaukriGulf, Bayt, RemoteOK for matching jobs (~10 min)
 - Scores each job against your CV
-- Sends personalized emails with your CV attached to ~80 curated recruiters/employers (1 email per ~45 seconds)
+- Sends personalized emails with your CV attached to curated recruiters/employers (up to 200/day, ~45 seconds between emails)
 
 ### Check progress at any time
 
@@ -185,7 +195,7 @@ Open the `Jobybot` folder. You'll see a new sub-folder called `data` with:
   Jobs found     : 335
   Applied        : 0
   Emails sent    : 18
-  Emails today   : 18/80
+  Emails today   : 18/200
 ```
 
 ### Check your Gmail
@@ -208,7 +218,7 @@ To verify:
 
 Now the bot:
 - **Searches new jobs every 60 minutes**
-- **Sends up to 80 emails per day** (Gmail's safe limit)
+- **Sends up to 200 emails per day** by default (`DAILY_EMAIL_CAP` in `.env`)
 - **Sends 7-day follow-ups** to recruiters who didn't reply
 - **Emails you a daily summary** at 9 AM
 - **Restarts automatically** when you reboot your PC

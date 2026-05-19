@@ -4,6 +4,10 @@
 
 This file lists every command you'll ever need to run Jobybot from your own computer. No coding knowledge required.
 
+**Also read:** `docs/USER_GUIDE.md` (plain-English overview + one-click `.bat` files) · **Double-click:** `RUN_BOT_NOW.bat` (search + email now) · `JOBYBOT.bat` (full menu) · `SYNC_GITHUB.bat` (update from GitHub)
+
+**Daily email limit:** 200/day (set `DAILY_EMAIL_CAP=200` in `.env`). If you still see cap **80**, your `.env` was not updated — change that line and save.
+
 ---
 
 ## 🎓 How to use this file
@@ -145,7 +149,7 @@ You'll see:
   Jobs found     : 335
   Applied        : 0
   Emails sent    : 47
-  Emails today   : 47/80
+  Emails today   : 47/200
 ```
 
 ---
@@ -390,7 +394,7 @@ notepad .env
 ```
 
 Common things you might want to change:
-- `DAILY_EMAIL_CAP=80` → lower this if Gmail flags emails as spam, e.g. `40`
+- `DAILY_EMAIL_CAP=200` → lower this if Gmail flags emails as spam, e.g. `100`
 - `TARGET_TITLES="..."` → add/remove job titles
 - `SECONDARY_MARKETS="..."` → change which countries to target
 - `RUN_INTERVAL_MINUTES=60` → change to `120` for every 2 hours
@@ -438,7 +442,7 @@ Your `.env` file is empty or missing. Look for `.env.example` in the folder, cop
 Either rename your CV to exactly `resume.pdf` and put it in the Jobybot folder, OR change `RESUME_PATH=` in `.env` to the full path of your PDF.
 
 ### "Daily cap reached"
-Normal! The bot stops at 80 emails/day to avoid Gmail issues. It'll resume tomorrow.
+Normal! The bot stops at your `DAILY_EMAIL_CAP` (default **200** emails/day). If the message still says **80**, open `.env` and set `DAILY_EMAIL_CAP=200`, save, then try again tomorrow. It resumes the next calendar day.
 
 ### Bot is running but no emails are sent
 Check the log:

@@ -44,6 +44,10 @@ BUILD_TASK.md
 website/node_modules/
 website/.next/
 website/.env.local
+website/data/
 releases/*.zip
 !releases/.gitkeep
 website/fix-tags.py
+
+# Local commit message scratch
+.git-commit-msg.txt

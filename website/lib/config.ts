@@ -1,7 +1,23 @@
 export const SITE = {
-  name: "Jobybot",
-  tagline: "Search jobs every hour. Email recruiters with your resume.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  name: "Jobybots",
+  tagline: "Your AI Job Hunter. 24/7. On Your Laptop.",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com",
+};
+
+export const SUPPORT = {
+  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "tharakesh.iitp@gmail.com",
+  phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+91 7989931325",
+  phoneDigits: (process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+91 7989931325").replace(/\D/g, ""),
+  hours: "Mon–Sat · 10:00 – 20:00 IST",
+  refundDays: 7,
+  verificationWindow: "30 minutes",
+};
+
+export const PAYMENT = {
+  upiQrImage: "/phonepe-qr.png",
+  upiPayeeName: "DARAPU THARAKESWARA REDDY",
+  upiVpa: process.env.NEXT_PUBLIC_UPI_VPA ?? "",
+  amountInr: Number(process.env.NEXT_PUBLIC_INR_PRICE ?? 2999),
 };
 
 export const PRICING = {
@@ -30,7 +46,7 @@ export const PRICING = {
 };
 
 export const UPI = {
-  vpa: process.env.NEXT_PUBLIC_UPI_VPA ?? "yourname@okhdfcbank",
-  payeeName: process.env.NEXT_PUBLIC_UPI_PAYEE_NAME ?? "Jobybot",
+  vpa: process.env.NEXT_PUBLIC_UPI_VPA ?? "",
+  payeeName: process.env.NEXT_PUBLIC_UPI_PAYEE_NAME ?? "DARAPU THARAKESWARA REDDY",
   amountInr: Number(process.env.NEXT_PUBLIC_INR_PRICE ?? 2999),
 };

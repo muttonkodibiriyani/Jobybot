@@ -5,10 +5,11 @@ import { useState } from "react";
 import { Logo } from "./Logo";
 
 const links = [
-  { href: "/#how", label: "How it works" },
+  { href: "/", label: "Home" },
   { href: "/demo", label: "Demo" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/buy-india", label: "Buy in India" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/refund", label: "Refund" },
 ];
 
 export function Header() {
@@ -17,11 +18,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-surface-border bg-surface/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-page items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" aria-label="Jobybot home">
-          <Logo size="sm" />
+        <Link href="/" aria-label="JobyBots home">
+          <Logo size="md" />
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Main">
+        <nav className="hidden items-center gap-7 md:flex" aria-label="Main">
           {links.map((l) => (
             <Link
               key={l.href}
@@ -34,16 +35,10 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/signup"
-            className="btn-secondary !py-2.5 !text-sm"
-          >
+          <Link href="/signup" className="btn-secondary !py-2.5 !text-sm">
             Sign up
           </Link>
-          <Link
-            href="/buy-india"
-            className="btn-primary !py-2.5 !text-sm"
-          >
+          <Link href="/buy-india" className="btn-primary !py-2.5 !text-sm">
             Buy ₹2,999
           </Link>
         </div>

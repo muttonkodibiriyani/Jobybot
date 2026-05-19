@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { saveOrder, newOrderId, type Order } from "@/lib/orders";
 import { sendAdminNotify } from "@/lib/mailer";
+import { rateLimit, clientIp, trackSuspicious } from "@/lib/security";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -10,6 +11,15 @@ export const maxDuration = 30;
 const MAX_BYTES = 4 * 1024 * 1024; // 4 MB
 
 export async function POST(req: NextRequest) {
+  const ip = clientIp(req);
+  const rl = rateLimit(`order:${ip}`, 6, 60 * 60 * 1000);
+  if (!rl.ok) {
+    await trackSuspicious("order_rate_limit", ip, "too many submissions");
+    return NextResponse.json(
+      { ok: false, error: "Too many submissions. Try again later or email support." },
+      { status: 429 },
+    );
+  }
   try {
     const fd = await req.formData();
     const name = String(fd.get("name") ?? "").trim();

@@ -40,9 +40,12 @@ async function AdminError({
 }) {
   const { error } = await searchParams;
   if (!error) return null;
+  const msg = error === "ratelimit"
+    ? "Too many attempts. Wait 10 minutes — owner has been alerted."
+    : "Wrong password.";
   return (
     <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-      Wrong password.
+      {msg}
     </div>
   );
 }

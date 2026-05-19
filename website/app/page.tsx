@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { CheckoutButton } from "@/components/CheckoutButton";
+import Image from "next/image";
+import { ComparisonTable } from "@/components/ComparisonTable";
+import { SUPPORT, PAYMENT } from "@/lib/config";
 
 const stats = [
-  { value: "200", label: "Emails / day cap" },
-  { value: "8", label: "Countries built-in" },
-  { value: "60m", label: "Default search cycle" },
+  { value: "200", label: "Validated emails / day" },
+  { value: "8+", label: "Markets supported" },
+  { value: "30 min", label: "Search cadence" },
   { value: "100%", label: "Runs on your PC" },
 ];
 
@@ -12,78 +14,121 @@ const steps = [
   {
     n: "1",
     title: "Install on your laptop",
-    body: "Windows 10+. One installer. Your Gmail App Password stays local in .env — never on our servers.",
+    body: "Windows 10+. One installer. Your Gmail App Password stays local — nothing on our servers.",
   },
   {
     n: "2",
-    title: "Jobybot searches every hour",
-    body: "LinkedIn, Indeed, Bayt, Naukri Gulf, RemoteOK — matched to your resume and target titles.",
+    title: "JobyBots searches every 30–60 min",
+    body: "LinkedIn, Indeed, Bayt, Naukri Gulf, RemoteOK — 8 sources in parallel, ranked by your resume.",
   },
   {
     n: "3",
-    title: "Emails recruiters for you",
-    body: "Personalized cover letters + your PDF to curated UAE, India, Singapore, EU, UK, Canada contacts.",
+    title: "Emails recruiters automatically",
+    body: "MX-validated + bounce-tracked. GDPR-safe markets get inbox-only treatment.",
   },
   {
     n: "4",
     title: "You apply in one click",
-    body: "Live HTML inbox ranks jobs. Open & Apply on LinkedIn Easy Apply in ~30 seconds each.",
+    body: "Browser bookmarklet pre-fills LinkedIn Easy Apply, Indeed, Workday, Greenhouse — you click Submit.",
   },
 ];
 
-const markets = ["UAE", "India outbound", "Singapore", "Germany", "Netherlands", "Ireland", "Canada", "UK"];
+const markets = ["India", "UAE", "Singapore", "Germany", "Netherlands", "Ireland", "Sweden", "Canada", "UK", "Australia"];
+
+const trust = [
+  { label: "HTTPS + HSTS preload" },
+  { label: "CSP & rate-limited" },
+  { label: "GDPR-safe by design" },
+  { label: "7-day refund" },
+  { label: "Owner-verified payments" },
+  { label: "MIT community edition" },
+];
 
 export default function HomePage() {
   return (
     <>
+      {/* HERO */}
       <section className="bg-ink text-white">
-        <div className="mx-auto max-w-page section-pad lg:flex lg:items-center lg:gap-16">
+        <div className="mx-auto max-w-page section-pad px-4 lg:flex lg:items-center lg:gap-16">
           <div className="flex-1">
-            <p className="eyebrow text-white/60">Job search, automated — on your terms</p>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-[3.5rem] lg:leading-[1.08]">
-              While you sleep, Jobybot finds jobs and emails recruiters.
+            <p className="eyebrow text-white/60">Your AI Job Hunter · 24/7 · On Your Laptop</p>
+            <Image
+              src="/jobybots-logo.png"
+              alt="JobyBots — Your AI Job Hunter. 24/7. On Your Laptop."
+              width={1024}
+              height={512}
+              priority
+              className="-ml-2 mt-6 h-auto w-full max-w-[560px] rounded-2xl bg-white p-4"
+            />
+            <h1 className="mt-8 text-3xl font-bold tracking-tight sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
+              200 validated job applications a day —
+              <br className="hidden sm:block" />
+              without giving anyone your LinkedIn password.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              The precision of a top marketplace product — built for job seekers in{" "}
-              <strong className="text-white">UAE</strong>, <strong className="text-white">India</strong>,
-              and worldwide. No cloud account. No resume upload to us.
+              Built for ambitious job seekers in <strong className="text-white">India, UAE, Singapore,
+              and 5 more markets</strong>. One-time ₹{PAYMENT.amountInr.toLocaleString("en-IN")}.
+              Lifetime. Runs on your PC.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <CheckoutButton className="!bg-accent hover:!bg-accent-hover" />
-              <Link href="/#how" className="btn-secondary !border-white/20 !bg-transparent !text-white hover:!bg-white/10">
-                See how it works
+              <Link href="/buy-india" className="btn-primary text-center">
+                Buy with UPI · ₹{PAYMENT.amountInr.toLocaleString("en-IN")}
+              </Link>
+              <Link
+                href="/demo"
+                className="btn-secondary !border-white/20 !bg-transparent !text-white hover:!bg-white/10"
+              >
+                Watch the demo
               </Link>
             </div>
-            <p className="mt-6 text-sm text-white/50">
-              One-time purchase · Installer for Windows · MIT community edition on GitHub
+            <p className="mt-6 flex flex-wrap items-center gap-2 text-sm text-white/60">
+              {trust.map((t) => (
+                <span
+                  key={t.label}
+                  className="rounded-full border border-white/15 px-3 py-1"
+                >
+                  ✓ {t.label}
+                </span>
+              ))}
             </p>
           </div>
+
           <div className="mt-12 flex-1 lg:mt-0">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lift backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-wider text-accent">Live dashboard</p>
-              <p className="mt-2 text-2xl font-bold">47 matched jobs ready</p>
-              <ul className="mt-6 space-y-4 text-sm">
-                <li className="flex justify-between border-b border-white/10 pb-3">
-                  <span>Senior Product Manager · Careem</span>
-                  <span className="font-bold text-accent">85</span>
-                </li>
-                <li className="flex justify-between border-b border-white/10 pb-3">
-                  <span>Data PM · talabat</span>
-                  <span className="font-bold text-accent">82</span>
-                </li>
-                <li className="flex justify-between pb-1">
-                  <span>Business Analyst · ENOC</span>
-                  <span className="font-bold text-accent">78</span>
-                </li>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wider text-accent">
+                  Live dashboard preview
+                </p>
+                <span className="rounded-full bg-success/20 px-2.5 py-0.5 text-xs font-bold text-success">
+                  ● Active
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-bold">47 matched jobs</p>
+              <p className="text-sm text-white/60">+ 135 / 200 emails sent today</p>
+              <ul className="mt-6 space-y-3 text-sm">
+                {[
+                  ["Senior Product Manager · Careem",   "85"],
+                  ["Data PM · talabat",                  "82"],
+                  ["Business Analyst · ENOC",            "78"],
+                  ["AI Lead · Razorpay",                 "76"],
+                ].map(([t, s]) => (
+                  <li key={t} className="flex justify-between border-b border-white/10 pb-2.5">
+                    <span>{t}</span>
+                    <span className="font-bold text-accent">{s}</span>
+                  </li>
+                ))}
               </ul>
-              <p className="mt-4 text-xs text-white/50">+ emails sent today with your CV attached</p>
+              <p className="mt-4 text-xs text-white/40">
+                Auto-refreshes every 60s · bounce-tracked · GDPR-safe
+              </p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* STATS */}
       <section className="border-b border-surface-border bg-surface-subtle">
-        <div className="mx-auto grid max-w-page grid-cols-2 gap-6 section-pad sm:grid-cols-4">
+        <div className="mx-auto grid max-w-page grid-cols-2 gap-6 section-pad px-4 sm:grid-cols-4">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
               <p className="text-3xl font-bold text-ink sm:text-4xl">{s.value}</p>
@@ -93,7 +138,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="how" className="mx-auto max-w-page section-pad">
+      {/* HOW IT WORKS */}
+      <section id="how" className="mx-auto max-w-page section-pad px-4">
         <p className="eyebrow">How it works</p>
         <h2 className="h2 mt-2">Four steps. Zero complexity.</h2>
         <p className="lead mt-4 max-w-2xl">
@@ -112,55 +158,127 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="markets" className="bg-surface-subtle">
-        <div className="mx-auto max-w-page section-pad text-center">
-          <p className="eyebrow">Markets</p>
-          <h2 className="h2 mt-2">Built for UAE & India — ready for the world</h2>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            {markets.map((m) => (
-              <span
-                key={m}
-                className="rounded-full border border-surface-border bg-surface px-5 py-2.5 text-sm font-medium shadow-sm"
-              >
-                {m}
-              </span>
+      {/* COMPARISON */}
+      <section className="bg-surface-subtle">
+        <div className="mx-auto max-w-page section-pad px-4">
+          <p className="eyebrow">Vs. the rest</p>
+          <h2 className="h2 mt-2">Why JobyBots wins</h2>
+          <p className="lead mt-4 max-w-2xl">
+            We compared ourselves against the most popular AI job-application
+            services. Here&apos;s the honest breakdown.
+          </p>
+          <div className="mt-10">
+            <ComparisonTable />
+          </div>
+          <p className="mt-6 text-xs text-ink-muted">
+            Comparison based on public pricing pages and product reviews, May
+            2026. Trademarks belong to their respective owners.
+          </p>
+        </div>
+      </section>
+
+      {/* MARKETS */}
+      <section id="markets" className="mx-auto max-w-page section-pad px-4 text-center">
+        <p className="eyebrow">Markets</p>
+        <h2 className="h2 mt-2">Built for India & UAE — ready for the world</h2>
+        <div className="mt-10 flex flex-wrap justify-center gap-3">
+          {markets.map((m) => (
+            <span
+              key={m}
+              className="rounded-full border border-surface-border bg-surface px-5 py-2.5 text-sm font-medium shadow-sm"
+            >
+              {m}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* SECURITY */}
+      <section className="bg-ink text-white">
+        <div className="mx-auto max-w-page section-pad px-4">
+          <p className="eyebrow text-white/60">Enterprise-grade security</p>
+          <h2 className="h2 mt-2 text-white">Your data. Your laptop. Period.</h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {[
+              { t: "End-to-end HTTPS", d: "HSTS preloaded, strict CSP, no third-party trackers on payment pages." },
+              { t: "Rate limited + alerted", d: "Failed logins and abuse attempts trigger an instant email to the owner." },
+              { t: "No cloud spyware", d: "Your Gmail App Password and resume sit in your project folder, encrypted by Windows." },
+              { t: "GDPR-safe outreach", d: "EU markets are inbox-only — we never email-blast Germany, Sweden, or Ireland." },
+              { t: "Owner-verified payments", d: "Every UPI order is manually approved within 30 minutes by the owner — no auto-charge fraud risk." },
+              { t: "7-day money-back", d: "Refund form, processed within 5 business days, same UPI or card." },
+            ].map((f) => (
+              <div key={f.t} className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <p className="font-bold">{f.t}</p>
+                <p className="mt-2 text-sm text-white/70">{f.d}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="faq" className="mx-auto max-w-page section-pad">
-        <h2 className="h2">Questions</h2>
-        <dl className="mt-10 space-y-8">
+      {/* SUPPORT */}
+      <section className="mx-auto max-w-page section-pad px-4">
+        <div className="grid items-center gap-10 rounded-3xl bg-accent-soft p-10 md:grid-cols-2">
           <div>
-            <dt className="font-semibold">Does it auto-apply on LinkedIn?</dt>
-            <dd className="mt-2 text-ink-muted">
-              It emails recruiters and gives you a ranked inbox to apply manually — safer for your account and compliant with platform rules.
-            </dd>
+            <p className="eyebrow">Real humans · Real support</p>
+            <h2 className="h2 mt-2">Stuck? Call us.</h2>
+            <p className="lead mt-4">
+              No chatbots. No tickets that go nowhere. Email or WhatsApp the
+              founder directly during {SUPPORT.hours}.
+            </p>
           </div>
-          <div>
-            <dt className="font-semibold">What are the minimum requirements?</dt>
-            <dd className="mt-2 text-ink-muted">
-              Windows 10/11, 4GB RAM, internet, Gmail with App Password, and your resume as PDF.
-            </dd>
+          <div className="space-y-3">
+            <a
+              href={`mailto:${SUPPORT.email}`}
+              className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm hover:shadow-lift"
+            >
+              <div>
+                <p className="text-xs uppercase tracking-wider text-ink-muted">Email</p>
+                <p className="text-lg font-semibold">{SUPPORT.email}</p>
+              </div>
+              <span className="text-2xl">✉️</span>
+            </a>
+            <a
+              href={`tel:${SUPPORT.phone.replace(/\s/g, "")}`}
+              className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm hover:shadow-lift"
+            >
+              <div>
+                <p className="text-xs uppercase tracking-wider text-ink-muted">Call · WhatsApp</p>
+                <p className="text-lg font-semibold">{SUPPORT.phone}</p>
+              </div>
+              <span className="text-2xl">📞</span>
+            </a>
+            <Link
+              href="/faq"
+              className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm hover:shadow-lift"
+            >
+              <div>
+                <p className="text-xs uppercase tracking-wider text-ink-muted">Self-serve</p>
+                <p className="text-lg font-semibold">FAQ &amp; refund policy</p>
+              </div>
+              <span className="text-2xl">📘</span>
+            </Link>
           </div>
-          <div>
-            <dt className="font-semibold">Is my data safe?</dt>
-            <dd className="mt-2 text-ink-muted">
-              Everything runs locally. We do not host your Gmail password or CV on our servers.
-            </dd>
-          </div>
-        </dl>
+        </div>
       </section>
 
-      <section className="bg-accent-soft">
-        <div className="mx-auto max-w-page section-pad text-center">
-          <h2 className="h2">Ready to run your job search on autopilot?</h2>
-          <p className="lead mx-auto mt-4 max-w-xl">
+      {/* CTA */}
+      <section className="bg-ink text-white">
+        <div className="mx-auto max-w-page section-pad px-4 text-center">
+          <h2 className="h2 text-white">Stop tab-juggling. Start interviewing.</h2>
+          <p className="lead mx-auto mt-4 max-w-xl text-white/70">
             Pay once. Download the installer. Be up and running in 15 minutes.
           </p>
-          <div className="mt-8 flex justify-center">
-            <CheckoutButton />
+          <div className="mt-8 flex justify-center gap-3">
+            <Link href="/buy-india" className="btn-primary">
+              Buy with UPI · ₹{PAYMENT.amountInr.toLocaleString("en-IN")}
+            </Link>
+            <Link
+              href="/pricing"
+              className="btn-secondary !border-white/20 !bg-transparent !text-white hover:!bg-white/10"
+            >
+              Pay by card ($49)
+            </Link>
           </div>
         </div>
       </section>

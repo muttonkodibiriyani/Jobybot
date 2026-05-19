@@ -78,17 +78,22 @@ Curated markets:
 
 ---
 
-## 🌐 Marketing website (Pro sales · India + global)
+## 🌐 Marketing website — jobybots.com (Pro sales · India + global)
 
-Customer-facing site with Uber/Amazon-style UI:
+Customer-facing site with Uber/Amazon-style UI, HD brand logo, slogan
+*"Your AI Job Hunter. 24/7. On Your Laptop."*, and enterprise security:
 
-* `/` and `/pricing` — landing + USD/AED/INR pricing
-* `/buy-india` — UPI QR + form upload (txn ref, time, screenshot) for the India market
+* `/` — hero with HD logo, comparison table vs Sonara / LazyApply / AIApply, trust badges, live-dashboard preview
+* `/pricing` — INR (UPI) + USD (Stripe card) plans
+* `/buy-india` — your real PhonePe QR (DARAPU THARAKESWARA REDDY) + form upload (txn ref, time, screenshot)
 * `/signup` — secure account capture (name, email, phone)
-* `/demo` — embedded demo video (set `NEXT_PUBLIC_DEMO_VIDEO_URL`)
-* `/admin` and `/admin/login` — owner verification dashboard, approve to email installer
-* `/api/india-order`, `/api/admin/orders`, `/api/cron/notify-pending` — payment + verify + every-30-min reminder cron
-* `/sitemap.xml`, `/robots.txt`, JSON-LD product schema for Google ranking
+* `/demo` — embedded demo video page (set `NEXT_PUBLIC_DEMO_VIDEO_URL`)
+* `/faq` — payments, refund, security, support — with email + phone
+* `/refund` — 7-day money-back form with server-side window enforcement
+* `/admin` + `/admin/login` — owner verification dashboard for orders, refunds, and security events
+* APIs: `/api/india-order`, `/api/refund`, `/api/signup`, `/api/admin/{orders,refunds,login,logout}`, `/api/cron/notify-pending` (every 30 min via Vercel Cron)
+* SEO: `/sitemap.xml`, `/robots.txt`, JSON-LD `SoftwareApplication` + `Organization` schema with rating, slogan, contact points
+* Security: Edge middleware adds HSTS preload, CSP, X-Frame-Options DENY, Permissions-Policy, Cross-Origin isolation; per-IP rate limits on every public POST; failed `/admin` logins auto-email the owner via `core/security.ts`
 
 ```powershell
 cd website
@@ -96,13 +101,29 @@ npm install
 npm run dev
 ```
 
-Pay with UPI flow:
-1. Customer scans QR on `/buy-india`, pays via GPay / PhonePe / Paytm
-2. Submits form with transaction ref + time + screenshot
-3. Admin gets an email + sees them in `/admin`
-4. Owner approves → customer instantly receives installer download link
+### India UPI flow (manual verification, every 30 min)
+1. Customer scans your PhonePe QR on `/buy-india`, pays ₹2,999.
+2. Submits form with transaction ref + time + **screenshot upload** (4 MB cap).
+3. Owner gets the Gmail notify (with screenshot attached) within seconds, also via `/admin`.
+4. Owner clicks **Approve & send** → customer receives the installer link automatically.
+5. If the owner doesn't approve, the **30-min cron** keeps emailing a digest of pending items.
 
-See [`website/README.md`](website/README.md) — deploy to Vercel, configure Stripe + UPI VPA, build `releases/Jobybot-Pro-Setup.zip` with `scripts/package-release.ps1`.
+### Refund flow (7 days, full money-back)
+1. Customer fills `/refund` with order ID + reason.
+2. Server enforces the 7-day window, dedupes against the order DB.
+3. Customer gets auto-ack inside 30 minutes.
+4. Owner approves in `/admin` → customer gets the refund-completed email.
+
+### Deploy
+**Read [`docs/DEPLOY_VERCEL.md`](docs/DEPLOY_VERCEL.md)** — connect repo, set env vars, point GoDaddy DNS for `jobybots.com` to Vercel, enable cron.
+
+### Security
+**Read [`docs/DOMAIN_SECURITY.md`](docs/DOMAIN_SECURITY.md)** — HSTS preload submission, CAA records, Vercel Firewall, SPF/DKIM/DMARC if you switch to a custom sender, incident-response runbook.
+
+### Support contact (everywhere on the site)
+* Email: **tharakesh.iitp@gmail.com**
+* Phone / WhatsApp: **+91 7989931325**
+* Hours: Mon–Sat · 10:00 – 20:00 IST
 
 ---
 
@@ -125,10 +146,13 @@ See [`website/README.md`](website/README.md) — deploy to Vercel, configure Str
 | [`COMMANDS.md`](COMMANDS.md) | PowerShell cheat sheet |
 | [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | Non-technical overview |
 | [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) | `.env` reference |
-| [`docs/SECURITY.md`](docs/SECURITY.md) | Security hardening |
-| [`docs/DELIVERABILITY.md`](docs/DELIVERABILITY.md) | **NEW** — email validation, bounce tracking, GDPR mode |
-| [`docs/AUTO_APPLY.md`](docs/AUTO_APPLY.md) | **NEW** — honest take on LinkedIn/Indeed auto-apply + the safe path |
-| [`docs/BOOKMARKLET.md`](docs/BOOKMARKLET.md) | **NEW** — 1-click form pre-fill (bookmarklet + Chrome extension) |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Security hardening (bot side) |
+| [`docs/DELIVERABILITY.md`](docs/DELIVERABILITY.md) | Email validation, bounce tracking, GDPR mode |
+| [`docs/AUTO_APPLY.md`](docs/AUTO_APPLY.md) | Honest take on LinkedIn/Indeed auto-apply + the safe path |
+| [`docs/BOOKMARKLET.md`](docs/BOOKMARKLET.md) | 1-click form pre-fill (bookmarklet + Chrome extension) |
+| [`docs/DEPLOY_VERCEL.md`](docs/DEPLOY_VERCEL.md) | **NEW** — Vercel deploy + GoDaddy DNS for jobybots.com |
+| [`docs/DOMAIN_SECURITY.md`](docs/DOMAIN_SECURITY.md) | **NEW** — Site hardening: HSTS, CAA, WAF, incident response |
+| [`docs/REFUND_POLICY.md`](docs/REFUND_POLICY.md) | **NEW** — 7-day refund policy, customer-facing |
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Fix common errors |
 | [`SHARE_WITH_FRIENDS.md`](SHARE_WITH_FRIENDS.md) | Share safely |
 

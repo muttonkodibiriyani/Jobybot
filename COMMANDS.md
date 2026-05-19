@@ -4,7 +4,9 @@
 
 This file lists every command you'll ever need to run Jobybot from your own computer. No coding knowledge required.
 
-**Also read:** `docs/USER_GUIDE.md` (plain-English overview + one-click `.bat` files) · **Double-click:** `RUN_BOT_NOW.bat` (search + email now) · `JOBYBOT.bat` (full menu) · `SYNC_GITHUB.bat` (update from GitHub)
+**Master reference (all commands):** [`docs/POWERSHELL_COMPLETE.md`](docs/POWERSHELL_COMPLETE.md) — jobs, logs, schedule, limits, sources, security.
+
+**Also read:** `docs/USER_GUIDE.md` · **Double-click:** `RUN_BOT_NOW.bat` · `JOBYBOT.bat` · `SETUP_FOR_FRIENDS.bat` (install for friends) · `SECURITY_CHECK.bat` · `SYNC_GITHUB.bat`
 
 **Daily email limit:** 200/day (set `DAILY_EMAIL_CAP=200` in `.env`). If you still see cap **80**, your `.env` was not updated — change that line and save.
 

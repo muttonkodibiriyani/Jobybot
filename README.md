@@ -80,11 +80,15 @@ Curated markets:
 - **Resume PDF** (any standard CV)
 
 ### 🆕 For non-technical users
+👉 **Read [`docs/POWERSHELL_COMPLETE.md`](docs/POWERSHELL_COMPLETE.md)** — every PowerShell command (jobs, logs, stop, schedule, limits, security)
 👉 **Read [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)** — complete guide: what the bot does, all scenarios, one-click files
+👉 **Read [`docs/SECURITY.md`](docs/SECURITY.md)** — how secrets are protected
 👉 **Read [`HOW_TO_RUN.md`](HOW_TO_RUN.md)** — first-time setup (15 minutes)
 👉 **Read [`COMMANDS.md`](COMMANDS.md)** — every PowerShell command, copy-paste ready
 👉 **Double-click [`JOBYBOT.bat`](JOBYBOT.bat)** — interactive menu (start / stop / stats / emergency)
 👉 **Double-click [`RUN_BOT_NOW.bat`](RUN_BOT_NOW.bat)** — search jobs + send emails immediately
+👉 **Double-click [`SETUP_FOR_FRIENDS.bat`](SETUP_FOR_FRIENDS.bat)** — share with friends: install + auto-schedule (they use their own `.env`)
+👉 **Double-click [`SECURITY_CHECK.bat`](SECURITY_CHECK.bat)** — lock `.env` permissions + security audit
 👉 **Double-click [`SYNC_GITHUB.bat`](SYNC_GITHUB.bat)** — pull latest version from GitHub
 
 ### Windows

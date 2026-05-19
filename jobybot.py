@@ -384,17 +384,24 @@ def doctor() -> None:
     settings = get_settings()
     setup_logging("INFO")
 
+    env_path = Path(".env")
     checks = [
         ("Resume PDF",       Path(settings.resume_path).exists()),
         ("Gmail address",    bool(settings.gmail_address)),
         ("Gmail password",   len(settings.gmail_app_password) >= 8),
-        ("Database file",    True),
+        (".env file local",  env_path.exists()),
         ("Markets data",
             (Path(__file__).parent / "markets" / "primary_uae.json").exists()),
+        ("Daily email cap",  settings.daily_email_cap >= 1),
     ]
     for name, ok in checks:
         sym = "✓" if ok else "✗"
         print(f"  {sym} {name}")
+
+    print(f"\n  ℹ Daily cap: {settings.daily_email_cap} emails/day (DAILY_EMAIL_CAP in .env)")
+    print("  ℹ Security: run SECURITY_CHECK.bat or docs/SECURITY.md")
+    print("  ℹ No remote access: Jobybot does not open network ports.")
+
     if all(ok for _, ok in checks):
         print("\nAll checks passed.")
     else:

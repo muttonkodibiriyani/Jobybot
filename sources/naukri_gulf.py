@@ -4,10 +4,10 @@ from __future__ import annotations
 import urllib.parse
 from typing import Any, Dict, List
 
-import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
+from core.net_safety import safe_get
 from .base import JobSource
 
 HEADERS = {
@@ -31,7 +31,7 @@ class NaukriGulf(JobSource):
                 f"keyword={urllib.parse.quote_plus(title)}"
                 "&experience=5-10"
             )
-            r = requests.get(url, headers=HEADERS, timeout=6)
+            r = safe_get(url, headers=HEADERS)
             soup = BeautifulSoup(r.text, "lxml")
             for card in soup.select(".ni-job-tuple, li.jobTuple, .job-listing")[:15]:
                 try:
@@ -54,6 +54,6 @@ class NaukriGulf(JobSource):
                     })
                 except Exception:
                     continue
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.debug(f"NaukriGulf: {type(e).__name__}")
         return jobs

@@ -4,10 +4,10 @@ from __future__ import annotations
 import urllib.parse
 from typing import Any, Dict, List
 
-import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
+from core.net_safety import safe_get
 from .base import JobSource
 
 # country → indeed domain
@@ -54,7 +54,7 @@ class Indeed(JobSource):
                 f"&l={urllib.parse.quote_plus(location)}"
                 "&sort=date&fromage=14"
             )
-            r = requests.get(url, headers=HEADERS, timeout=6)
+            r = safe_get(url, headers=HEADERS)
             soup = BeautifulSoup(r.text, "lxml")
 
             for card in soup.select(".job_seen_beacon, .result")[:20]:
@@ -85,7 +85,7 @@ class Indeed(JobSource):
                     })
                 except Exception:
                     continue
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.debug(f"Indeed {country}: {type(e).__name__}")
         except Exception as e:
             logger.debug(f"Indeed parse: {e}")

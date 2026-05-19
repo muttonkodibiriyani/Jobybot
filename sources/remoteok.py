@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-import requests
 from loguru import logger
 
+from core.net_safety import safe_get
 from .base import JobSource
 
 
@@ -15,10 +15,9 @@ class RemoteOK(JobSource):
     def search(self, title: str, location: str) -> List[Dict[str, Any]]:
         jobs: List[Dict[str, Any]] = []
         try:
-            r = requests.get(
+            r = safe_get(
                 "https://remoteok.com/api",
                 headers={"User-Agent": "Jobybot/1.0"},
-                timeout=6,
             )
             if r.status_code != 200:
                 return jobs
@@ -44,6 +43,6 @@ class RemoteOK(JobSource):
                     })
                 except Exception:
                     continue
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.debug(f"RemoteOK: {type(e).__name__}")
         return jobs[:20]

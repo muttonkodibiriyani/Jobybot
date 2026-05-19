@@ -4,10 +4,10 @@ from __future__ import annotations
 import urllib.parse
 from typing import Any, Dict, List
 
-import requests
 from bs4 import BeautifulSoup
 from loguru import logger
 
+from core.net_safety import safe_get
 from .base import JobSource
 
 HEADERS = {
@@ -29,7 +29,7 @@ class Bayt(JobSource):
                 f"https://www.bayt.com/en/uae/jobs/"
                 f"{urllib.parse.quote_plus(title.lower().replace(' ','-'))}-jobs/"
             )
-            r = requests.get(url, headers=HEADERS, timeout=6)
+            r = safe_get(url, headers=HEADERS)
             soup = BeautifulSoup(r.text, "lxml")
             for card in soup.select("li[data-job-id], div.has-pointer-d")[:15]:
                 try:
@@ -52,6 +52,6 @@ class Bayt(JobSource):
                     })
                 except Exception:
                     continue
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.debug(f"Bayt: {type(e).__name__}")
         return jobs

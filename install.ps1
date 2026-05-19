@@ -66,16 +66,19 @@ if ($envContent -match "RESUME_PATH=(.+)") {
     }
 }
 
-Print-Step 6 "Run init (parse resume, test SMTP)"
+Print-Step 6 "Secure local secrets (.env permissions)"
+& powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\scripts\secure_permissions.ps1"
+
+Print-Step 7 "Run init (parse resume, test SMTP)"
 & $venvPy jobybot.py init
 
-Print-Step 7 "Run one cycle now"
+Print-Step 8 "Run one cycle now"
 $ans = Read-Host "Run a full cycle now? (search + emails) [y/N]"
 if ($ans -eq "y" -or $ans -eq "Y") {
     & $venvPy jobybot.py run
 }
 
-Print-Step 8 "Start 24/7 background scheduler"
+Print-Step 9 "Start 24/7 background scheduler"
 $ans = Read-Host "Start hourly scheduler in background? [y/N]"
 if ($ans -eq "y" -or $ans -eq "Y") {
     Write-Host ""

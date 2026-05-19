@@ -48,7 +48,7 @@ Write-Host "[OK] .venv ready"
 
 Step 4 "Install dependencies"
 & $venvPy -m pip install --upgrade pip --quiet
-& $venvPy -m pip install -r requirements.txt --quiet
+& $venvPy -m pip install -r python-deps.txt --quiet
 Write-Host "[OK] Libraries installed"
 
 Step 5 "Your settings file (.env)"

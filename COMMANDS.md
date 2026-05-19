@@ -366,7 +366,7 @@ Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force
 # Extract it over your existing Jobybot folder (keep YOUR .env, resume.pdf, and data folder!)
 
 # Step 4: Re-install dependencies
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt --upgrade
+.\.venv\Scripts\python.exe -m pip install -r python-deps.txt --upgrade
 
 # Step 5: Start it again
 Start-Process -WindowStyle Hidden -FilePath ".\.venv\Scripts\python.exe" -ArgumentList "jobybot.py","schedule" -WorkingDirectory $PWD
@@ -430,7 +430,7 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
 The bot's libraries aren't installed (Python venv was deleted, etc.). Fix:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r python-deps.txt
 ```
 
 ### "Gmail SMTP auth failed"

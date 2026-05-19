@@ -237,7 +237,7 @@ Edit `.env`: `TARGET_TITLES` and `SECONDARY_MARKETS`, then restart the bot.
 
 1. Backup: menu option **17** or copy `.env`, `data\`, `resume.pdf` to Desktop
 2. Double-click **SYNC_GITHUB.bat** or `git pull`
-3. Run: `.\.venv\Scripts\python.exe -m pip install -r requirements.txt --upgrade`
+3. Run: `.\.venv\Scripts\python.exe -m pip install -r python-deps.txt --upgrade`
 
 ### Uninstall
 

@@ -42,7 +42,7 @@ echo "✓ venv ready"
 
 step 3 "Install dependencies"
 "$VENVPY" -m pip install --upgrade pip --quiet
-"$PIP" install -r requirements.txt --quiet
+"$PIP" install -r python-deps.txt --quiet
 echo "✓ Dependencies installed"
 
 step 4 "Create .env from template"

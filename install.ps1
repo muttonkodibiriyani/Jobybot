@@ -39,7 +39,7 @@ Write-Host "✓ venv ready: .venv\"
 
 Print-Step 3 "Install dependencies"
 & $venvPy -m pip install --upgrade pip --quiet
-& $pip install -r requirements.txt --quiet
+& $pip install -r python-deps.txt --quiet
 Write-Host "✓ Dependencies installed"
 
 Print-Step 4 "Create .env from template"

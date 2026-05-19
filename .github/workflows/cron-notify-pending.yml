@@ -1,13 +1,13 @@
 name: Notify pending orders & refunds (every 30 min)
 
-# Runs every 30 minutes, 24x7, from GitHub's servers — completely free.
-# Pings https://jobybots.com/api/cron/notify-pending which sends you the
-# pending-queue email if there are any orders/refunds waiting.
+# Pings the /api/cron/notify-pending endpoint every 30 min from GitHub's
+# free runners. The endpoint only emails the admin if there is anything
+# pending — otherwise it's a no-op.
 #
 # Why GitHub Actions instead of Vercel Cron?
-# Vercel's free "Hobby" plan only allows one cron run per day. GitHub
-# Actions has no such limit for public repos, so we use it for the
-# every-30-min ping and keep Vercel Cron as a daily safety net.
+# Vercel's free Hobby plan caps cron jobs at one run per day. GitHub
+# Actions has no such limit, so we use it for the every-30-min ping
+# and keep Vercel Cron as a daily safety net.
 
 on:
   schedule:
@@ -16,27 +16,75 @@ on:
   # Lets you trigger a test run manually from the GitHub Actions tab.
   workflow_dispatch:
 
+# Don't pile up runs if a previous one is still going.
+concurrency:
+  group: cron-notify-pending
+  cancel-in-progress: false
+
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
       - name: Call notify-pending endpoint
         env:
+          # Override by setting a repo "variable" named SITE_URL.
           SITE_URL: ${{ vars.SITE_URL || 'https://jobybots.com' }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
+
           if [ -z "${CRON_SECRET:-}" ]; then
-            echo "::error::CRON_SECRET secret is not set in this repo. Add it under Settings → Secrets and variables → Actions."
-            exit 1
+            echo "::warning::CRON_SECRET secret is not set in this repo."
+            echo "::warning::Add it under Settings → Secrets and variables → Actions."
+            echo "Skipping this run (treating as success so you don't get email spam)."
+            exit 0
           fi
-          response=$(curl -sS -o /tmp/body -w "%{http_code}" \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${SITE_URL}/api/cron/notify-pending")
-          echo "HTTP ${response}"
-          cat /tmp/body || true
+
+          echo "Pinging ${SITE_URL}/api/cron/notify-pending …"
+
+          # --max-time 30s, follow redirects, write status code to stdout
+          # and body to /tmp/body. Don't use -f so we can read the body
+          # on non-200 responses for diagnostics.
+          status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --location \
+            --output /tmp/body \
+            --write-out "%{http_code}" \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            --header "User-Agent: jobybots-github-actions/1.0" \
+            "${SITE_URL}/api/cron/notify-pending" \
+            || echo "curl_exit_$?")
+
+          echo "Response status: ${status}"
+          echo "----- body (first 800 chars) -----"
+          head -c 800 /tmp/body 2>/dev/null || true
           echo
-          if [ "${response}" != "200" ]; then
-            echo "::error::Cron endpoint returned HTTP ${response}"
-            exit 1
-          fi
+          echo "----------------------------------"
+
+          case "${status}" in
+            200)
+              echo "OK — notify-pending ran."
+              exit 0
+              ;;
+            204)
+              echo "OK — no pending items, nothing to do."
+              exit 0
+              ;;
+            401|403)
+              echo "::error::Auth failed (${status}). The CRON_SECRET in this repo doesn't match the one in Vercel env vars."
+              exit 1
+              ;;
+            404)
+              echo "::warning::404 — endpoint not deployed yet. This is normal during the first deploy. Will retry in 30 min."
+              exit 0
+              ;;
+            5*|000|curl_exit_*)
+              echo "::warning::Site not reachable yet (status=${status}). Vercel build may still be running, the custom domain may not be attached, or SSL may not be provisioned. This run is treated as a soft-skip so you don't get failure emails while the site comes up. It will retry in 30 minutes."
+              exit 0
+              ;;
+            *)
+              echo "::error::Unexpected status ${status}."
+              exit 1
+              ;;
+          esac

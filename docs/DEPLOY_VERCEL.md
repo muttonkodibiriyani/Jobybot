@@ -3,6 +3,31 @@
 Total time: ~25 minutes the first time. After that, every `git push` to
 `main` redeploys automatically.
 
+---
+
+## URGENT: If your build is failing with "No python entrypoint found"
+
+That means Vercel is trying to build the Python bot at the repo root
+instead of the Next.js website in `website/`. Fix in **30 seconds**:
+
+1. Open <https://vercel.com/muttonkodibiriyanis-projects/jobybot> (your
+   project).
+2. **Settings** (top nav) → **General** (left sidebar).
+3. Scroll to **Root Directory** → click **Edit**.
+4. Type exactly: `website`
+5. Check the box **"Include source files outside of the Root Directory in
+   the Build Step"** → leave it **UNCHECKED**.
+6. Click **Save**.
+7. Go to **Deployments** tab → on the latest deployment, click the **⋯**
+   menu → **Redeploy** → uncheck "Use existing Build Cache" → **Redeploy**.
+
+That's it. The next build will detect Next.js, install `website/package.json`
+dependencies, and deploy. We also pushed a root `vercel.json` and
+`.vercelignore` as a safety net so Vercel can't accidentally see the
+Python files even if the Root Directory ever gets reset.
+
+---
+
 ## 1. Push code to GitHub (already done)
 
 The website lives at `website/` inside the main `Jobybot` repo. Vercel will

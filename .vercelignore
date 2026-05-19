@@ -1,0 +1,34 @@
+# Don't ship the Python bot or any non-website files to Vercel.
+# Vercel should only see the contents of ./website/
+
+# Python
+*.py
+*.pyc
+__pycache__/
+.venv/
+venv/
+core/
+sources/
+markets/
+scripts/
+extension/
+data/
+logs/
+
+# Bot installer / batch / shell files
+*.bat
+*.ps1
+*.sh
+install*.ps1
+
+# Repo docs (not needed on the website host)
+docs/
+*.md
+!website/**/*.md
+
+# Resume / data
+resume*.pdf
+*.db
+*.db-journal
+
+# Anything outside /website is intentionally hidden from the build.

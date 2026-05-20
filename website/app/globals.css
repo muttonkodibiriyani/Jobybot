@@ -94,17 +94,19 @@
   }
 
   /* ─── Apple-style typography ──────────────────────────────────── */
+  /* Tuned so the hero headline + subtitle + CTAs all fit above the fold on
+     standard laptop viewports (1280–1440px). Bigger up to 4.25rem max,
+     not 5.5rem — keeps the layout breathing. */
   .display-1 {
-    @apply font-display font-extrabold tracking-[-0.04em];
-    font-size: clamp(2.75rem, 6vw + 1rem, 5.5rem);
-    line-height: 1.02;
-    letter-spacing: -0.04em;
+    @apply font-display font-extrabold tracking-[-0.035em];
+    font-size: clamp(2.25rem, 3.6vw + 1rem, 4.25rem);
+    line-height: 1.05;
   }
 
   .display-2 {
-    @apply font-display font-extrabold tracking-[-0.03em];
-    font-size: clamp(2.25rem, 4vw + 1rem, 3.75rem);
-    line-height: 1.05;
+    @apply font-display font-extrabold tracking-[-0.025em];
+    font-size: clamp(2rem, 2.8vw + 1rem, 3.25rem);
+    line-height: 1.08;
   }
 
   .h1 {

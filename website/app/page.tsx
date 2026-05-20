@@ -86,9 +86,9 @@ export default function HomePage() {
           }}
         />
 
-        <div className="relative mx-auto max-w-page px-4 pb-20 pt-16 sm:px-6 sm:pt-20 lg:grid lg:grid-cols-12 lg:gap-10 lg:px-8 lg:pb-28 lg:pt-24">
-          {/* Left: copy */}
-          <div className="lg:col-span-6 lg:pr-4">
+        <div className="relative mx-auto grid max-w-page items-center gap-10 px-4 pb-16 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-12 lg:gap-8 lg:px-8 lg:pb-20 lg:pt-20">
+          {/* Left: copy — 7 columns so the headline has room to breathe */}
+          <div className="lg:col-span-7 lg:pr-4">
             <Reveal>
               <span className="pill">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
@@ -97,25 +97,24 @@ export default function HomePage() {
             </Reveal>
 
             <Reveal delay={1}>
-              <h1 className="display-1 mt-6 text-ink">
-                The AI that{" "}
-                <span className="shimmer-text">never stops</span>
-                <br />
+              <h1 className="display-1 mt-5 text-ink">
+                The AI that <span className="shimmer-text">never stops</span>
+                <br className="hidden sm:block" />{" "}
                 job hunting for you.
               </h1>
             </Reveal>
 
             <Reveal delay={2}>
-              <p className="mt-7 max-w-xl text-[19px] leading-relaxed text-ink-muted sm:text-[20px]">
+              <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-ink-muted sm:text-lg">
                 JobyBots reads your résumé, scans LinkedIn and 7 other sites
                 every 30 minutes, scores every match with Gemini, and emails
-                recruiters on your behalf — all on your laptop. One-time
-                ₹{PAYMENT.amountInr.toLocaleString("en-IN")}. Lifetime. 7-day refund.
+                recruiters on your behalf — works on Windows + macOS.
+                One-time ₹{PAYMENT.amountInr.toLocaleString("en-IN")}. Lifetime. 7-day refund.
               </p>
             </Reveal>
 
             <Reveal delay={3}>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link href="/buy-india" className="btn-accent">
                   Get JobyBots · ₹{PAYMENT.amountInr.toLocaleString("en-IN")}
                   <span aria-hidden>→</span>
@@ -130,10 +129,10 @@ export default function HomePage() {
             </Reveal>
 
             <Reveal delay={4}>
-              <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-3 text-sm">
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2.5 text-sm">
                 {[
+                  { e: "✓", t: "Windows + macOS" },
                   { e: "✓", t: "7-day money-back" },
-                  { e: "✓", t: "No subscription" },
                   { e: "✓", t: "Founder on WhatsApp" },
                 ].map((t) => (
                   <span key={t.t} className="inline-flex items-center gap-1.5 text-ink-muted">
@@ -144,8 +143,8 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          {/* Right: HUGE animated gear */}
-          <Reveal as="div" delay={2} className="mt-16 lg:col-span-6 lg:mt-0">
+          {/* Right: animated gear — 5 columns so it stays comfortably in frame */}
+          <Reveal as="div" delay={2} className="lg:col-span-5">
             <HeroGear />
           </Reveal>
         </div>

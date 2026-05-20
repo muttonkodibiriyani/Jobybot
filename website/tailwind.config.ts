@@ -119,6 +119,23 @@ const config: Config = {
           "0%":   { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "bot-float": {
+          "0%, 100%": { transform: "translateY(0) rotate(-2deg)" },
+          "50%":      { transform: "translateY(-8px) rotate(2deg)" },
+        },
+        "arm-sway-left": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "50%":      { transform: "rotate(-25deg)" },
+        },
+        "arm-sway-right": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "50%":      { transform: "rotate(25deg)" },
+        },
+        "scroll-companion": {
+          "0%, 100%": { transform: "translate(0, 0) rotate(0deg)" },
+          "33%":      { transform: "translate(0, -4px) rotate(-3deg)" },
+          "66%":      { transform: "translate(0, 4px) rotate(3deg)" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both",
@@ -131,6 +148,9 @@ const config: Config = {
         "orbit-30": "orbit 30s linear infinite",
         "halo": "halo-pulse 4s ease-in-out infinite",
         "shimmer": "shimmer 2.4s linear infinite",
+        "bot-float": "bot-float 3.6s ease-in-out infinite",
+        "arm-sway-left":  "arm-sway-left 2.4s ease-in-out infinite",
+        "arm-sway-right": "arm-sway-right 2.4s ease-in-out infinite",
       },
     },
   },

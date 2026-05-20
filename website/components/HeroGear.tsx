@@ -17,7 +17,9 @@ export function HeroGear({ className }: { className?: string }) {
   return (
     <div
       className={clsx(
-        "relative mx-auto flex aspect-square w-full max-w-[640px] items-center justify-center",
+        // Constrained max width so the gear never overflows the column on
+        // 13-15" laptops. Min height keeps it visible on mobile too.
+        "relative mx-auto flex aspect-square w-full max-w-[520px] items-center justify-center",
         className
       )}
       aria-hidden="true"

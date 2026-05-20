@@ -32,8 +32,10 @@ export function Logo({
   withGear = true,
 }: LogoProps) {
   const m = hero ? markSize.xl : markSize[size];
-  const fg = variant === "light" ? "#FFFFFF" : "#0B0B0B";
-  const bg = "#0B0B0B";
+  // Apple-style near-black (not pure #000) for the new light theme; pure white
+  // when the logo is sitting on a dark surface like the footer.
+  const fg = variant === "light" ? "#FFFFFF" : "#1D1D1F";
+  const bg = "#1D1D1F";
   const accent = "#FF6B00";
   const ws = hero ? fontSize.xl : fontSize[size];
 
@@ -91,7 +93,7 @@ export function GearMark({
   // Color choice: on dark backgrounds use orange gear, on light backgrounds
   // use the same orange — keeps the brand instantly recognizable everywhere.
   const ring = accent;
-  const hole = variant === "light" ? "#0B0B0B" : "#FFFFFF";
+  const hole = variant === "light" ? "#1D1D1F" : "#FFFFFF";
 
   return (
     <svg

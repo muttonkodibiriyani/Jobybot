@@ -12,11 +12,11 @@ type Job = {
 };
 
 const STAGES = [
-  { label: "Scanning LinkedIn, Indeed, Naukri, Bayt…", color: "text-sky-300" },
-  { label: "Reading your résumé with Gemini AI…", color: "text-purple-300" },
-  { label: "Ranking jobs by match score…", color: "text-amber-300" },
-  { label: "Tailoring email + cover letter per role…", color: "text-emerald-300" },
-  { label: "Sending validated applications…", color: "text-accent" },
+  { label: "Scanning LinkedIn, Indeed, Naukri, Bayt…", color: "text-sky-600" },
+  { label: "Reading your résumé with Gemini AI…",     color: "text-purple-600" },
+  { label: "Ranking jobs by match score…",            color: "text-amber-600" },
+  { label: "Tailoring email + cover letter per role…", color: "text-emerald-600" },
+  { label: "Sending validated applications…",         color: "text-accent" },
 ] as const;
 
 const JOBS: Job[] = [
@@ -101,76 +101,78 @@ export function AISearchDemo() {
   }, []);
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lift backdrop-blur-sm">
+    <div className="rounded-3xl border border-surface-divider bg-white p-6 shadow-card backdrop-blur-sm sm:p-7">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
           </span>
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-muted">
             AI search · Live
           </p>
         </div>
-        <p className="text-xs text-white/40">Powered by Gemini</p>
+        <p className="font-mono text-[11px] uppercase tracking-wider text-ink-hint">
+          Powered by Gemini
+        </p>
       </div>
 
       {/* Stage ticker */}
-      <p className={`mt-4 text-sm font-medium transition-colors duration-500 ${STAGES[stage].color}`}>
+      <p className={`mt-5 text-[15px] font-semibold transition-colors duration-500 ${STAGES[stage].color}`}>
         <span className="mr-2 inline-block animate-pulse">●</span>
         {STAGES[stage].label}
       </p>
 
       {/* Sent + matched counters */}
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="rounded-xl bg-black/30 p-3">
-          <p className="text-xs uppercase tracking-wider text-white/50">Matched</p>
-          <p className="mt-1 text-2xl font-bold text-white">{visibleJobs.length}</p>
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl bg-surface-subtle p-3.5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">Matched</p>
+          <p className="mt-1 font-display text-2xl font-bold text-ink">{visibleJobs.length}</p>
         </div>
-        <div className="rounded-xl bg-black/30 p-3">
-          <p className="text-xs uppercase tracking-wider text-white/50">Sent today</p>
-          <p className="mt-1 text-2xl font-bold text-accent">{sentCount} / 200</p>
+        <div className="rounded-2xl bg-accent-soft p-3.5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">Sent today</p>
+          <p className="mt-1 font-display text-2xl font-bold text-accent">{sentCount} / 200</p>
         </div>
       </div>
 
       {/* Job list with AI explanations */}
-      <ul className="mt-5 max-h-[320px] space-y-3 overflow-hidden text-sm">
+      <ul className="mt-5 max-h-[300px] space-y-2.5 overflow-hidden text-sm">
         {visibleJobs.length === 0 ? (
-          <li className="rounded-xl border border-dashed border-white/10 bg-white/5 p-4 text-center text-white/40">
+          <li className="rounded-2xl border border-dashed border-surface-divider bg-surface-subtle p-4 text-center text-sm text-ink-hint">
             Waiting for first AI match…
           </li>
         ) : (
           visibleJobs.map((j) => (
             <li
               key={`${j.title}-${j.company}`}
-              className="animate-in fade-in slide-in-from-bottom-2 rounded-xl border border-white/10 bg-black/30 p-3"
+              className="animate-fade-up rounded-2xl border border-surface-divider bg-white p-3.5 shadow-xs transition-shadow duration-200 hover:shadow-card"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-white">{j.title}</p>
-                  <p className="truncate text-xs text-white/50">
-                    {j.company} · {j.location} · <span className="text-white/70">{j.source}</span>
+                  <p className="truncate font-semibold text-ink">{j.title}</p>
+                  <p className="truncate text-xs text-ink-muted">
+                    {j.company} · {j.location} · <span className="font-medium text-ink">{j.source}</span>
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
+                  className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${
                     j.match >= 85
-                      ? "bg-accent/20 text-accent"
-                      : "bg-white/10 text-white/80"
+                      ? "bg-accent-soft text-accent"
+                      : "bg-surface-subtle text-ink-muted"
                   }`}
                 >
                   {j.match}% match
                 </span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-white/60">
-                <span className="font-semibold text-purple-300">Gemini:</span> {j.reason}
+              <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                <span className="font-semibold text-purple-700">Gemini:</span> {j.reason}
               </p>
             </li>
           ))
         )}
       </ul>
 
-      <p className="mt-4 text-xs text-white/40">
+      <p className="mt-4 font-mono text-[10px] uppercase tracking-wider text-ink-hint">
         Demo simulation · Real instance updates every 60 seconds
       </p>
     </div>

@@ -12,19 +12,30 @@ export const metadata = {
 export default function DashboardPreviewPage() {
   return (
     <>
-      {/* Hero */}
-      <section className="bg-ink text-white">
-        <div className="mx-auto max-w-page section-pad px-4">
+      {/* Hero — light theme matching homepage */}
+      <section className="relative overflow-hidden mesh-bg">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 right-0 h-[520px] w-[520px] rounded-full opacity-50 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(closest-side, rgba(255,107,0,0.16), transparent)",
+          }}
+        />
+        <div className="relative mx-auto max-w-page section-pad px-4">
           <div className="flex items-center justify-between gap-4">
-            <Logo variant="light" size="md" />
-            <span className="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-white/70">
-              Preview · this is what you get after install
+            <Logo size="md" />
+            <span className="pill">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+              Preview · what you get after install
             </span>
           </div>
-          <h1 className="mt-10 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl lg:leading-[1.05]">
-            One screen. Every job. Tailored to your résumé.
+          <h1 className="display-1 mt-12 max-w-3xl text-ink">
+            One screen. Every job.
+            <br />
+            <span className="shimmer-text">Tailored to your résumé.</span>
           </h1>
-          <p className="mt-5 max-w-2xl text-lg text-white/70">
+          <p className="lead mt-7 max-w-2xl">
             After install, your private dashboard opens in your browser. Live
             logs of every search, AI-ranked jobs, daily apply-now links, and
             recruiter outreach status.

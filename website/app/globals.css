@@ -2,15 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Gear spin used by the JobyBots logo. Defined globally so server-rendered
-   SVGs can use the `animation: jobybots-gear-spin ...` shorthand inline. */
+/* ─── Gear spin used by the JobyBots logo header mark ───────────── */
 @keyframes jobybots-gear-spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .jobybots-gear {
+  .jobybots-gear,
+  .reveal,
+  [class*="animate-"] {
     animation: none !important;
   }
 }
@@ -19,51 +20,165 @@
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
     @apply bg-surface text-ink font-sans;
+    font-feature-settings: "ss01", "cv11";
   }
 
   ::selection {
-    @apply bg-accent-soft text-ink;
+    @apply bg-accent text-white;
   }
+
+  /* Subtle scrollbar that doesn't fight the design */
+  ::-webkit-scrollbar      { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track{ background: transparent; }
+  ::-webkit-scrollbar-thumb{ background: #D2D2D7; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #A1A1A6; }
 }
 
 @layer components {
+  /* ─── Buttons (Apple-style, soft shadows, generous padding) ──── */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           bg-ink px-7 py-3.5 text-[15px] font-semibold text-white
+           shadow-card transition-all duration-300
+           hover:bg-ink-soft hover:shadow-lift hover:-translate-y-0.5
+           focus-visible:outline focus-visible:outline-2
+           focus-visible:outline-offset-2 focus-visible:outline-ink;
   }
 
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           bg-accent px-7 py-3.5 text-[15px] font-semibold text-white
+           shadow-card transition-all duration-300
+           hover:bg-accent-hover hover:shadow-glow hover:-translate-y-0.5
+           focus-visible:outline focus-visible:outline-2
+           focus-visible:outline-offset-2 focus-visible:outline-accent;
+  }
+
+  .btn-outline,
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-surface-border bg-surface px-6 py-3.5 text-[15px] font-semibold text-ink transition hover:bg-surface-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink;
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           border border-surface-border bg-white px-7 py-3.5 text-[15px]
+           font-semibold text-ink transition-all duration-300
+           hover:bg-surface-subtle hover:-translate-y-0.5
+           focus-visible:outline focus-visible:outline-2
+           focus-visible:outline-offset-2 focus-visible:outline-ink;
   }
 
-  .btn-dark {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-ink-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink;
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           px-7 py-3.5 text-[15px] font-semibold text-ink
+           transition-all duration-300 hover:bg-surface-subtle;
   }
 
+  /* Section padding follows the FlutterFlow spec's xxxl token (80px) */
   .section-pad {
-    @apply px-4 py-16 sm:px-6 sm:py-20 lg:px-8;
+    @apply px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28;
   }
 
   .card {
-    @apply rounded-2xl border border-surface-border bg-surface p-6 shadow-card sm:p-8;
+    @apply rounded-3xl border border-surface-divider bg-surface-raised p-7
+           shadow-xs transition-shadow duration-300 hover:shadow-card sm:p-8;
   }
 
-  .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted;
+  .pill {
+    @apply inline-flex items-center gap-2 rounded-full border
+           border-accent/20 bg-accent-soft px-3.5 py-1.5
+           text-[11px] font-semibold uppercase tracking-[0.18em]
+           text-accent;
+  }
+
+  /* ─── Apple-style typography ──────────────────────────────────── */
+  .display-1 {
+    @apply font-display font-extrabold tracking-[-0.04em];
+    font-size: clamp(2.75rem, 6vw + 1rem, 5.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+  }
+
+  .display-2 {
+    @apply font-display font-extrabold tracking-[-0.03em];
+    font-size: clamp(2.25rem, 4vw + 1rem, 3.75rem);
+    line-height: 1.05;
   }
 
   .h1 {
-    @apply text-4xl font-bold tracking-tight text-ink sm:text-5xl lg:text-[3.25rem] lg:leading-[1.1];
+    @apply font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl lg:text-[3.25rem] lg:leading-[1.1];
   }
 
   .h2 {
-    @apply text-3xl font-bold tracking-tight text-ink sm:text-4xl;
+    @apply font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl lg:text-[2.75rem];
+    letter-spacing: -0.02em;
+  }
+
+  .h3 {
+    @apply font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl;
   }
 
   .lead {
     @apply text-lg leading-relaxed text-ink-muted sm:text-xl;
+  }
+
+  .eyebrow {
+    @apply font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-muted;
+  }
+}
+
+@layer utilities {
+  /* Used by Reveal component for scroll-triggered fade-ins */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.08s; }
+  .reveal-delay-2 { transition-delay: 0.16s; }
+  .reveal-delay-3 { transition-delay: 0.24s; }
+  .reveal-delay-4 { transition-delay: 0.32s; }
+  .reveal-delay-5 { transition-delay: 0.40s; }
+  .reveal-delay-6 { transition-delay: 0.48s; }
+
+  /* Apple-style soft gradient mesh background */
+  .mesh-bg {
+    background:
+      radial-gradient(at 15% 10%, rgba(255, 107, 0, 0.10) 0px, transparent 50%),
+      radial-gradient(at 85% 30%, rgba(255, 140, 58, 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 80%, rgba(255, 107, 0, 0.06) 0px, transparent 50%),
+      #FFFFFF;
+  }
+
+  .mesh-bg-soft {
+    background:
+      radial-gradient(at 70% 20%, rgba(255, 107, 0, 0.06) 0px, transparent 60%),
+      #F5F5F7;
+  }
+
+  /* Shimmery underline for accent text */
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      #FF6B00 0%,
+      #FF8C3A 40%,
+      #FFB07A 50%,
+      #FF8C3A 60%,
+      #FF6B00 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 4s linear infinite;
   }
 }

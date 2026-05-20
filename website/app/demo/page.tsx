@@ -74,26 +74,37 @@ export default function DemoPage() {
 
   return (
     <>
-      {/* HERO: live AI demo */}
-      <section className="bg-ink text-white">
-        <div className="mx-auto max-w-page section-pad px-4 lg:grid lg:grid-cols-12 lg:gap-12">
+      {/* HERO: live AI demo — light theme matching homepage */}
+      <section className="relative overflow-hidden mesh-bg">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 right-0 h-[520px] w-[520px] rounded-full opacity-50 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(closest-side, rgba(255,107,0,0.16), transparent)",
+          }}
+        />
+        <div className="relative mx-auto max-w-page section-pad px-4 lg:grid lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-6">
-            <p className="eyebrow text-white/60">Watch · 90 seconds · No fluff</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl lg:leading-[1.05]">
+            <span className="pill">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+              Watch · 90 seconds · No fluff
+            </span>
+            <h1 className="display-1 mt-6 text-ink">
               The AI is searching jobs.
               <br />
-              <span className="text-accent">Right now.</span>
+              <span className="shimmer-text">Right now.</span>
             </h1>
-            <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75">
+            <p className="lead mt-7 max-w-xl">
               This is a simulation of what your dashboard does every 30 minutes
               on your laptop. The Gemini AI scans LinkedIn, Indeed, Naukri and
               Bayt, matches jobs to your résumé, and emails recruiters.
             </p>
-            <div className="mt-8 flex gap-3">
-              <Link href="/buy-india" className="btn-primary">
+            <div className="mt-10 flex gap-3">
+              <Link href="/buy-india" className="btn-accent">
                 Buy with UPI · ₹{PAYMENT.amountInr.toLocaleString("en-IN")}
               </Link>
-              <Link href="/dashboard" className="btn-secondary !border-white/20 !bg-transparent !text-white">
+              <Link href="/dashboard" className="btn-outline">
                 See full dashboard
               </Link>
             </div>

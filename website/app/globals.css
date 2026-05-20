@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Gear spin used by the JobyBots logo. Defined globally so server-rendered
+   SVGs can use the `animation: jobybots-gear-spin ...` shorthand inline. */
+@keyframes jobybots-gear-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jobybots-gear {
+    animation: none !important;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

@@ -64,10 +64,8 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  icons: {
-    icon: "/jobybots-logo.png",
-    apple: "/jobybots-logo.png",
-  },
+  // Favicon + apple-touch-icon are auto-detected from app/icon.svg
+  // and app/apple-icon.svg — clean J brand mark, no PNG dependencies.
 };
 
 const productLd = {

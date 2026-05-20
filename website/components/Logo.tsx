@@ -6,30 +6,40 @@ type LogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   /** When true, render larger hero version with extended wordmark + tagline. */
   hero?: boolean;
+  /** When false, omit the rotating gear (useful for tight headers if needed). */
+  withGear?: boolean;
 };
 
 const markSize = { sm: 28, md: 36, lg: 48, xl: 72 };
 const fontSize = { sm: 16, md: 20, lg: 28, xl: 44 };
 
 /**
- * JobyBots brand logo — clean geometric mark + wordmark.
- * No bot illustration. The mark is a stylized "J" with a motion accent
- * (small orange arc/dot) representing AI activity.
+ * JobyBots brand logo — three pieces, left → right:
+ *
+ *   [ rotating gear ]  [ J monogram in rounded square ]  [ Joby**Bots** wordmark ]
+ *
+ * The gear (orange, slowly spinning) is the "O" that represents JobyBots
+ * actively working / AI in motion. The J stays exactly as before. The
+ * wordmark closes it out.
+ *
+ * All inline SVG — no PNG dependencies, scales perfectly from favicon to hero.
  */
 export function Logo({
   className,
   variant = "dark",
   size = "md",
   hero = false,
+  withGear = true,
 }: LogoProps) {
   const m = hero ? markSize.xl : markSize[size];
   const fg = variant === "light" ? "#FFFFFF" : "#0B0B0B";
-  const bg = variant === "light" ? "#0B0B0B" : "#0B0B0B";
+  const bg = "#0B0B0B";
   const accent = "#FF6B00";
   const ws = hero ? fontSize.xl : fontSize[size];
 
   return (
-    <div className={clsx("inline-flex items-center", className)} style={{ gap: m * 0.35 }}>
+    <div className={clsx("inline-flex items-center", className)} style={{ gap: m * 0.32 }}>
+      {withGear ? <GearMark size={Math.round(m * 0.95)} accent={accent} variant={variant} /> : null}
       <BrandMark size={m} bg={bg} accent={accent} />
       <div className="flex flex-col leading-none">
         <span
@@ -63,8 +73,66 @@ export function Logo({
 }
 
 /**
- * Standalone brand mark — square monogram of "J" with AI motion accent.
- * Use this when the wordmark would be too wide (favicon, mobile, OG image fallback).
+ * Rotating gear icon. The 12-tooth gear represents JobyBots actively
+ * working / the AI in motion. Spins continuously via inline CSS so it
+ * works in Server Components without `use client`.
+ */
+export function GearMark({
+  size = 36,
+  accent = "#FF6B00",
+  variant = "dark",
+  className,
+}: {
+  size?: number;
+  accent?: string;
+  variant?: "light" | "dark";
+  className?: string;
+}) {
+  // Color choice: on dark backgrounds use orange gear, on light backgrounds
+  // use the same orange — keeps the brand instantly recognizable everywhere.
+  const ring = accent;
+  const hole = variant === "light" ? "#0B0B0B" : "#FFFFFF";
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="-32 -32 64 64"
+      fill="none"
+      aria-hidden="true"
+      className={clsx("shrink-0 jobybots-gear", className)}
+      style={{
+        // Inline keyframe via animation shorthand — works without external CSS.
+        animation: "jobybots-gear-spin 8s linear infinite",
+        transformOrigin: "center",
+      }}
+    >
+      {/* 12 trapezoidal teeth radiating from center */}
+      {Array.from({ length: 12 }).map((_, i) => (
+        <rect
+          key={i}
+          x={-3.5}
+          y={-30}
+          width={7}
+          height={9}
+          rx={1.5}
+          fill={ring}
+          transform={`rotate(${(i * 360) / 12})`}
+        />
+      ))}
+      {/* Outer ring */}
+      <circle cx={0} cy={0} r={22} fill={ring} />
+      {/* Inner hole — the "O" */}
+      <circle cx={0} cy={0} r={10} fill={hole} />
+      {/* Subtle inner accent ring for depth */}
+      <circle cx={0} cy={0} r={10} stroke={ring} strokeWidth={1.2} fill="none" opacity={0.5} />
+    </svg>
+  );
+}
+
+/**
+ * Standalone J monogram in a rounded dark square. Used inside Logo, also
+ * exported so other components (favicon backups, OG image, etc.) can reuse it.
  */
 export function BrandMark({
   size = 56,
@@ -97,7 +165,6 @@ export function BrandMark({
         </linearGradient>
       </defs>
 
-      {/* Rounded square card */}
       <rect width="64" height="64" rx="16" fill="url(#jb-bg)" />
 
       {/* J letter: crossbar + descender with hook */}

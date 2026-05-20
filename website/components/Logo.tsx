@@ -1,72 +1,126 @@
 import clsx from "clsx";
-import Image from "next/image";
 
 type LogoProps = {
   className?: string;
   variant?: "light" | "dark";
   size?: "sm" | "md" | "lg" | "xl";
-  /** When true, render the large HD PNG (hero); otherwise compact inline mark. */
+  /** When true, render larger hero version with extended wordmark + tagline. */
   hero?: boolean;
 };
 
-const heights = { sm: 32, md: 40, lg: 56, xl: 96 };
-const widths = { sm: 128, md: 160, lg: 224, xl: 384 };
+const markSize = { sm: 28, md: 36, lg: 48, xl: 72 };
+const fontSize = { sm: 16, md: 20, lg: 28, xl: 44 };
 
+/**
+ * JobyBots brand logo — clean geometric mark + wordmark.
+ * No bot illustration. The mark is a stylized "J" with a motion accent
+ * (small orange arc/dot) representing AI activity.
+ */
 export function Logo({
   className,
   variant = "dark",
   size = "md",
   hero = false,
 }: LogoProps) {
-  const h = heights[size];
-  const w = widths[size];
+  const m = hero ? markSize.xl : markSize[size];
   const fg = variant === "light" ? "#FFFFFF" : "#0B0B0B";
+  const bg = variant === "light" ? "#0B0B0B" : "#0B0B0B";
   const accent = "#FF6B00";
-
-  if (hero) {
-    return (
-      <Image
-        src="/jobybots-logo.png"
-        alt="JobyBots — Your AI Job Hunter. 24/7. On Your Laptop."
-        width={w * 4}
-        height={h * 2}
-        priority
-        className={clsx("h-auto w-full max-w-[640px]", className)}
-      />
-    );
-  }
+  const ws = hero ? fontSize.xl : fontSize[size];
 
   return (
-    <div className={clsx("flex items-center gap-2.5", className)}>
-      <svg
-        width={h * 0.9}
-        height={h * 0.9}
-        viewBox="0 0 48 48"
-        fill="none"
-        aria-hidden
-        className="shrink-0"
-      >
-        <rect x="6" y="14" width="36" height="24" rx="6" fill={fg} />
-        <rect x="22" y="6" width="4" height="8" rx="2" fill={fg} />
-        <circle cx="26" cy="6" r="3" fill={accent} />
-        <circle cx="18" cy="26" r="2.5" fill="#FFFFFF" />
-        <circle cx="30" cy="26" r="2.5" fill={accent} />
-        <rect x="20" y="32" width="8" height="2" rx="1" fill="#FFFFFF" />
-      </svg>
-      <span className="flex flex-col leading-none">
+    <div className={clsx("inline-flex items-center", className)} style={{ gap: m * 0.35 }}>
+      <BrandMark size={m} bg={bg} accent={accent} />
+      <div className="flex flex-col leading-none">
         <span
           className="font-extrabold tracking-tight"
-          style={{ color: fg, fontSize: size === "sm" ? 18 : 22 }}
+          style={{ color: fg, fontSize: ws, letterSpacing: "-0.02em" }}
         >
           Joby<span style={{ color: accent }}>Bots</span>
         </span>
-        <span
-          className="mt-0.5 text-[10px] font-medium uppercase tracking-widest opacity-70"
-          style={{ color: fg }}
-        >
-          AI Job Hunter · 24/7
-        </span>
-      </span>
+        {hero ? (
+          <span
+            className="mt-2 text-sm font-medium opacity-60"
+            style={{ color: fg, letterSpacing: "0.04em" }}
+          >
+            AI Job Hunter · Tailored to your résumé · 24/7
+          </span>
+        ) : (
+          <span
+            className="mt-0.5 font-medium uppercase opacity-60"
+            style={{
+              color: fg,
+              fontSize: Math.max(9, ws * 0.42),
+              letterSpacing: "0.18em",
+            }}
+          >
+            AI Job Hunter
+          </span>
+        )}
+      </div>
     </div>
+  );
+}
+
+/**
+ * Standalone brand mark — square monogram of "J" with AI motion accent.
+ * Use this when the wordmark would be too wide (favicon, mobile, OG image fallback).
+ */
+export function BrandMark({
+  size = 56,
+  bg = "#0B0B0B",
+  accent = "#FF6B00",
+  className,
+}: {
+  size?: number;
+  bg?: string;
+  accent?: string;
+  className?: string;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      fill="none"
+      aria-hidden="true"
+      className={clsx("shrink-0", className)}
+    >
+      <defs>
+        <linearGradient id="jb-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor={bg} />
+          <stop offset="1" stopColor="#1f2024" />
+        </linearGradient>
+        <linearGradient id="jb-accent" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#FF8C3A" />
+          <stop offset="1" stopColor={accent} />
+        </linearGradient>
+      </defs>
+
+      {/* Rounded square card */}
+      <rect width="64" height="64" rx="16" fill="url(#jb-bg)" />
+
+      {/* J letter: crossbar + descender with hook */}
+      <rect x="22" y="13" width="22" height="7" rx="3.5" fill="#FFFFFF" />
+      <path
+        d="M 36.5 17 L 36.5 38 Q 36.5 48 26.5 48 Q 18 48 18 39"
+        stroke="#FFFFFF"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+
+      {/* AI pulse: small accent arc + dot top-right (suggests motion / signal) */}
+      <path
+        d="M 47 18 Q 53 14 53 22"
+        stroke="url(#jb-accent)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        fill="none"
+        opacity="0.9"
+      />
+      <circle cx="52" cy="12" r="4.5" fill="url(#jb-accent)" />
+    </svg>
   );
 }

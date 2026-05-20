@@ -1,10 +1,26 @@
-"""Score a job against a resume profile."""
+"""Score a job against a resume profile.
+
+The base scorer (title + skills + location + seniority) is fast and
+deterministic and runs without any API keys. When a Gemini or Groq API
+key is configured in .env we also run an LLM pass that blends a 0–100
+match + plain-English explanation, then we average the two for the final
+score so the bot keeps working even when the AI provider is rate-limited.
+"""
 from __future__ import annotations
 
+import logging
+import os
 import re
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from .resume_parser import TITLE_SYNONYMS
+
+try:
+    from core.ai_search import score_job as ai_score_job
+except Exception:  # pragma: no cover
+    ai_score_job = None  # type: ignore
+
+_log = logging.getLogger("job_matcher")
 
 
 def normalise(s: str) -> str:
@@ -96,15 +112,51 @@ def score_job(
     job: Dict[str, Any],
     profile: Dict[str, Any],
     target_locations: list[str],
+    *,
+    use_ai: bool = True,
+    resume_text: str = "",
 ) -> int:
-    """Total match score 0-100."""
+    """Total match score 0-100.
+
+    Computes the deterministic title/skill/location/seniority score, and
+    when AI is configured + resume_text is provided, also asks the LLM
+    for a 0-100 second opinion. The two are averaged so an AI failure
+    can never block scoring.
+    """
     title       = job.get("title", "")
     description = job.get("description", "") or ""
     location    = job.get("location", "")
+    company     = job.get("company", "") or ""
 
-    t = title_match_score(title, profile.get("titles", []))
-    s = skills_match_score(title + " " + description, profile.get("skills", []))
-    l = location_match_score(location, target_locations)
+    t  = title_match_score(title, profile.get("titles", []))
+    s  = skills_match_score(title + " " + description, profile.get("skills", []))
+    l  = location_match_score(location, target_locations)
     se = seniority_match_score(title, profile.get("years_exp", 0))
+    base = t + s + l + se
 
-    return t + s + l + se
+    if not (use_ai and ai_score_job and resume_text):
+        return base
+
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    groq_key   = os.getenv("GROQ_API_KEY", "")
+    if not (gemini_key or groq_key):
+        return base
+
+    try:
+        ai = ai_score_job(
+            resume_text=resume_text,
+            job_title=title,
+            job_description=description,
+            company=company,
+            gemini_key=gemini_key,
+            groq_key=groq_key,
+            cache_key=job.get("url", "") or job.get("apply_url", ""),
+        )
+        # Store AI artefacts on the job so downstream emailer can use them
+        job["ai_reason"] = ai.reason
+        job["ai_source"] = ai.source
+        # Average so neither side can dominate / hallucinate too hard
+        return int(round((base + ai.score) / 2))
+    except Exception as e:
+        _log.debug("AI scoring failed for %s: %s", title, e)
+        return base

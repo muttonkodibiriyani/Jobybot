@@ -1,6 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ComparisonTable } from "@/components/ComparisonTable";
+import { Logo } from "@/components/Logo";
+import { AISearchDemo } from "@/components/AISearchDemo";
 import { SUPPORT, PAYMENT } from "@/lib/config";
 
 const stats = [
@@ -48,27 +49,40 @@ export default function HomePage() {
   return (
     <>
       {/* HERO */}
-      <section className="bg-ink text-white">
-        <div className="mx-auto max-w-page section-pad px-4 lg:flex lg:items-center lg:gap-16">
+      <section className="relative overflow-hidden bg-ink text-white">
+        {/* subtle gradient blobs */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 -right-20 h-96 w-96 rounded-full blur-3xl"
+          style={{ background: "radial-gradient(closest-side, rgba(255,107,0,0.25), transparent)" }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-40 -left-20 h-96 w-96 rounded-full blur-3xl"
+          style={{ background: "radial-gradient(closest-side, rgba(255,107,0,0.12), transparent)" }}
+        />
+
+        <div className="relative mx-auto max-w-page section-pad px-4 lg:flex lg:items-center lg:gap-16">
           <div className="flex-1">
-            <p className="eyebrow text-white/60">Your AI Job Hunter · 24/7 · On Your Laptop</p>
-            <Image
-              src="/jobybots-logo.png"
-              alt="JobyBots — Your AI Job Hunter. 24/7. On Your Laptop."
-              width={1024}
-              height={512}
-              priority
-              className="-ml-2 mt-6 h-auto w-full max-w-[560px] rounded-2xl bg-white p-4"
-            />
-            <h1 className="mt-8 text-3xl font-bold tracking-tight sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
-              200 validated job applications a day —
+            <Logo variant="light" hero className="mb-8" />
+
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 backdrop-blur">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+              Powered by Google Gemini AI
+            </p>
+
+            <h1 className="mt-6 text-3xl font-bold tracking-tight sm:text-4xl lg:text-[3rem] lg:leading-[1.05]">
+              An AI that searches LinkedIn for you,
               <br className="hidden sm:block" />
-              without giving anyone your LinkedIn password.
+              <span className="text-accent">tailors every application,</span>
+              <br className="hidden sm:block" />
+              and emails recruiters all day.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              Built for ambitious job seekers in <strong className="text-white">India, UAE, Singapore,
-              and 5 more markets</strong>. One-time ₹{PAYMENT.amountInr.toLocaleString("en-IN")}.
-              Lifetime. Runs on your PC.
+              Gemini-powered job matching. 200 tailored applications a day.
+              Built for ambitious job seekers in{" "}
+              <strong className="text-white">India, UAE, Singapore, and 5 more markets</strong>.
+              One-time ₹{PAYMENT.amountInr.toLocaleString("en-IN")}. Lifetime. Runs on your PC.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/buy-india" className="btn-primary text-center">
@@ -78,7 +92,7 @@ export default function HomePage() {
                 href="/demo"
                 className="btn-secondary !border-white/20 !bg-transparent !text-white hover:!bg-white/10"
               >
-                Watch the demo
+                See AI in action ↓
               </Link>
             </div>
             <p className="mt-6 flex flex-wrap items-center gap-2 text-sm text-white/60">
@@ -93,35 +107,9 @@ export default function HomePage() {
             </p>
           </div>
 
+          {/* Live AI search demo, right side */}
           <div className="mt-12 flex-1 lg:mt-0">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lift backdrop-blur">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wider text-accent">
-                  Live dashboard preview
-                </p>
-                <span className="rounded-full bg-success/20 px-2.5 py-0.5 text-xs font-bold text-success">
-                  ● Active
-                </span>
-              </div>
-              <p className="mt-3 text-3xl font-bold">47 matched jobs</p>
-              <p className="text-sm text-white/60">+ 135 / 200 emails sent today</p>
-              <ul className="mt-6 space-y-3 text-sm">
-                {[
-                  ["Senior Product Manager · Careem",   "85"],
-                  ["Data PM · talabat",                  "82"],
-                  ["Business Analyst · ENOC",            "78"],
-                  ["AI Lead · Razorpay",                 "76"],
-                ].map(([t, s]) => (
-                  <li key={t} className="flex justify-between border-b border-white/10 pb-2.5">
-                    <span>{t}</span>
-                    <span className="font-bold text-accent">{s}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 text-xs text-white/40">
-                Auto-refreshes every 60s · bounce-tracked · GDPR-safe
-              </p>
-            </div>
+            <AISearchDemo />
           </div>
         </div>
       </section>

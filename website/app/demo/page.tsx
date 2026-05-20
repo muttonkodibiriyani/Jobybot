@@ -1,74 +1,232 @@
 import Link from "next/link";
+import { AISearchDemo } from "@/components/AISearchDemo";
+import { DashboardLive } from "@/components/DashboardLive";
+import { PAYMENT, SUPPORT } from "@/lib/config";
 
 export const metadata = {
-  title: "See Jobybot in action — Demo video",
+  title: "Demo · See JobyBots' AI search live",
   description:
-    "Watch how Jobybot searches LinkedIn, Indeed, Bayt every hour and emails recruiters tailored applications in real time.",
+    "Watch the JobyBots AI agent search LinkedIn, Indeed, Naukri and Bayt — score every job against your résumé with Gemini, and email recruiters. Live interactive demo plus install walkthrough.",
 };
+
+const steps = [
+  {
+    n: "01",
+    title: "Pay ₹2,999 with UPI",
+    body: "PhonePe / GPay / Paytm — scan our QR. Upload payment screenshot in the form. Owner approves within 30 minutes (24×7).",
+  },
+  {
+    n: "02",
+    title: "Get the installer in your email",
+    body: "Approval email contains a one-click .zip download. Extract anywhere — Desktop is fine. Total size: ~20 MB.",
+  },
+  {
+    n: "03",
+    title: "Run JOBYBOT.bat",
+    body: "Double-click. The installer creates a Python virtual environment, installs deps, and asks for your Gemini API key + Gmail App Password.",
+  },
+  {
+    n: "04",
+    title: "Drop your résumé in /resume.pdf",
+    body: "JobyBots reads it, extracts skills and titles with Gemini, and saves an embedding so every job search runs against your unique profile.",
+  },
+  {
+    n: "05",
+    title: "Click 'Start Bot'",
+    body: "The dashboard opens in your browser. Every 30 minutes the bot searches, scores, tailors emails, and sends them — all on your laptop.",
+  },
+  {
+    n: "06",
+    title: "Open the daily email at 9 AM",
+    body: "Top 25 AI-matched jobs with apply links. Click Apply → browser bookmarklet pre-fills the form. You just click Submit.",
+  },
+];
+
+const aiSteps = [
+  {
+    title: "1 · Search 8 sources in parallel",
+    desc: "LinkedIn, Indeed, Naukri, Bayt, RemoteOK, AngelList, Glassdoor, company career pages. We hit them every 30 min, deduplicate, and feed jobs into the AI pipeline.",
+  },
+  {
+    title: "2 · Read your résumé with Gemini AI",
+    desc: "Gemini 1.5 Flash extracts skills, titles, years of experience, industries and keywords from your PDF résumé. Saved as a vector embedding for fast matching.",
+  },
+  {
+    title: "3 · Score every job → 0-100 match",
+    desc: "Each job description is compared against your résumé embedding. Gemini returns a match score plus a one-line explanation of WHY it matched.",
+  },
+  {
+    title: "4 · Tailor cover letters per role",
+    desc: "Jobs above 70% get a 4-sentence custom cover letter that quotes the JD and references your résumé. Generic-but-good for the 70–80% range.",
+  },
+  {
+    title: "5 · Validate every recruiter email",
+    desc: "DNS MX-lookup before sending. Bounced addresses get quarantined. EU markets are GDPR-safe (no email, apply-via-website only).",
+  },
+  {
+    title: "6 · Send + track + retry",
+    desc: "Daily cap of 200 emails. Live dashboard logs every send, bounce, and AI score. You see exactly what the bot is doing, in real time.",
+  },
+];
 
 export default function DemoPage() {
   const videoUrl = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL ?? "";
 
   return (
-    <div className="mx-auto max-w-page section-pad">
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="eyebrow">Watch · 90 seconds</p>
-        <h1 className="h1 mt-2">See Jobybot apply to jobs in real time</h1>
-        <p className="lead mt-4">
-          From clean install to first 50 applications — sped-up screen recording
-          of an actual cycle.
-        </p>
-      </div>
-
-      <div className="card mx-auto mt-10 max-w-3xl border-2 border-ink/5 p-2">
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-ink">
-          {videoUrl ? (
-            <iframe
-              src={videoUrl}
-              title="Jobybot demo"
-              className="absolute inset-0 h-full w-full"
-              allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center text-center text-white">
-              <div className="text-6xl">▶</div>
-              <p className="mt-4 text-lg font-semibold">Demo video coming soon</p>
-              <p className="mt-1 text-sm text-white/60">
-                We&apos;ll post a 90-second walkthrough here. Set
-                NEXT_PUBLIC_DEMO_VIDEO_URL in your .env to embed a YouTube or Vimeo
-                video.
-              </p>
+    <>
+      {/* HERO: live AI demo */}
+      <section className="bg-ink text-white">
+        <div className="mx-auto max-w-page section-pad px-4 lg:grid lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-6">
+            <p className="eyebrow text-white/60">Watch · 90 seconds · No fluff</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl lg:leading-[1.05]">
+              The AI is searching jobs.
+              <br />
+              <span className="text-accent">Right now.</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75">
+              This is a simulation of what your dashboard does every 30 minutes
+              on your laptop. The Gemini AI scans LinkedIn, Indeed, Naukri and
+              Bayt, matches jobs to your résumé, and emails recruiters.
+            </p>
+            <div className="mt-8 flex gap-3">
+              <Link href="/buy-india" className="btn-primary">
+                Buy with UPI · ₹{PAYMENT.amountInr.toLocaleString("en-IN")}
+              </Link>
+              <Link href="/dashboard" className="btn-secondary !border-white/20 !bg-transparent !text-white">
+                See full dashboard
+              </Link>
             </div>
-          )}
+          </div>
+          <div className="mt-10 lg:col-span-6 lg:mt-0">
+            <AISearchDemo />
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="mx-auto mt-12 max-w-3xl grid gap-6 sm:grid-cols-3">
-        <Step n="1" title="Install" desc="One Windows batch file. ~3 minutes total." />
-        <Step n="2" title="Auto-cycle" desc="Every hour: search → match → email." />
-        <Step n="3" title="Track" desc="Live dashboard shows every send + bounce." />
-      </div>
+      {/* Recorded video slot */}
+      <section className="border-y border-surface-border bg-surface-subtle">
+        <div className="mx-auto max-w-page section-pad px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="eyebrow">Recorded walkthrough · 90 sec</p>
+            <h2 className="h2 mt-2">Watch the actual install + first apply</h2>
+            <p className="lead mt-4">
+              From a clean Windows install to the first 50 applications sent —
+              real screen recording.
+            </p>
+          </div>
+          <div className="card mx-auto mt-10 max-w-3xl p-2">
+            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-ink">
+              {videoUrl ? (
+                <iframe
+                  src={videoUrl}
+                  title="JobyBots demo"
+                  className="absolute inset-0 h-full w-full"
+                  allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center text-center text-white">
+                  <div className="text-6xl">▶</div>
+                  <p className="mt-4 text-lg font-semibold">Demo video uploading soon</p>
+                  <p className="mt-2 max-w-sm text-sm text-white/60">
+                    Until then, the live AI search above and the dashboard
+                    preview below show exactly what you'll get.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div className="mt-12 text-center">
-        <Link href="/pricing" className="btn-primary">Get Jobybot Pro</Link>
-        <p className="mt-3 text-sm text-ink-muted">
-          Or try the open-source community edition on GitHub.
-        </p>
-      </div>
-    </div>
-  );
-}
+      {/* AI pipeline explainer */}
+      <section className="mx-auto max-w-page section-pad px-4">
+        <p className="eyebrow">How the AI works</p>
+        <h2 className="h2 mt-2">Six stages. Every 30 minutes. On your machine.</h2>
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {aiSteps.map((s, i) => (
+            <article key={s.title} className="card">
+              <p className="text-xs font-bold uppercase tracking-widest text-accent">
+                Stage {i + 1}
+              </p>
+              <h3 className="mt-2 text-lg font-semibold">{s.title.replace(/^\d+\s·\s/, "")}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-muted">{s.desc}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-function Step({ n, title, desc }: { n: string; title: string; desc: string }) {
-  return (
-    <div className="card">
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
-        {n}
-      </div>
-      <h3 className="mt-4 text-base font-semibold">{title}</h3>
-      <p className="mt-1 text-sm text-ink-muted">{desc}</p>
-    </div>
+      {/* Full dashboard preview */}
+      <section className="border-y border-surface-border bg-surface-subtle">
+        <div className="mx-auto max-w-page px-4 py-12 lg:py-16">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="eyebrow">After install</p>
+            <h2 className="h2 mt-2">This is your dashboard</h2>
+            <p className="lead mt-4">
+              Opens automatically in your browser. AI activity log on the left,
+              ranked jobs with one-click apply on the right.
+            </p>
+          </div>
+          <div className="mt-10">
+            <DashboardLive />
+          </div>
+        </div>
+      </section>
+
+      {/* Customer install steps */}
+      <section className="mx-auto max-w-page section-pad px-4">
+        <p className="eyebrow">For non-technical customers</p>
+        <h2 className="h2 mt-2">From payment to first apply · 15 minutes</h2>
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {steps.map((s) => (
+            <article key={s.n} className="card">
+              <p className="text-xs font-bold uppercase tracking-widest text-accent">
+                Step {s.n}
+              </p>
+              <h3 className="mt-2 text-lg font-semibold">{s.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-muted">{s.body}</p>
+            </article>
+          ))}
+        </div>
+        <div className="mt-12 rounded-2xl bg-accent-soft p-6 text-sm">
+          <p className="font-semibold">Stuck during install?</p>
+          <p className="mt-2 text-ink-muted">
+            Email{" "}
+            <a className="text-accent underline" href={`mailto:${SUPPORT.email}`}>
+              {SUPPORT.email}
+            </a>{" "}
+            or call/WhatsApp{" "}
+            <a className="text-accent underline" href={`tel:${SUPPORT.phone.replace(/\s/g, "")}`}>
+              {SUPPORT.phone}
+            </a>
+            . Founder responds within 1 hour, {SUPPORT.hours}.
+          </p>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-ink text-white">
+        <div className="mx-auto max-w-page section-pad px-4 text-center">
+          <h2 className="h2 text-white">Stop scrolling job boards. Let the AI work.</h2>
+          <p className="lead mx-auto mt-4 max-w-xl text-white/70">
+            ₹{PAYMENT.amountInr.toLocaleString("en-IN")} one-time. Lifetime
+            license. 7-day refund.
+          </p>
+          <div className="mt-8 flex justify-center gap-3">
+            <Link href="/buy-india" className="btn-primary">
+              Buy with UPI · ₹{PAYMENT.amountInr.toLocaleString("en-IN")}
+            </Link>
+            <Link
+              href="/pricing"
+              className="btn-secondary !border-white/20 !bg-transparent !text-white hover:!bg-white/10"
+            >
+              Pay by card ($49)
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

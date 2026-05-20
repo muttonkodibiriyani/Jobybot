@@ -7,9 +7,9 @@ import { Logo } from "./Logo";
 const links = [
   { href: "/", label: "Home" },
   { href: "/demo", label: "Demo" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/pricing", label: "Pricing" },
   { href: "/faq", label: "FAQ" },
-  { href: "/refund", label: "Refund" },
 ];
 
 export function Header() {

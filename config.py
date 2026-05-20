@@ -56,6 +56,16 @@ class Settings(BaseSettings):
     daily_summary_hour: int = Field(9)
     log_level:          str = Field("INFO")
 
+    # AI providers (all free-tier friendly; bot works without any of them
+    # but enabling Gemini unlocks the smart match scoring + tailored cover
+    # letters that the website advertises).
+    gemini_api_key:  str = Field("", description="Google AI Studio key — https://aistudio.google.com/apikey")
+    gemini_model:    str = Field("gemini-1.5-flash")
+    groq_api_key:    str = Field("", description="Optional Groq fallback — https://console.groq.com/keys")
+    groq_model:      str = Field("llama-3.3-70b-versatile")
+    ai_enabled:      bool = Field(True, description="Master switch. False disables all LLM calls.")
+    ai_min_match:    int  = Field(60, description="Score below which jobs are dropped entirely.")
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

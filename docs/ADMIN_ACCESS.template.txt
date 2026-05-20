@@ -1,0 +1,23 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║  TEMPLATE — copy this to ADMIN_ACCESS.txt at the repo root, fill in  ║
+║  the real password, and never commit the real file. The .gitignore   ║
+║  already excludes /ADMIN_ACCESS.txt at the root.                     ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+1. THE PASSWORD
+  ADMIN_PASSWORD = <generate with the one-liner below — 28+ chars>
+
+  Generation one-liner (run inside the JobyBots folder):
+    .venv\Scripts\python.exe -c "import secrets, string; print(''.join(secrets.choice(string.ascii_letters+string.digits+'!@#$%^&*-_+=') for _ in range(28)))"
+
+2. WHERE TO PUT IT
+  Vercel → JobyBot project → Settings → Environment Variables →
+    ADMIN_PASSWORD = <the generated value>
+    (Production + Preview + Development checked)
+  Then redeploy.
+
+3. WHERE TO LOG IN
+  https://jobybots.com/admin/login
+
+4. ROTATION SCHEDULE
+  Every 3 months. Update both this file and Vercel.

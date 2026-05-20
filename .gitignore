@@ -45,6 +45,12 @@ BUILD_TASK.md
 # but never commit the generated output.
 customer-package/
 
+# Owner-only admin credentials — never commit. See ADMIN_ACCESS.txt.template
+# in docs/ for the format. Real file stays on owner's laptop + password manager.
+ADMIN_ACCESS.txt
+admin-credentials.*
+*.admin-credentials
+
 # Website build
 website/node_modules/
 website/.next/

@@ -28,11 +28,13 @@ from core.dashboard import render_dashboard, DASHBOARD_HTML
 from core.utils import jitter_sleep
 
 # Job sources
-from sources.linkedin_search import LinkedInSearch
-from sources.indeed          import Indeed
-from sources.naukri_gulf     import NaukriGulf
-from sources.bayt            import Bayt
-from sources.remoteok        import RemoteOK
+from sources.linkedin_search  import LinkedInSearch
+from sources.indeed           import Indeed
+from sources.naukri_gulf      import NaukriGulf
+from sources.bayt             import Bayt
+from sources.remoteok         import RemoteOK
+from sources.gulftalent       import GulfTalent
+from sources.company_careers  import CompanyCareers
 
 
 # ── Logging setup ─────────────────────────────────────────────────
@@ -74,6 +76,11 @@ def country_locations(country: str) -> List[str]:
 
 
 def active_sources(settings: Settings) -> List:
+    """Return all enabled job sources in priority order.
+
+    Each .env toggle (ENABLE_*) flips a single source on/off so non-technical
+    users can disable a site if it's misbehaving without editing code.
+    """
     src = []
     if settings.enable_linkedin_search:
         src.append(LinkedInSearch())
@@ -83,8 +90,12 @@ def active_sources(settings: Settings) -> List:
         src.append(NaukriGulf())
     if settings.enable_bayt:
         src.append(Bayt())
+    if settings.enable_gulftalent:
+        src.append(GulfTalent())
     if settings.enable_remoteok:
         src.append(RemoteOK())
+    if settings.enable_company_careers:
+        src.append(CompanyCareers())
     return src
 
 

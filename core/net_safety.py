@@ -3,14 +3,28 @@ from __future__ import annotations
 
 import requests
 
-# Hosts Jobybot may contact for job search / domain checks
+# Hosts Jobybot may contact for job search / domain checks.
+# Adding a new source? Append the bare suffix here (e.g. "foo.com").
+# The allow-list is enforced for every outbound HTTP GET / HEAD.
 ALLOWED_HOST_SUFFIXES = (
+    # Major job boards
     "linkedin.com",
     "indeed.com",
     "bayt.com",
     "naukrigulf.com",
+    "naukri.com",
+    "gulftalent.com",
     "remoteok.com",
     "remoteok.io",
+    "glassdoor.com",
+    # Company-careers ATS APIs (public, no auth, JSON)
+    "greenhouse.io",
+    "lever.co",
+    "workable.com",
+    "ashbyhq.com",
+    "smartrecruiters.com",
+    "jobvite.com",
+    "myworkdayjobs.com",
 )
 
 DEFAULT_TIMEOUT = 8

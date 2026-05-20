@@ -54,11 +54,13 @@ INCLUDE_FILES = [
 
 INCLUDE_DIRS = [
     "core",          # bot Python modules
+    "sources",       # job-board scrapers (LinkedIn, Bayt, GulfTalent, Company ATS)
     "scripts",       # python helpers (dashboard opener, bookmarklet, etc.)
     "powershell",    # PowerShell command library (Windows)
     "mac",           # macOS .command scripts
-    "docs",          # customer-facing docs (install guide, journey)
+    "docs",          # customer-facing docs (install guide, architecture, security, mission)
     "templates",     # email + cover-letter templates
+    "markets",       # per-country recruiter contact lists + GDPR flags
 ]
 
 # Paths we never include in the customer package.
@@ -74,8 +76,9 @@ EXCLUDE_PATTERNS = {
     "website",
     "data",
     "customer-package",
-    ".env",        # never ship the owner's secrets
-    "*.pdf",       # never ship the owner's résumé
+    ".env",                  # never ship the owner's secrets
+    "ADMIN_ACCESS.txt",      # never ship the owner's admin password
+    "*.pdf",                 # never ship the owner's résumé
     "*.log",
     "*.db",
     "*.sqlite",
@@ -172,9 +175,20 @@ with Gemini AI, and send personalized emails to recruiters.
 | Stop the bot | `JOBYBOT.bat` → stop | `mac/StopBot.command` |
 | Edit settings | Edit `.env` in Notepad | Edit `.env` in TextEdit |
 
+## Read these first (in the `docs/` folder)
+
+| File | When to read |
+|---|---|
+| `docs/MISSION.md` | Why JobyBots exists (the story behind it) |
+| `docs/INSTALLATION_GUIDE.md` | The full step-by-step install for Win + Mac |
+| `docs/FEATURE_GUIDE.md` | Every feature you can use (15 sections) |
+| `docs/CUSTOMER_TERMINAL_WALKTHROUGH.md` | Copy-paste commands that prove the bot works end-to-end |
+| `docs/POWERSHELL_SCRIPTS.md` | Every .bat / .ps1 / .command documented |
+| `docs/ARCHITECTURE.md` | System + AI architecture (for the curious) |
+| `docs/SECURITY.md` | Threat model + what we do to protect your data |
+
 ## Help
 
-- Step-by-step picture guide: `docs/CUSTOMER_INSTALL_GUIDE.md`
 - FAQ:        https://jobybots.com/faq
 - Email:      tharakesh.iitp@gmail.com
 - WhatsApp:   +91 7989931325

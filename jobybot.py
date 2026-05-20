@@ -226,9 +226,14 @@ def do_email_blast(settings: Settings) -> int:
 
     Skips GDPR-strict markets entirely (Germany, NL, Ireland, Sweden, UK PECR).
     Pre-validates emails to cut bounces. Tracks each event for the dashboard.
+
+    Progress is logged every ~10 contacts AND the dashboard is re-rendered
+    after each market so the customer can watch live activity instead of
+    staring at a silent terminal.
     """
     profile = load_profile()
     sent = 0
+    grand_already = 0  # how many addresses we already cold-emailed earlier
 
     if db.emails_sent_today() >= settings.daily_email_cap:
         logger.warning(f"Daily cap ({settings.daily_email_cap}) already reached")
@@ -243,12 +248,41 @@ def do_email_blast(settings: Settings) -> int:
 
         market = load_market(country)
         contacts = market.get("contacts", [])
-        logger.info(f"\n[{country}] {len(contacts)} contacts")
 
-        for c in contacts:
+        # Pre-flight: split into "fresh" and "already emailed".
+        # If we already cold-emailed someone within the FOLLOWUP_DAYS window,
+        # the daily blast must not pester them again — that responsibility
+        # lives in do_followups() which only fires on the configured cadence.
+        fresh, already = [], []
+        for ct in contacts:
+            if db.already_emailed(ct["email"], 0):
+                already.append(ct)
+            else:
+                fresh.append(ct)
+        grand_already += len(already)
+
+        logger.info(
+            f"\n[{country}] {len(contacts)} contacts  →  {len(fresh)} fresh to send, "
+            f"{len(already)} already emailed (will be revisited as 7-day follow-ups)"
+        )
+        db.log_event(
+            "market_plan",
+            f"{country}: fresh={len(fresh)} already={len(already)}",
+        )
+
+        # Re-render the dashboard now so the customer's open tab updates
+        # immediately when this market starts.
+        render_dashboard(settings.daily_email_cap)
+
+        if not fresh:
+            logger.info(f"[{country}] nothing fresh to send — moving on")
+            continue
+
+        for i, c in enumerate(fresh, start=1):
             if db.emails_sent_today() >= settings.daily_email_cap:
                 logger.warning("Daily cap reached, stopping")
                 db.log_event("blast_capped", str(sent))
+                render_dashboard(settings.daily_email_cap)
                 return sent
 
             ok = send_application(
@@ -260,10 +294,30 @@ def do_email_blast(settings: Settings) -> int:
             )
             if ok:
                 sent += 1
+
+            # Compact progress beat: every 5 sends OR last item of market.
+            if i % 5 == 0 or i == len(fresh):
+                logger.info(
+                    f"  [{country}] progress {i}/{len(fresh)} — "
+                    f"sent so far this cycle: {sent}, "
+                    f"today total: {db.emails_sent_today()}/{settings.daily_email_cap}"
+                )
+                # Refresh dashboard mid-market so live tab keeps moving.
+                render_dashboard(settings.daily_email_cap)
+
             jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
 
-    db.log_event("blast_done", f"{sent} sent")
-    logger.success(f"Email blast complete: {sent} new emails sent")
+        logger.success(f"[{country}] market complete — {sent} sent so far this cycle")
+
+    db.log_event(
+        "blast_done",
+        f"{sent} sent / {grand_already} already-emailed across all markets",
+    )
+    logger.success(
+        f"Email blast complete: {sent} new emails sent "
+        f"({grand_already} addresses skipped because they were already emailed earlier)"
+    )
+    render_dashboard(settings.daily_email_cap)
     return sent
 
 

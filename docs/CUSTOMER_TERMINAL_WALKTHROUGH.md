@@ -125,6 +125,16 @@ I noticed your "Senior PM, Mobility" role at Careem. Your team's recent…
 
 This is the real thing. **It will send real emails** if `DAILY_EMAIL_CAP > 0`.
 
+> **What changed (2026-05-20):** `RUN_BOT_NOW.bat` and `mac/RunBotNow.command`
+> now auto-open the live dashboard in your browser **before** the cycle
+> starts. You'll see two windows:
+>
+> 1. **Terminal** — text log of every search call + every email sent
+> 2. **Browser tab** — live dashboard with a pulsing green "LIVE" banner
+>    that updates every 15 seconds (e.g. "📨 Just sent: careers@careem.com (Careem)")
+>
+> Watch whichever you prefer. They show the same activity, different views.
+
 ### Windows (full output)
 ```powershell
 .\RUN_BOT_NOW.bat
@@ -147,12 +157,22 @@ You'll see, in real-time:
 14:04:05 | INFO    |   + [65] Senior Specialist - Power BI Developer @ Deeplight AI (LinkedIn, UAE)
 …
 14:04:53 | SUCCESS | Search complete: 41 new jobs added
-14:04:53 | INFO    | [UAE] 79 contacts — starting blast
-14:05:24 | SUCCESS | Email sent → senior-recruiter@careem.com  (Senior PM)
-14:06:18 | SUCCESS | Email sent → careers@talabat.com  (Data PM)
+14:04:53 | INFO    | [UAE] 79 contacts  →  12 fresh to send, 67 already emailed (will be revisited as 7-day follow-ups)
+14:05:24 | SUCCESS | → senior-recruiter@careem.com  (Careem)
+14:06:18 | SUCCESS | → careers@talabat.com  (talabat)
+14:07:45 | INFO    |   [UAE] progress 5/12 — sent so far this cycle: 5, today total: 5/200
 …
-14:32:11 | SUCCESS | Cycle complete: 41 found, 18 emails sent, 0 bounces
+14:18:09 | SUCCESS | [UAE] market complete — 12 sent so far this cycle
+14:18:09 | INFO    | [Singapore] 24 contacts  →  24 fresh to send, 0 already emailed
+…
+14:32:11 | SUCCESS | Email blast complete: 47 new emails sent (67 addresses skipped because they were already emailed earlier)
+14:32:11 | SUCCESS | Cycle complete: 41 found, 47 emails sent, 0 bounces
 ```
+
+> **Why does it say "X already emailed"?** JobyBots will not pester the
+> same recruiter twice. If you blasted UAE companies yesterday, today's
+> cycle will skip them and the 7-day follow-up engine will send a polite
+> reminder on day 8. This is how we keep your Gmail from being flagged.
 
 You can close the window any time — the cycle keeps running in the
 background until it's done.

@@ -25,12 +25,20 @@ fi
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo "  JOBYBOT — Starting one full cycle"
-echo "  • Searches LinkedIn, Indeed, Bayt, Naukri, RemoteOK, etc."
+echo "  • Searches LinkedIn, Indeed, Bayt, GulfTalent, Naukri,"
+echo "    RemoteOK + 40+ company career pages (Greenhouse, Lever,"
+echo "    Workable, Ashby)."
 echo "  • Gemini AI ranks each job vs your résumé"
 echo "  • Sends personalized recruiter emails (up to 200/day cap)"
 echo "  • Updates data/click_apply_inbox.html for Easy Apply jobs"
+echo ""
+echo "  Live dashboard will open in your browser. Watch progress there"
+echo "  — it auto-refreshes every 15 seconds."
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
+
+# Pre-render & open the dashboard so the customer can watch live progress.
+"$VENV_PY" scripts/open_dashboard.py || true
 
 "$VENV_PY" jobybot.py run
 

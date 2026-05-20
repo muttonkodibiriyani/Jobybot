@@ -24,6 +24,54 @@ def render_dashboard(daily_cap: int) -> None:
 
     today_pct = min(100, int((s["emails_today"] / max(daily_cap, 1)) * 100))
 
+    # ── Live-cycle banner ───────────────────────────────────────────
+    # Walks the most-recent run-log events to figure out, in plain English,
+    # what JobyBot is doing *right now* — search, AI scoring, market blast,
+    # bounce scan, or idle. This is what a customer's eyes go to first.
+    now = dt.datetime.utcnow()
+    last_event = events[0] if events else None
+    age_min = 999.0
+    if last_event:
+        try:
+            last_at = dt.datetime.fromisoformat((last_event["at"] or "").replace("Z", ""))
+            age_min = (now - last_at).total_seconds() / 60.0
+        except Exception:
+            age_min = 999.0
+
+    live_status = "Idle — bot is not currently running"
+    live_kind = "idle"
+    if last_event and age_min < 30:
+        ev = (last_event["event"] or "").lower()
+        detail = last_event["detail"] or ""
+        live_kind = "active"
+        if ev == "search_start":
+            live_status = f"🔎 Searching all 7 sources right now — {detail}"
+        elif ev == "search_done":
+            live_status = f"✓ Search finished — {detail}. Starting email outreach…"
+        elif ev == "market_plan":
+            live_status = f"📋 Planning a market — {detail}"
+        elif ev == "blast_start":
+            live_status = "📨 Starting personalised email outreach to recruiters…"
+        elif ev == "email_sent":
+            live_status = f"📨 Just sent: {detail}"
+        elif ev == "email_failed":
+            live_status = f"⚠️ Last send failed: {detail}"
+        elif ev == "bounces_marked":
+            live_status = f"♻️ Quarantining bounced addresses — {detail}"
+        elif ev == "blast_capped":
+            live_status = f"✓ Daily cap reached — {detail} emails sent today"
+        elif ev == "blast_done":
+            live_status = f"✓ Cycle complete — {detail}"
+        elif ev == "gdpr_skip":
+            live_status = f"🇪🇺 Skipping {detail} (GDPR-strict, applying via website only)"
+        else:
+            live_status = f"{ev}: {detail}"
+    elif last_event:
+        live_status = (
+            f"💤 Last activity {int(age_min)} min ago. "
+            f"Next cycle starts automatically on the schedule."
+        )
+
     src_rows = "".join(
         f'<div class="src-row"><span>{_h(r["source"])}</span><strong>{r["n"]}</strong></div>'
         for r in sources
@@ -55,7 +103,7 @@ def render_dashboard(daily_cap: int) -> None:
 <html lang="en"><head>
 <meta charset="utf-8">
 <title>Jobybot Dashboard</title>
-<meta http-equiv="refresh" content="60">
+<meta http-equiv="refresh" content="15">
 <style>
   *{{box-sizing:border-box}}
   body{{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#F7F7F7;color:#0B0B0B}}
@@ -85,13 +133,29 @@ def render_dashboard(daily_cap: int) -> None:
   .score.s40,.score.s30,.score.s20,.score.s10,.score.s0{{background:#9CA3AF}}
   .score.s50,.score.s60{{background:#F59E0B;color:#0B0B0B}}
   a{{color:#FF6B00;text-decoration:none;font-weight:600}}
+  .live{{background:linear-gradient(135deg,#FFF4EB 0%,#FFFFFF 100%);border:1px solid #FFB07A;border-radius:14px;padding:18px 22px;display:flex;align-items:center;gap:14px}}
+  .live.idle{{background:#F7F7F7;border-color:#E8E8E8}}
+  .live .dot{{width:12px;height:12px;border-radius:50%;background:#10B981;box-shadow:0 0 0 4px rgba(16,185,129,.18);animation:pulse 1.4s infinite}}
+  .live.idle .dot{{background:#9CA3AF;box-shadow:0 0 0 4px rgba(156,163,175,.15);animation:none}}
+  @keyframes pulse{{0%,100%{{transform:scale(1);opacity:1}}50%{{transform:scale(1.25);opacity:.65}}}}
+  .live .label{{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#FF6B00}}
+  .live.idle .label{{color:#6B6B6B}}
+  .live .msg{{font-size:16px;font-weight:600;margin-top:2px;color:#0B0B0B}}
 </style></head>
 <body>
 <header>
   <h1>JOBYBOT · Dashboard</h1>
-  <span class="updated">Updated {_h(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))} · refreshes every 60 s</span>
+  <span class="updated">Updated {_h(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))} · auto-refresh every 15 s</span>
 </header>
 <div class="grid">
+  <div class="live {('idle' if live_kind == 'idle' else '')}">
+    <div class="dot"></div>
+    <div>
+      <div class="label">{('LIVE — bot is working right now' if live_kind == 'active' else 'BOT STATUS')}</div>
+      <div class="msg">{_h(live_status)}</div>
+    </div>
+  </div>
+
   <div class="row">
     <div class="kpi"><div class="label">Emails today</div><div class="value">{s["emails_today"]}/{daily_cap}</div><div class="bar"><div></div></div></div>
     <div class="kpi"><div class="label">Jobs today</div><div class="value">{s["jobs_today"]}</div><div class="sub">{s["total_jobs"]} total in DB</div></div>

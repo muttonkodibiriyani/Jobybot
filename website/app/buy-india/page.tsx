@@ -73,16 +73,16 @@ export default function BuyIndiaPage() {
 
       <div className="mt-12 grid gap-4 sm:grid-cols-3">
         <SafetyBadge
-          title="Encrypted in transit"
-          desc="Full HTTPS · HSTS preload · CSP enforced site-wide."
+          title="Owner-verified · 30 minutes"
+          desc="Every payment is manually approved by the founder. No auto-charges, no surprise renewals."
         />
         <SafetyBadge
           title="Payment proof is private"
-          desc="Your screenshot is sent only to the owner during verification."
+          desc="Your screenshot is sent only to the owner during verification. Deleted after delivery."
         />
         <SafetyBadge
-          title="7-day refund"
-          desc="Submit at /refund · refunded to the same UPI in 5 days."
+          title="7-day money-back"
+          desc="Try the AI for a week. Not happy? Refund to the same UPI within 5 business days."
         />
       </div>
 

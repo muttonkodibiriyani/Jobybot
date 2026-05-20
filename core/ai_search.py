@@ -38,8 +38,20 @@ class MatchResult:
     source: str  # which provider produced this ("gemini", "groq", "fallback")
 
 
-def _gemini_chat(prompt: str, api_key: str, model: str = "gemini-1.5-flash") -> Optional[str]:
-    """Call Google Gemini REST API. Returns text or None on failure."""
+def _gemini_chat(
+    prompt: str,
+    api_key: str,
+    model: str = "gemini-flash-latest",
+    *,
+    json_response: bool = True,
+) -> Optional[str]:
+    """Call Google Gemini REST API. Returns text or None on failure.
+
+    Uses the `X-goog-api-key` header instead of `?key=...` query string
+    so the key never lands in proxy logs or HTTP referers. Defaults to
+    `gemini-flash-latest`, which always points at the newest free-tier
+    Flash model.
+    """
     try:
         import httpx  # lazy import
     except Exception:  # pragma: no cover
@@ -48,18 +60,25 @@ def _gemini_chat(prompt: str, api_key: str, model: str = "gemini-1.5-flash") -> 
 
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{model}:generateContent?key={api_key}"
+        f"{model}:generateContent"
     )
+    gen_cfg: dict = {"temperature": 0.2}
+    if json_response:
+        gen_cfg["responseMimeType"] = "application/json"
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.2,
-            "responseMimeType": "application/json",
-        },
+        "generationConfig": gen_cfg,
     }
     try:
         with httpx.Client(timeout=20.0) as cli:
-            r = cli.post(url, json=body)
+            r = cli.post(
+                url,
+                json=body,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-goog-api-key": api_key,
+                },
+            )
             if r.status_code != 200:
                 _log.debug("gemini %s -> %s", r.status_code, r.text[:200])
                 return None
@@ -70,23 +89,31 @@ def _gemini_chat(prompt: str, api_key: str, model: str = "gemini-1.5-flash") -> 
         return None
 
 
-def _groq_chat(prompt: str, api_key: str, model: str = "llama-3.3-70b-versatile") -> Optional[str]:
+def _groq_chat(
+    prompt: str,
+    api_key: str,
+    model: str = "llama-3.3-70b-versatile",
+    *,
+    json_response: bool = True,
+) -> Optional[str]:
     """Call Groq's free OpenAI-compatible endpoint."""
     try:
         import httpx
     except Exception:
         return None
+    payload: dict = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.2,
+    }
+    if json_response:
+        payload["response_format"] = {"type": "json_object"}
     try:
         with httpx.Client(timeout=20.0) as cli:
             r = cli.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}"},
-                json={
-                    "model": model,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.2,
-                    "response_format": {"type": "json_object"},
-                },
+                json=payload,
             )
             if r.status_code != 200:
                 _log.debug("groq %s -> %s", r.status_code, r.text[:200])
@@ -121,7 +148,7 @@ def score_job(
     *,
     gemini_key: str = "",
     groq_key: str = "",
-    model_gemini: str = "gemini-1.5-flash",
+    model_gemini: str = "gemini-flash-latest",
     model_groq: str = "llama-3.3-70b-versatile",
     cache_key: str = "",
 ) -> MatchResult:

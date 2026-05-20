@@ -41,7 +41,7 @@ def tailored_email(
     *,
     gemini_key: str = "",
     groq_key: str = "",
-    model_gemini: str = "gemini-1.5-flash",
+    model_gemini: str = "gemini-flash-latest",
     model_groq: str = "llama-3.3-70b-versatile",
 ) -> str:
     """
@@ -62,9 +62,11 @@ def tailored_email(
 
     raw: Optional[str] = None
     if gemini_key:
-        raw = _gemini_chat(prompt, gemini_key, model=model_gemini)
+        # json_response=False because we want a free-form email body,
+        # not a JSON object.
+        raw = _gemini_chat(prompt, gemini_key, model=model_gemini, json_response=False)
     if not raw and groq_key:
-        raw = _groq_chat(prompt, groq_key, model=model_groq)
+        raw = _groq_chat(prompt, groq_key, model=model_groq, json_response=False)
 
     if not raw or len(raw.strip()) < 40:
         return _template_email(user_name, user_summary, job_title, company)
@@ -85,7 +87,7 @@ def summarise_resume(
     *,
     gemini_key: str = "",
     groq_key: str = "",
-    model_gemini: str = "gemini-1.5-flash",
+    model_gemini: str = "gemini-flash-latest",
     model_groq: str = "llama-3.3-70b-versatile",
 ) -> str:
     """One-line "elevator pitch" summary of the user's résumé, for emails."""
@@ -97,9 +99,9 @@ def summarise_resume(
     )
     raw: Optional[str] = None
     if gemini_key:
-        raw = _gemini_chat(prompt, gemini_key, model=model_gemini)
+        raw = _gemini_chat(prompt, gemini_key, model=model_gemini, json_response=False)
     if not raw and groq_key:
-        raw = _groq_chat(prompt, groq_key, model=model_groq)
+        raw = _groq_chat(prompt, groq_key, model=model_groq, json_response=False)
     if not raw:
         return ""
     return raw.strip().split("\n")[0][:300]

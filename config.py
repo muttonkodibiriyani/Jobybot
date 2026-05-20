@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     # but enabling Gemini unlocks the smart match scoring + tailored cover
     # letters that the website advertises).
     gemini_api_key:  str = Field("", description="Google AI Studio key — https://aistudio.google.com/apikey")
-    gemini_model:    str = Field("gemini-1.5-flash")
+    gemini_model:    str = Field("gemini-flash-latest")
     groq_api_key:    str = Field("", description="Optional Groq fallback — https://console.groq.com/keys")
     groq_model:      str = Field("llama-3.3-70b-versatile")
     ai_enabled:      bool = Field(True, description="Master switch. False disables all LLM calls.")

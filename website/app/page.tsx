@@ -37,12 +37,12 @@ const steps = [
 const markets = ["India", "UAE", "Singapore", "Germany", "Netherlands", "Ireland", "Sweden", "Canada", "UK", "Australia"];
 
 const trust = [
-  { label: "HTTPS + HSTS preload" },
-  { label: "CSP & rate-limited" },
-  { label: "GDPR-safe by design" },
-  { label: "7-day refund" },
-  { label: "Owner-verified payments" },
-  { label: "MIT community edition" },
+  { label: "Gemini AI-powered matching" },
+  { label: "200 applications / day" },
+  { label: "Tailored to your résumé" },
+  { label: "Runs on your laptop" },
+  { label: "7-day money-back" },
+  { label: "Founder support · WhatsApp" },
 ];
 
 export default function HomePage() {
@@ -181,23 +181,89 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SECURITY */}
+      {/* WHAT THE AI DOES */}
       <section className="bg-ink text-white">
         <div className="mx-auto max-w-page section-pad px-4">
-          <p className="eyebrow text-white/60">Enterprise-grade security</p>
-          <h2 className="h2 mt-2 text-white">Your data. Your laptop. Period.</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <p className="eyebrow text-white/60">What the AI does for you</p>
+          <h2 className="h2 mt-2 text-white">
+            Every <span className="text-accent">30 minutes</span>, while you sleep.
+          </h2>
+          <p className="lead mt-4 max-w-2xl text-white/70">
+            JobyBots isn't a job board — it's an AI agent that does the
+            entire grind for you. Here's the actual checklist it runs on
+            your laptop, every cycle, all day long.
+          </p>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { t: "End-to-end HTTPS", d: "HSTS preloaded, strict CSP, no third-party trackers on payment pages." },
-              { t: "Rate limited + alerted", d: "Failed logins and abuse attempts trigger an instant email to the owner." },
-              { t: "No cloud spyware", d: "Your Gmail App Password and resume sit in your project folder, encrypted by Windows." },
-              { t: "GDPR-safe outreach", d: "EU markets are inbox-only — we never email-blast Germany, Sweden, or Ireland." },
-              { t: "Owner-verified payments", d: "Every UPI order is manually approved within 30 minutes by the owner — no auto-charge fraud risk." },
-              { t: "7-day money-back", d: "Refund form, processed within 5 business days, same UPI or card." },
+              {
+                emoji: "🔍",
+                t: "Scans 8 job sites in parallel",
+                d: "LinkedIn, Indeed, Naukri, Bayt, RemoteOK, Glassdoor, AngelList and company career pages — all hit at the same time, every 30 minutes.",
+              },
+              {
+                emoji: "🧠",
+                t: "Reads your résumé with Gemini AI",
+                d: "Extracts your skills, titles, industries and years of experience. Saves a private profile that every search runs against.",
+              },
+              {
+                emoji: "🎯",
+                t: "Scores every job 0–100",
+                d: "Gemini compares each job description to your résumé and gives a match score with a one-line plain-English reason.",
+              },
+              {
+                emoji: "✍️",
+                t: "Writes a custom cover letter",
+                d: "For every match above 70%, the AI drafts a 4–6 sentence email that quotes the job description and references your résumé.",
+              },
+              {
+                emoji: "📧",
+                t: "Validates & emails recruiters",
+                d: "Checks every recruiter email is real (DNS lookup), then sends — up to 200 personalized emails per day, rate-limited so Gmail stays happy.",
+              },
+              {
+                emoji: "🌍",
+                t: "Knows EU privacy rules",
+                d: "Germany, Sweden, Ireland and other GDPR-strict markets get apply-via-website only — no cold emails, ever. Stays out of trouble.",
+              },
+              {
+                emoji: "📥",
+                t: "Tracks bounces automatically",
+                d: "Reads your Mailer-Daemon replies, quarantines bad addresses, and never spams a dead inbox twice.",
+              },
+              {
+                emoji: "🔔",
+                t: "Daily 9 AM digest email",
+                d: "Top 25 AI-matched jobs of the last 24 hours land in your inbox with one-click apply buttons. Skim. Click. Done.",
+              },
+              {
+                emoji: "🔒",
+                t: "100% on your laptop",
+                d: "Your résumé, Gmail password, and Gemini key never leave your project folder. Nothing is uploaded to us. Ever.",
+              },
             ].map((f) => (
-              <div key={f.t} className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                <p className="font-bold">{f.t}</p>
-                <p className="mt-2 text-sm text-white/70">{f.d}</p>
+              <div
+                key={f.t}
+                className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-accent/40 hover:bg-white/[0.07]"
+              >
+                <div className="text-3xl">{f.emoji}</div>
+                <p className="mt-4 text-lg font-bold">{f.t}</p>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{f.d}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Buyer reassurance — no jargon */}
+          <div className="mt-12 grid gap-4 sm:grid-cols-3">
+            {[
+              { e: "✅", t: "7-day money-back", d: "Try the AI for a week. Not happy? Submit one form, refund in 5 business days." },
+              { e: "🤝", t: "Owner-verified payments", d: "Every UPI order is manually approved within 30 minutes. No auto-charges, no fraud risk." },
+              { e: "📞", t: "Founder on WhatsApp", d: "Stuck during install? Direct line to the founder. Real human, real answers, no chatbots." },
+            ].map((r) => (
+              <div key={r.t} className="rounded-2xl bg-white/5 p-5">
+                <p className="text-2xl">{r.e}</p>
+                <p className="mt-2 font-semibold">{r.t}</p>
+                <p className="mt-1 text-sm text-white/70">{r.d}</p>
               </div>
             ))}
           </div>

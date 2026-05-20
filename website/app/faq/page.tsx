@@ -149,8 +149,8 @@ const sections: { heading: string; items: { q: string; a: React.ReactNode }[] }[
         a: "Only on your laptop, in your project folder (.env file + your PDF). Nothing is uploaded to our servers — there are no servers that process your job applications. We simply sell you the software.",
       },
       {
-        q: "Is jobybots.com hardened?",
-        a: "Yes. The site uses HTTPS-only (HSTS preload), Content-Security-Policy, X-Frame-Options DENY, rate limiting on /api/india-order and /admin endpoints, server-side input validation, and automated suspicious-login email alerts to the owner. The /admin dashboard is password-gated and IP-logged.",
+        q: "Is jobybots.com secure?",
+        a: "Yes. The site is encrypted end-to-end, blocks login abuse automatically, and the owner gets an instant email alert if anything suspicious happens. The admin area is password-protected and every login is logged. You'll never see a security pop-up or scam warning here.",
       },
       {
         q: "What if a hacker tries to access my account?",

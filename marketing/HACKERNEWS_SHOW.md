@@ -20,7 +20,7 @@ https://jobybots.com
 
 Hi HN,
 
-Maker here. Brief context: I'm a product manager (ex-Alshaya, IIT Patna) based in Dubai. In February 2026 I quit my job and started looking for the next one. After sending 200 manual cold emails over a month and getting 6 replies, I went home and started building JobyBots.
+Maker here. Brief context: I'm a working product manager in Dubai (IIT Patna alum, 8 years in MENA retail data + AI). Earlier this year I started quietly looking for what's next on top of my full-time job. After sending 200 manual cold emails over a couple of months and getting 6 replies, I went home and started building JobyBots in evenings and on weekends.
 
 What it is
 

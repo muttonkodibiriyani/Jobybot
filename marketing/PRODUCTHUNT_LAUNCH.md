@@ -18,7 +18,7 @@
 - [ ] Gallery — 5 images at 1270×760 + 1 GIF (≤3MB)
 - [ ] Demo video — YouTube link (https://youtu.be/fwKCITDa2MM)
 - [ ] Maker comment (post immediately after launch)
-- [ ] PH bio: "Founder of JobyBots. ex-Alshaya. Dubai. Building local-first AI tools for job seekers."
+- [ ] PH bio: "Founder of JobyBots. Working PM in Dubai. 8yr MENA retail. Building local-first AI tools for job seekers."
 
 ## Copy
 
@@ -37,7 +37,7 @@ Alternative taglines:
 
 > Hey hunters 👋
 >
-> Founder here. I'm Darapu (ex-Alshaya, IIT Patna). After spending Feb 2026 sending 200 manual cold emails for product roles and getting 6 replies, I went home and started building the bot that should have existed.
+> Founder here. I'm Darapu — working product manager in Dubai, IIT Patna alum, 8 years in MENA retail data + AI. Earlier this year I started quietly looking for what's next on top of my day job. After sending 200 manual cold emails for product roles and getting 6 replies, I went home and started building the bot that should have existed.
 >
 > Three things make JobyBots different from LazyApply / Sonara / AIApply:
 >

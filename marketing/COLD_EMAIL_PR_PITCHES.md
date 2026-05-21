@@ -56,7 +56,7 @@ What makes it Dubai-relevant:
 
 4. **Indian-style pricing.** ₹2,999 (~AED 130) lifetime instead of monthly subscription. 47 customers in 90 days, mostly from UAE + India.
 
-5. **Personal story angle.** Founder is a 7-year Alshaya Group alumnus (data products / AI agents) and IIT Patna graduate. Bootstrapped the company from a Dubai apartment with no funding.
+5. **Personal story angle.** Founder is a working product manager in Dubai with 8 years in MENA retail data + AI, and an IIT Patna graduate. Bootstrapped the company from a Dubai apartment with no funding, while still in a full-time role.
 
 Happy to do a sit-down interview (in person — I'm in Dubai), a phone call, or share screenshots / metrics for a written piece.
 

@@ -311,7 +311,7 @@ jobybots.com
 
 ## Post 12 — The closing argument (800 chars)
 
-One year ago I quit my job in Dubai to find my next role.
+One year ago — while still very much in my full-time role in Dubai — I started quietly looking for what's next.
 
 I sent 1,247 manual applications.
 

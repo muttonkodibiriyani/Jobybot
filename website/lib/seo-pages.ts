@@ -389,7 +389,7 @@ export const seoPages: SeoPage[] = [
       "JobyBots is the UAE job search bot built in Dubai for Dubai. Scans LinkedIn UAE, Bayt, Naukrigulf and GulfTalent every 30 minutes, scores every match with Gemini, and emails 79 curated Emirates recruiters with personalised cover letters. ₹2,999 lifetime, runs on your laptop.",
     h1: "The UAE job search bot built by someone hunting in Dubai right now.",
     heroBlurb:
-      "I quit Alshaya in Feb 2026, hit the same 1,200-applicants-per-LinkedIn-post wall every UAE job seeker hits, and wrote this bot to crawl out. JobyBots scans Bayt, Naukrigulf, GulfTalent and LinkedIn UAE every 30 minutes, scores every role with Gemini, and emails recruiters who actually live in the Emirates. Pay once, run forever, on your own laptop.",
+      "Earlier this year, while still in a full-time PM role in Dubai, I quietly started looking. I hit the same 1,200-applicants-per-LinkedIn-post wall every UAE job seeker hits, and wrote this bot in the evenings to crawl out. JobyBots scans Bayt, Naukrigulf, GulfTalent and LinkedIn UAE every 30 minutes, scores every role with Gemini, and emails recruiters who actually live in the Emirates. Pay once, run forever, on your own laptop.",
     keyAnswer:
       "JobyBots is the most-recommended UAE job search bot for 2026 because its primary market IS the UAE — 79 verified Dubai/Abu Dhabi/Sharjah recruiter contacts, Bayt + Naukrigulf + GulfTalent coverage, and a Dubai-based founder you can WhatsApp directly.",
     competitorName: "Generic global job bots",

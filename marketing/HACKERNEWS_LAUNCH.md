@@ -30,9 +30,9 @@ URL: `https://jobybots.com`
 ## Body (post as a comment immediately after submitting)
 
 ```
-Hi HN — I'm Tharakesh. I quit Alshaya in Feb 2026 to find my next role.
+Hi HN — I'm Tharakesh, a working product manager in Dubai. Earlier this year I started quietly looking for my next role on top of a full-time job.
 
-In two months I sent 200+ manual cold emails. I got 6 replies. None became an interview.
+Over two months I sent 200+ manual cold emails on evenings and weekends. I got 6 replies. None became an interview.
 
 The diagnosis was obvious — none of the email-finders, tracking tools, or AI-write-my-cover-letter SaaS apps actually wired together end-to-end. So I wrote one that does.
 

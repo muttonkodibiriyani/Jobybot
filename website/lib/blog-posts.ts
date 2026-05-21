@@ -46,7 +46,7 @@ export const blogPosts: BlogPost[] = [
       { type: "p", text: "If you are reading this between two interviews you never asked for at companies you never quite wanted, or after the third recruiter ghost of the week, or while a redundancy notice sits in another tab — please read this slowly. I wrote it for you. Not for VCs, not for the search engine, not for the launch. For you." },
 
       { type: "h2", text: "What this actually is" },
-      { type: "p", text: "I am the founder of JobyBots, a small local-first AI tool that automates the parts of job-hunting that should never have been a human's job in the first place: the searching, the tailoring, the validating, the sending. Before I built it, I spent six of the most demoralising months of my career trying to find my next role after seven years at Alshaya in Dubai. This is the letter I wish I had read in February 2026." },
+      { type: "p", text: "I am the founder of JobyBots, a small local-first AI tool that automates the parts of job-hunting that should never have been a human's job in the first place: the searching, the tailoring, the validating, the sending. Before I built it, I spent six of the most demoralising months of my career quietly searching for my next role on top of a full-time job in Dubai. This is the letter I wish I had read in February 2026." },
       { type: "p", text: "If you eventually choose to use JobyBots, that's wonderful. If you don't, I hope something in here helps anyway. The tool is downstream of the feelings. The feelings are why the tool exists." },
 
       { type: "h2", text: "The thing nobody tells you about job-hunting in 2026" },
@@ -72,7 +72,7 @@ export const blogPosts: BlogPost[] = [
       { type: "p", text: "Two truths I needed to hear in month four: (1) Most rejections are not personal. The role was probably internal-listed before it was external. (2) The reason your friend got hired faster is usually that they applied to more roles, not that they were better." },
 
       { type: "h2", text: "If you are about to switch" },
-      { type: "p", text: "Do it. The longer you stay in a role you have outgrown, the more the role shapes how recruiters see you, until 'product manager who's been at Alshaya for 9 years' becomes 'unmoveable, probably difficult, probably overpaid for the next role'. Three to six years per role is the modern sweet spot." },
+      { type: "p", text: "Do it. The longer you stay in a role you have outgrown, the more the role shapes how recruiters see you, until 'product manager who's been at one company for 9 years' becomes 'unmoveable, probably difficult, probably overpaid for the next role'. Three to six years per role is the modern sweet spot." },
       { type: "p", text: "Start the search before you quit. Automate the volume. Let the bot do the cold sweep while you keep your current paycheck. When you have the offer, you can quit on your own terms." },
 
       { type: "h2", text: "If you are looking from outside the UAE / Saudi" },
@@ -308,7 +308,7 @@ export const blogPosts: BlogPost[] = [
     author: { name: "Darapu Tharakeswara Reddy", url: "/about" },
     tags: ["build-log", "indie", "founder"],
     body: [
-      { type: "p", text: "On a Friday evening in February 2026 I quit refreshing LinkedIn after sending my 200th 'Hi, I'd love to chat about your PM role' message that month. I'd had 6 replies and 0 interviews. By Saturday morning I had a one-line spec on a Post-it: 'A bot on my laptop that does what I just did but to 200 recruiters a day, with proper personalisation.' That bot became JobyBots." },
+      { type: "p", text: "On a Friday evening in February 2026 I stopped refreshing LinkedIn after sending my 200th 'Hi, I'd love to chat about your PM role' message that month. I'd had 6 replies and 0 interviews. By Saturday morning I had a one-line spec on a Post-it: 'A bot on my laptop that does what I just did but to 200 recruiters a day, with proper personalisation, while I keep showing up to my day job.' That bot became JobyBots." },
 
       { type: "h2", text: "Days 1-15: Local-first, no SaaS" },
       { type: "p", text: "First decision: this would NEVER be a SaaS. Three reasons. (1) I didn't want to be liable for storing 5,000 strangers' résumés. (2) Cold-email at scale from a shared IP is a deliverability minefield. (3) I wanted to ship in weeks, not months." },

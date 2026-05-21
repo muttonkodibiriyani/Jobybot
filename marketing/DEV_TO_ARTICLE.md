@@ -15,7 +15,7 @@
 
 ---
 
-In February 2026 I quit my job and started looking for the next one. After sending 200 manual cold emails over a month and getting 6 replies, I went home and started building JobyBots.
+In February 2026, while still in a full-time PM role in Dubai, I started quietly looking for what's next. After sending 200 manual cold emails on evenings and weekends over a couple of months and getting 6 replies, I went home and started building JobyBots.
 
 This is the technical writeup. Code snippets, architecture diagrams, design choices, and a few war stories.
 

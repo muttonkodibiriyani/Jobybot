@@ -145,7 +145,7 @@ Anyone else building one-time-purchase tools for the Indian market? Curious to c
 **Built a job-search tool in Dubai for Dubai — looking for UAE candidates to test it**
 
 ### Body
-Dubai-based PM here (7 years at Alshaya). Spent 2 months looking for my next role manually before snapping and building a bot.
+Dubai-based PM here, currently in a full-time role (8 years in MENA retail data + AI). Spent 2 months quietly looking for my next role manually — on top of the day job — before snapping and building a bot.
 
 The tool (JobyBots) is now in beta with 47 paying users, mostly UAE + Saudi. Looking for 5 more UAE candidates willing to use it for a month and give honest feedback.
 

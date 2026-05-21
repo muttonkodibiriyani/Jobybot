@@ -13,11 +13,11 @@ Reddit is the highest-conversion channel for indie tools IF you respect each sub
 
 ## r/jobsearch (150k members)
 
-**Title:** `I quit my job in Feb. After 200 cold emails got me 6 replies, I built a small tool to automate the boring half.`
+**Title:** `Quietly job-hunting on top of a full-time job. 200 manual emails got me 6 replies. So I built a small tool to automate the boring half.`
 
 **Body:**
 ```
-Long-time lurker. Quitting was the easy part. The grind that followed wasn't.
+Long-time lurker. Still in a full-time role. The "quiet search" on evenings and weekends turned out to be its own kind of full-time job.
 
 By April I had:
 - A Notion of every job I'd applied to (314 entries)
@@ -50,7 +50,7 @@ Not selling anything in this post — just sharing what's actually been working 
 
 **Body:**
 ```
-Tech PM at a UAE retail group for 7 years. Got "restructured" in Feb. The Dubai job market is broken in a way I didn't realise until I was in it:
+Tech PM in the UAE for the last 8 years. Earlier this year I started quietly looking for what's next, on top of a full-time role. The Dubai job market is broken in a way I didn't realise until I was in it:
 
 - LinkedIn UAE has ~1,200 applicants per Senior PM post
 - Bayt and Naukrigulf surface different jobs than LinkedIn
@@ -114,7 +114,7 @@ jobybots.com
 
 **Body:**
 ```
-Spent 7 years working in MENA before getting laid off in Feb. Most "AI job tools" are USA-centric and don't have NEOM, Red Sea Global, Roshn, or any PIF portfolio company in their recruiter database.
+Spent 8 years working in MENA. Earlier this year I started quietly looking for the next chapter, on top of a full-time job. Most "AI job tools" are USA-centric and don't have NEOM, Red Sea Global, Roshn, or any PIF portfolio company in their recruiter database.
 
 So I built one that does. Tool searches LinkedIn KSA, Bayt, Naukrigulf for Saudi-relevant roles. Has 42 curated recruiter contacts pre-loaded for the Saudi Vision 2030 ecosystem. Writes Iqama-aware cover letters (handles the "expat from India / Egypt / Philippines" framing automatically).
 
@@ -143,7 +143,7 @@ Mods — if this isn't allowed, please DM and I'll redact, no problem.
 ```
 TL;DR: Stop guessing recruiter emails from name+domain patterns. Probe them with a partial SMTP transaction before you send.
 
-Context: I was job-hunting from Dubai. Sending ~50 cold emails a day. 35% were bouncing — which not only wastes the attempt but tanks your Gmail sender reputation, which then hurts the 65% that DO land.
+Context: I'd been quietly job-hunting from Dubai on evenings and weekends, on top of a full-time PM role. Sending ~50 cold emails a session. 35% were bouncing — which not only wastes the attempt but tanks your Gmail sender reputation, which then hurts the 65% that DO land.
 
 The 5-tier email-finder waterfall I ended up with:
 

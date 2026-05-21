@@ -23,7 +23,7 @@
 > The hidden cost of manual job-hunting isn't time, it's context switching. Every "let me check LinkedIn" torches 23 minutes of focus (Mark, Gloria, & Klocke, 2008). A serious search consumes 4-6 of those a day. That's 100+ minutes of deep work, gone. Either (a) batch your applications to ONE 90-minute block per day or (b) automate the search-tailor-send loop and reclaim the context-switch overhead.
 
 **5. On "should I include cover letters"**
-> Yes, but make them 4-6 sentences max. The recruiter reads the first 50 words; everything after is wasted. The pattern with the highest reply rate in our 12,500-application dataset: (1) personal opener with the recruiter's first name if known, (2) ONE specific JD requirement quoted, (3) ONE outcome from your résumé that matches it, (4) low-friction ask. "Hi Sarah, I noticed the role asks for B2B SaaS pricing experience — I led the migration of Alshaya's loyalty pricing from cost-plus to value-based, increasing margin 12%. Open to a quick chat next week?" That's it.
+> Yes, but make them 4-6 sentences max. The recruiter reads the first 50 words; everything after is wasted. The pattern with the highest reply rate in our 12,500-application dataset: (1) personal opener with the recruiter's first name if known, (2) ONE specific JD requirement quoted, (3) ONE outcome from your résumé that matches it, (4) low-friction ask. "Hi Sarah, I noticed the role asks for B2B SaaS pricing experience — at my current company I led the migration of loyalty pricing from cost-plus to value-based, increasing margin 12%. Open to a quick chat next week?" That's it.
 
 ---
 
@@ -36,7 +36,7 @@
 > Yes for search, no for apply. LinkedIn's job board is the most comprehensive single source. But the moment you hit "Easy Apply", your application enters a triage queue with 800-1200 others. Use LinkedIn to FIND the role + the recruiter, then email the recruiter directly. We measured 11× higher reply rates that way.
 
 **8. On "how do I write a cover letter"**
-> Three rules: (1) 4-6 sentences max — recruiters scan in 5 sec. (2) Quote ONE specific requirement from the JD and match it to ONE outcome from your résumé with a number. "The role asks for 5+ years of MENA retail data — I built Alshaya's customer data platform across 100+ brands in 4 years." (3) Close with a low-friction ask. "Open to a 15-min chat next Tuesday?" That's it. Don't write paragraphs about your "passion".
+> Three rules: (1) 4-6 sentences max — recruiters scan in 5 sec. (2) Quote ONE specific requirement from the JD and match it to ONE outcome from your résumé with a number. "The role asks for 5+ years of MENA retail data — I built a customer data platform across 100+ retail brands in 4 years." (3) Close with a low-friction ask. "Open to a 15-min chat next Tuesday?" That's it. Don't write paragraphs about your "passion".
 
 ---
 

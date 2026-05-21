@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const facts = [
-  { label: "Founder", value: "Darapu Tharakeswara Reddy (IIT Patna, ex-Alshaya)" },
+  { label: "Founder", value: "Darapu Tharakeswara Reddy (IIT Patna · 8 years in MENA retail data + AI)" },
   { label: "Founded", value: "February 2026" },
   { label: "Headquarters", value: "Dubai, UAE" },
   { label: "Product", value: "Local-first AI job-hunting agent (Python + Next.js)" },

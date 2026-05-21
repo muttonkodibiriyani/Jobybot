@@ -4,13 +4,13 @@
 
 ## The night this started
 
-It was a Sunday in late 2024 in Dubai. I had spent **seven years** at Alshaya
-Group building data products for over 100 MENA retail brands — AURA loyalty,
-AWS data lakes, Power BI dashboards, Copilot Studio AI agents — work that
-paid the bills and won awards.
+It was a Sunday in late 2024 in Dubai. I'd spent **eight years** as a working
+product manager in MENA retail — leading data products across 100+ brands:
+loyalty platforms, AWS data lakes, Power BI dashboards, Copilot Studio AI
+agents — work that paid the bills and won awards.
 
-Then the layoff happened. Not just to me — to a whole team of brilliant
-engineers and analysts I'd worked with for years. Most of them spoke three
+Then a wave of layoffs hit the industry. Not just one team — friends across
+several companies I'd worked with for years. Most of them spoke three
 languages, held visas tied to their employer, and had families depending on
 the next paycheck.
 

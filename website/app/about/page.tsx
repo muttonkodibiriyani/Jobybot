@@ -9,14 +9,22 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
 export const metadata: Metadata = {
   title: "About JobyBots · Founder story by Darapu Tharakeswara Reddy",
   description:
-    "Why JobyBots exists. After 200 manual cold emails returned 6 replies, I built the AI agent I wished existed. This is the story, the principles, and a love-letter to anyone trying, failing, or starting over with their job search in 2026.",
+    "I'm a working product manager in Dubai. Over the last year, between sprints and stand-ups, I quietly tested the waters. 200 cold emails. 6 replies. So I built the AI agent I wished existed. This is the honest story, the principles, and a love-letter to anyone job-hunting in 2026.",
   alternates: { canonical: `${SITE_URL}/about` },
   openGraph: {
     title: "Why JobyBots exists — a founder letter",
     description:
-      "An honest story from Dubai about job-search burnout, the moment a tool was born, and the principles that keep it human.",
+      "An honest story from a working product manager in Dubai about job-search burnout, the moment a tool was born, and the principles that keep it human.",
     url: `${SITE_URL}/about`,
     type: "profile",
+    images: [
+      {
+        url: `${SITE_URL}/founder-tharakesh.jpg`,
+        width: 768,
+        height: 1024,
+        alt: "Darapu Tharakeswara Reddy — founder of JobyBots",
+      },
+    ],
   },
 };
 
@@ -26,7 +34,7 @@ const founderLd = {
   name: "Darapu Tharakeswara Reddy",
   jobTitle: "Founder · JobyBots",
   url: SITE_URL,
-  image: `${SITE_URL}/jobybots-logo.png`,
+  image: `${SITE_URL}/founder-tharakesh.jpg`,
   worksFor: { "@type": "Organization", name: "JobyBots" },
   alumniOf: { "@type": "CollegeOrUniversity", name: "IIT Patna" },
   knowsAbout: [
@@ -42,23 +50,23 @@ const founderLd = {
 const milestones = [
   {
     date: "Feb 2026",
-    title: "The moment that broke me",
-    body: "Two hundred manual cold emails. Six replies. Zero interviews. It was 2:14 AM on a Wednesday in Dubai and I closed the laptop knowing something had to change — not the résumé, not the targets, not the cover letters. The whole loop.",
+    title: "The night I gave up doing it manually",
+    body: "Two hundred cold emails over two months, sent on weekends and stolen hours between sprints. Six replies. Zero interviews. It was 2:14 AM on a Wednesday in Dubai and I closed the laptop knowing the problem wasn't my résumé, my targets, or my cover letters. The whole manual loop was the problem.",
   },
   {
     date: "Mar 2026",
     title: "The first 47 lines of code",
-    body: "I opened a terminal and wrote a tiny Python script that scraped LinkedIn, scored each match against my résumé with Gemini, and emailed the recruiter. By Saturday it had quietly sent 38 personalised applications while I slept. I got 4 replies the next morning.",
+    body: "I opened a terminal after my day job, wrote a tiny Python script that scraped LinkedIn, scored each match against my résumé with Gemini, and emailed the recruiter who posted it. By Saturday it had quietly sent 38 personalised applications while I slept. I got 4 replies the next morning.",
   },
   {
     date: "Apr 2026",
     title: "The day I shipped it for strangers",
-    body: "A friend asked, 'can I have it too?'. Then his friend asked. Then a stranger on LinkedIn DM'd me. I rewrote it as a local-first app, added Gmail SMTP, validated emails before sending, tracked bounces. People started paying ₹2,999 for it without me running a single ad.",
+    body: "A friend asked, 'can I have it too?'. Then his friend asked. Then a stranger on LinkedIn DM'd me. Late nights for two weekends and I rewrote it as a local-first app — Gmail SMTP, address validation, bounce tracking. People started paying ₹2,999 for it without me running a single ad.",
   },
   {
     date: "May 2026",
     title: "GCC expansion + zero-bounce overhaul",
-    body: "Rewrote the bounce tracker to catch modern Gmail NDRs. Added career-page scraping. Wired in SMTP RCPT probes so we never knowingly send to a dead address. Quarantined 246 historical bad addresses. Built market packs for Saudi, Qatar, Oman, Bahrain, UK. The tool I needed in February is now the tool that anyone in MENA + India can use.",
+    body: "Rewrote the bounce tracker to catch modern Gmail NDRs. Added career-page scraping. Wired in SMTP RCPT probes so we never knowingly send to a dead address. Quarantined 246 historical bad addresses. Built market packs for Saudi, Qatar, Oman, Bahrain, UK. The tool I needed in February is now the tool anyone in MENA, India and the UK can use.",
   },
 ];
 
@@ -91,7 +99,7 @@ const dedications = [
   "Anyone who has rewritten the same cover letter so many times it stopped meaning anything.",
   "Anyone laid off in a single Zoom call last quarter.",
   "Anyone switching countries with a visa countdown in the corner of their screen.",
-  "Anyone who chose to leave a comfortable role and is suddenly questioning everything.",
+  "Anyone working a full-time job and quietly looking for the next one in the margins of the day.",
 ];
 
 export default function AboutPage() {
@@ -133,12 +141,15 @@ export default function AboutPage() {
           </ul>
           <Reveal delay={4}>
             <p className="mt-12 max-w-3xl text-[17px] leading-relaxed text-white/85">
-              I have been every one of those people in the last 12 months. The
-              software I wrote is not a magic interview generator. It is a
-              tireless companion that does the part of the search that
-              machines should have done all along — the searching, the
-              tailoring, the validating, the sending — so you can spend your
-              human hours preparing for actual conversations.
+              I have been some version of every one of those people in the last
+              12 months. I'm still in a full-time role. The search you read
+              about above happened in evenings, on weekends, on flights, in the
+              quiet half-hour before stand-up. JobyBots is the agent I built so
+              I could keep my day-job energy for the day-job, and let a machine
+              do the parts of the search that machines should have done all
+              along — the searching, the tailoring, the validating, the
+              sending — so the candidate can spend their human hours preparing
+              for actual conversations.
             </p>
           </Reveal>
         </div>

@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 /**
  * Material-3-Expressive "wow" hero for the /about page.
@@ -54,8 +55,8 @@ export function FounderHero() {
 
   const lines = [
     "Hi, I'm Tharakesh.",
-    "I quit Alshaya in Feb 2026 to find my next role.",
-    "Two hundred manual cold emails. Six replies.",
+    "Working PM in Dubai. Quietly testing the waters.",
+    "Two hundred cold emails. Six replies.",
     "So I built JobyBots.",
   ];
 
@@ -121,34 +122,48 @@ export function FounderHero() {
               </span>
             </div>
 
-            {/* Avatar mark — a stylised JB monogram so we don't depend on a real photo */}
+            {/* Founder photo — the actual founder, taken on a beach at moonlight */}
             <div
-              className="relative mt-8 mx-auto flex h-32 w-32 items-center justify-center rounded-full bg-white text-[44px] font-display font-extrabold text-ink shadow-2xl"
-              style={{ transform: "translateZ(40px)" }}
+              className="relative mt-6 mx-auto overflow-hidden rounded-2xl ring-2 ring-white/15 shadow-2xl"
+              style={{ width: 200, height: 240, transform: "translateZ(40px)" }}
             >
-              <span className="bg-gradient-to-br from-accent to-[#FF8C3A] bg-clip-text text-transparent">
-                T
-              </span>
+              <Image
+                src="/founder-tharakesh.jpg"
+                alt="Darapu Tharakeswara Reddy — founder of JobyBots, photographed at moonlight on the coast"
+                fill
+                priority
+                sizes="200px"
+                style={{ objectFit: "cover", objectPosition: "center 35%" }}
+              />
+              {/* Soft inner glow so the photo blends with the card */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-2xl"
+                style={{
+                  background:
+                    "linear-gradient(180deg, transparent 60%, rgba(13,27,42,0.55) 100%)",
+                }}
+              />
             </div>
 
             {/* Name + role */}
-            <div className="relative mt-6 text-center" style={{ transform: "translateZ(20px)" }}>
-              <p className="font-display text-2xl font-bold">Darapu Tharakeswara Reddy</p>
+            <div className="relative mt-5 text-center" style={{ transform: "translateZ(20px)" }}>
+              <p className="font-display text-xl font-bold">Darapu Tharakeswara Reddy</p>
               <p className="mt-1 text-sm text-white/70">Founder · JobyBots</p>
-              <p className="mt-1 text-xs text-white/50 font-mono uppercase tracking-[0.2em]">
-                IIT Patna · 7yr Alshaya · MENA
+              <p className="mt-1 text-[11px] text-white/50 font-mono uppercase tracking-[0.2em]">
+                IIT Patna · 8yr MENA retail · Dubai
               </p>
             </div>
 
             {/* Quick stats */}
-            <div className="relative mt-8 grid grid-cols-3 gap-3 border-t border-white/10 pt-6 text-center">
+            <div className="relative mt-6 grid grid-cols-3 gap-3 border-t border-white/10 pt-5 text-center">
               <Stat label="Cold emails" value="200" />
               <Stat label="Replies" value="6" />
-              <Stat label="Days to ship v1" value="14" />
+              <Stat label="Days to v1" value="14" />
             </div>
 
             {/* Bottom signature */}
-            <div className="relative mt-6 flex items-center justify-between text-[11px] font-mono uppercase tracking-[0.18em] opacity-70">
+            <div className="relative mt-5 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.18em] opacity-70">
               <span>Built in public</span>
               <span>v2.6 · 2026</span>
             </div>

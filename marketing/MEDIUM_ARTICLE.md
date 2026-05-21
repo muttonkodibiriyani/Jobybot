@@ -19,7 +19,7 @@ After 6 months of running a local-first AI job-hunting agent on my laptop, here 
 
 ---
 
-Six months ago I quit my job in Dubai. By month two of the search I had sent 200 manual cold emails to recruiters. I'd received six replies. The math made me physically nauseous.
+Six months ago — still very much in my full-time PM role in Dubai — I started quietly looking for what's next. By month two of the search I had sent 200 manual cold emails to recruiters, on evenings and weekends, around stand-ups and OKRs. I'd received six replies. The math made me physically nauseous.
 
 So I built JobyBots.
 
@@ -122,4 +122,4 @@ Or you can pay ₹2,999 once at jobybots.com and use the one I built.
 
 ---
 
-*Darapu Tharakeswara Reddy is the founder of JobyBots. Previously a senior product manager at Alshaya Group, where he led data products across MENA retail. IIT Patna alumnus. Lives in Dubai. Reach him at tharakesh.iitp@gmail.com.*
+*Darapu Tharakeswara Reddy is the founder of JobyBots and a working senior product manager in Dubai. Eight years leading data products and AI agents across MENA retail. IIT Patna alumnus. Reach him at tharakesh.iitp@gmail.com.*

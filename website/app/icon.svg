@@ -1,17 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+    <linearGradient id="jb-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#0B0B0B"/>
       <stop offset="1" stop-color="#1f2024"/>
     </linearGradient>
-    <linearGradient id="dot" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="jb-accent" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#FF8C3A"/>
       <stop offset="1" stop-color="#FF6B00"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+  <rect width="64" height="64" rx="14" fill="url(#jb-bg)"/>
   <rect x="22" y="13" width="22" height="7" rx="3.5" fill="#FFFFFF"/>
   <path d="M 36.5 17 L 36.5 38 Q 36.5 48 26.5 48 Q 18 48 18 39"
         stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <circle cx="52" cy="12" r="4.5" fill="url(#dot)"/>
+  <path d="M 47 18 Q 53 14 53 22" stroke="url(#jb-accent)" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.9"/>
+  <circle cx="52" cy="12" r="4.5" fill="url(#jb-accent)"/>
 </svg>

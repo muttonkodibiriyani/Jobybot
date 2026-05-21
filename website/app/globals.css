@@ -8,6 +8,12 @@
   to   { transform: rotate(360deg); }
 }
 
+/* ─── Typewriter caret used by FounderHero ──────────────────────── */
+@keyframes jobybots-caret {
+  0%, 49%  { opacity: 1; }
+  50%, 100%{ opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .jobybots-gear,
   .reveal,

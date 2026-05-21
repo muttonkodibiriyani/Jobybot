@@ -13,6 +13,7 @@ const STATIC_ROUTES: Array<{ path: string; priority?: number; freq?: MetadataRou
   { path: "/dashboard",   priority: 0.7,  freq: "monthly" },
   { path: "/faq",         priority: 0.8,  freq: "monthly" },
   { path: "/about",       priority: 0.7,  freq: "monthly" },
+  { path: "/wins",        priority: 0.8,  freq: "weekly"  },
   { path: "/testimonials",priority: 0.6,  freq: "monthly" },
   { path: "/press",       priority: 0.5,  freq: "monthly" },
   { path: "/changelog",   priority: 0.5,  freq: "monthly" },

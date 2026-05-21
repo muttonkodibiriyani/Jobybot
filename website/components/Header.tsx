@@ -6,10 +6,10 @@ import { Logo } from "./Logo";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/demo", label: "Demo" },
   { href: "/install", label: "Install" },
+  { href: "/wins", label: "Wins" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/faq", label: "FAQ" },
+  { href: "/about", label: "About" },
 ];
 
 export function Header() {

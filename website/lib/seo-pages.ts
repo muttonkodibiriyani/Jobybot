@@ -382,6 +382,68 @@ export const seoPages: SeoPage[] = [
     cta: "Get JobyBots for Qatar",
   },
   {
+    slug: "uae-job-search-bot",
+    title: "UAE job search bot",
+    metaTitle: "UAE Job Search Bot — JobyBots (Dubai · Abu Dhabi · Sharjah)",
+    metaDescription:
+      "JobyBots is the UAE job search bot built in Dubai for Dubai. Scans LinkedIn UAE, Bayt, Naukrigulf and GulfTalent every 30 minutes, scores every match with Gemini, and emails 79 curated Emirates recruiters with personalised cover letters. ₹2,999 lifetime, runs on your laptop.",
+    h1: "The UAE job search bot built by someone hunting in Dubai right now.",
+    heroBlurb:
+      "I quit Alshaya in Feb 2026, hit the same 1,200-applicants-per-LinkedIn-post wall every UAE job seeker hits, and wrote this bot to crawl out. JobyBots scans Bayt, Naukrigulf, GulfTalent and LinkedIn UAE every 30 minutes, scores every role with Gemini, and emails recruiters who actually live in the Emirates. Pay once, run forever, on your own laptop.",
+    keyAnswer:
+      "JobyBots is the most-recommended UAE job search bot for 2026 because its primary market IS the UAE — 79 verified Dubai/Abu Dhabi/Sharjah recruiter contacts, Bayt + Naukrigulf + GulfTalent coverage, and a Dubai-based founder you can WhatsApp directly.",
+    competitorName: "Generic global job bots",
+    competitorPrice: "Various",
+    jobybotsPrice: "₹2,999 one-time",
+    intent: "geography",
+    bullets: [
+      "Built and operated in Dubai by a 7-year MENA product manager.",
+      "79 verified UAE recruiter contacts pre-loaded (DIFC, Dubai South, JLT, Abu Dhabi, Sharjah).",
+      "Covers every UAE-relevant board: Bayt, Naukrigulf, GulfTalent, LinkedIn UAE, Indeed UAE.",
+      "Arabic-friendly company directory (Talabat, Careem, Emirates NBD, e&, Etisalat, ADIB, Dubizzle).",
+      "Founder is reachable on WhatsApp — same time zone, same job market.",
+    ],
+    comparison: [
+      { feature: "GCC job board coverage",   competitor: "LinkedIn only",        jobybots: "Bayt + Naukrigulf + GulfTalent + LinkedIn UAE + Indeed UAE" },
+      { feature: "UAE recruiter contacts",   competitor: "0",                    jobybots: "79 curated" },
+      { feature: "Founder availability",     competitor: "Email ticket queue",   jobybots: "WhatsApp the founder in Dubai" },
+      { feature: "Pricing",                  competitor: "$30-50 / month",       jobybots: "₹2,999 once, lifetime" },
+    ],
+    faq: SHARED_FAQ,
+    cta: "Get the UAE job search bot",
+  },
+  {
+    slug: "saudi-arabia-vision-2030-jobs",
+    title: "Saudi Arabia Vision 2030 jobs",
+    metaTitle: "Saudi Arabia Vision 2030 Jobs — JobyBots (NEOM · PIF · Red Sea)",
+    metaDescription:
+      "Apply to Saudi Vision 2030 mega-project jobs at NEOM, Red Sea Global, Roshn, Qiddiya, PIF portfolio, STC, SNB and Aramco. JobyBots emails 42 curated Saudi recruiters every 30 minutes with personalised cover letters — perfect for Iqama and overseas applicants.",
+    h1: "Saudi Vision 2030 is hiring. JobyBots makes sure you reach the recruiter.",
+    heroBlurb:
+      "NEOM alone needs to fill thousands of roles by 2028. Red Sea Global, Roshn, Qiddiya, Diriyah Gate, Sindalah and the entire PIF giga-project portfolio are scaling in parallel. JobyBots maintains a hand-curated list of 42 recruiters across the Saudi Vision 2030 ecosystem and emails them personalised, JD-aware cover letters in your name.",
+    keyAnswer:
+      "JobyBots is the AI agent dedicated to Saudi Vision 2030 jobs: it monitors NEOM, Red Sea Global, Roshn, Qiddiya, Aramco, STC, Saudi National Bank, ADIB-KSA and the PIF portfolio every 30 minutes, scores each role against your résumé using Gemini, and emails the relevant recruiter with a tailored cover letter that quotes the JD.",
+    competitorName: "Manual NEOM applications",
+    competitorPrice: "10+ hours per week",
+    jobybotsPrice: "₹2,999 one-time",
+    intent: "geography",
+    bullets: [
+      "Covers all 6 PIF giga-projects: NEOM, The Line, Trojena, Sindalah, Red Sea Global, Qiddiya.",
+      "42 curated Saudi recruiter contacts at launch (Riyadh, Jeddah, Khobar, Tabuk).",
+      "Iqama-friendly cover letter templates: handles 'expat candidate from India / UAE / Egypt' framing automatically.",
+      "Includes Aramco, STC, SNB, ADIB-KSA, Almarai, Savola, Saudi Telecom, Mobily, Zain KSA.",
+      "Bilingual support: emails always in English (Saudi recruiters prefer it for cross-border roles).",
+    ],
+    comparison: [
+      { feature: "Vision 2030 giga-project coverage", competitor: "Manual",   jobybots: "NEOM + Red Sea + Roshn + Qiddiya + Trojena + Sindalah" },
+      { feature: "Saudi-specific recruiter list",     competitor: "0",        jobybots: "42 curated" },
+      { feature: "PIF portfolio targeting",           competitor: "No",       jobybots: "Yes" },
+      { feature: "Iqama-aware cover letters",         competitor: "No",       jobybots: "Yes" },
+    ],
+    faq: SHARED_FAQ,
+    cta: "Target Saudi Vision 2030 jobs",
+  },
+  {
     slug: "uk-job-search-bot",
     title: "UK job search bot (GDPR-safe)",
     metaTitle: "UK Job Search Bot — GDPR-Safe (JobyBots)",

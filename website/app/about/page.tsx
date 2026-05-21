@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/Reveal";
 import { MotionFade, MotionMagnet, MotionParallax } from "@/components/MotionFade";
+import { FounderHero } from "@/components/FounderHero";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
 
@@ -101,44 +102,11 @@ export default function AboutPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(founderLd) }}
       />
 
-      {/* HERO with animated mesh background + parallax */}
-      <section className="relative overflow-hidden mesh-bg">
-        <MotionParallax strength={20} className="pointer-events-none absolute inset-0 opacity-60">
-          <div className="absolute -top-20 -right-32 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
-          <div className="absolute top-1/2 -left-32 h-96 w-96 rounded-full bg-blue-300/20 blur-3xl" />
-        </MotionParallax>
-        <div className="relative mx-auto max-w-page section-pad px-4 sm:px-6 lg:px-8">
-          <MotionFade>
-            <p className="eyebrow">A letter from the founder</p>
-          </MotionFade>
-          <MotionFade delay={0.1} y={32}>
-            <h1 className="display-1 mt-4 text-ink">
-              I built JobyBots because <span className="shimmer-text">job-hunting in 2026</span> broke me first.
-            </h1>
-          </MotionFade>
-          <MotionFade delay={0.25}>
-            <p className="lead mt-8 max-w-3xl text-ink">
-              If you're reading this between job applications at 1 AM, or between
-              two Zoom interviews with the same recruiter who already forgot your
-              name, or with a redundancy package open in another tab — this page
-              is for you, not for investors.
-            </p>
-          </MotionFade>
-          <MotionFade delay={0.4}>
-            <p className="lead mt-5 max-w-3xl text-ink-muted">
-              I'm Darapu Tharakeswara Reddy. I spent seven years at Alshaya in
-              Dubai building data products and AI agents across MENA retail.
-              In February 2026 I quit to find my next role. Like everyone
-              else, I hit the wall: 1,200 applicants per LinkedIn post, 3%
-              chance of a human ever reading my résumé. JobyBots is the tool
-              I wished existed during that grind.
-            </p>
-          </MotionFade>
-        </div>
-      </section>
+      {/* HERO — Material-3 Expressive 3D tilt card + typewriter + spotlight */}
+      <FounderHero />
 
       {/* THE PROMISE: 6 dedications */}
-      <section className="bg-ink text-white">
+      <section id="dedications" className="bg-ink text-white scroll-mt-24">
         <div className="mx-auto max-w-page section-pad px-4 sm:px-6 lg:px-8">
           <Reveal>
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">

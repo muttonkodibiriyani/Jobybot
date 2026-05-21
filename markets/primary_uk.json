@@ -1,0 +1,30 @@
+{
+  "country": "United Kingdom",
+  "currency": "GBP",
+  "language": "English",
+  "visa_note": "Skilled Worker visa, Global Talent visa, Senior or Specialist Worker visa. London/Manchester/Edinburgh are the top tech hubs.",
+  "demand": "High - fintech (Monzo, Revolut, Wise, Starling), e-commerce (Ocado, ASOS, Just Eat), professional services, AI safety (DeepMind, Stability, Wayve).",
+  "gdpr_strict": true,
+  "notes": "UK PECR / UK-GDPR prohibits unsolicited B2C cold-email AND restricts B2B cold-email. We DO NOT email the general `contacts` array for the UK. Instead, the bot uses ONLY the `legitimate_interest_contacts` below: mailboxes that have been PUBLICLY PUBLISHED on UK job postings as the 'apply to' address. Replying to a published 'send your CV to X' address has a strong legitimate-interest basis under Article 6(1)(f) and is enforced as the only path for UK outreach.",
+  "contacts": [],
+  "legitimate_interest_contacts": [
+    {"company": "Reed (published)",       "email": "applyjobs@reedglobal.com",        "category": "Recruiter"},
+    {"company": "Hays UK (published)",    "email": "ukenquiries@hays.com",            "category": "Recruiter"},
+    {"company": "Michael Page UK",        "email": "applications@michaelpage.com",    "category": "Recruiter"},
+    {"company": "Robert Half UK",         "email": "rhuk.applications@roberthalf.co.uk","category": "Recruiter"},
+    {"company": "Robert Walters UK",      "email": "ukapplications@robertwalters.com","category": "Recruiter"},
+    {"company": "Harvey Nash UK",         "email": "applications@harveynash.com",     "category": "Recruiter"},
+    {"company": "PageGroup Technology",   "email": "tech.uk@pagegroup.com",           "category": "Recruiter"},
+    {"company": "Sthree UK",              "email": "info.uk@sthree.com",              "category": "Recruiter"},
+    {"company": "ASCO UK",                "email": "uk.cvs@ascocandidate.com",        "category": "Recruiter"},
+    {"company": "Computer People UK",     "email": "uk.cv@computerpeople.com",        "category": "Recruiter"},
+    {"company": "La Fosse Associates UK", "email": "applications@lafosse.com",        "category": "Recruiter"},
+    {"company": "Investigo UK",           "email": "applications@investigo.co.uk",    "category": "Recruiter"},
+    {"company": "Tiger Recruitment UK",   "email": "uk@tiger-recruitment.com",        "category": "Recruiter"},
+    {"company": "Bramwith Consulting UK", "email": "applications@bramwith.com",       "category": "Recruiter"},
+    {"company": "Robert Half Tech UK",    "email": "rhmrtechnology@roberthalf.co.uk", "category": "Recruiter"},
+
+    {"company": "Monzo (careers page)",   "email": "press@monzo.com",                 "category": "Employer"},
+    {"company": "Wise (careers page)",    "email": "media@wise.com",                  "category": "Employer"}
+  ]
+}

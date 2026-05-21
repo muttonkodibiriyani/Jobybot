@@ -1,0 +1,45 @@
+{
+  "country": "Bahrain",
+  "currency": "BHD",
+  "language": "Arabic / English",
+  "visa_note": "Bahrain has one of the fastest e-visa workflows in the GCC; CR-based residency permits are issued in 5-10 working days.",
+  "demand": "Steady - one of the strongest fintech sandboxes in the Gulf (Central Bank of Bahrain regulatory sandbox), plus aluminum (ALBA), banking (NBB, AUB, BBK), and Tamkeen-funded scale-ups.",
+  "gdpr_strict": false,
+  "notes": "Patterns guessed for new market - bot will SMTP-probe + quarantine bouncers automatically.",
+  "contacts": [
+    {"company": "Michael Page Bahrain", "email": "bahrain@michaelpage.com",        "category": "Recruiter"},
+    {"company": "Hays Bahrain",         "email": "manama@hays.com",                "category": "Recruiter"},
+    {"company": "Charterhouse Bahrain", "email": "manama@charterhouseme.ae",       "category": "Recruiter"},
+    {"company": "Black Pearl Bahrain",  "email": "bahrain@blackpearlconsult.com",  "category": "Recruiter"},
+    {"company": "Manpower Bahrain",     "email": "bahrain@manpowergroup.com",      "category": "Recruiter"},
+    {"company": "Marc Ellis Bahrain",   "email": "bahrain@marcellisconsulting.com","category": "Recruiter"},
+
+    {"company": "Batelco",              "email": "careers@btc.com.bh",             "category": "Employer"},
+    {"company": "Zain Bahrain",         "email": "careers@bh.zain.com",            "category": "Employer"},
+    {"company": "stc Bahrain",          "email": "careers@stc.com.bh",             "category": "Employer"},
+    {"company": "Bapco",                "email": "careers@bapco.net",              "category": "Employer"},
+    {"company": "ALBA",                 "email": "careers@alba.com.bh",            "category": "Employer"},
+    {"company": "NBB",                  "email": "careers@nbbonline.com",          "category": "Employer"},
+    {"company": "BBK",                  "email": "careers@bbkonline.com",          "category": "Employer"},
+    {"company": "Ahli United Bank",     "email": "careers@ahliunited.com",         "category": "Employer"},
+    {"company": "Investcorp",           "email": "careers@investcorp.com",         "category": "Employer"},
+    {"company": "GFH Financial",        "email": "careers@gfh.com",                "category": "Employer"},
+    {"company": "Tamkeen",              "email": "careers@tamkeen.bh",             "category": "Employer"},
+    {"company": "Bahrain Tourism",      "email": "careers@btea.bh",                "category": "Employer"},
+    {"company": "Gulf Air",             "email": "careers@gulfair.com",            "category": "Employer"},
+    {"company": "Mumtalakat",           "email": "careers@mumtalakat.bh",          "category": "Employer"},
+    {"company": "MaxxGroup Bahrain",    "email": "careers@maxx.bh",                "category": "Employer"},
+    {"company": "Talabat Bahrain",      "email": "careers.bh@talabat.com",         "category": "Employer"},
+
+    {"company": "Deloitte Bahrain",     "email": "bhrecruitment@deloitte.com",     "category": "Consulting"},
+    {"company": "PwC Bahrain",          "email": "bahrain_recruitment@pwc.com",    "category": "Consulting"},
+    {"company": "EY Bahrain",           "email": "bahraincareers@bh.ey.com",       "category": "Consulting"},
+    {"company": "KPMG Bahrain",         "email": "bahraincareers@kpmg.com",        "category": "Consulting"},
+    {"company": "Accenture Bahrain",    "email": "bahrain.careers@accenture.com",  "category": "Consulting"},
+    {"company": "Bain Bahrain",         "email": "bahrain.recruiting@bain.com",    "category": "Consulting"},
+
+    {"company": "TCS Bahrain",          "email": "careers.bh@tcs.com",             "category": "Tech"},
+    {"company": "Infosys Bahrain",      "email": "careers_bh@infosys.com",         "category": "Tech"},
+    {"company": "Wipro Bahrain",        "email": "careers.bh@wipro.com",           "category": "Tech"}
+  ]
+}

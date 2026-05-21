@@ -1,0 +1,44 @@
+{
+  "country": "Oman",
+  "currency": "OMR",
+  "language": "Arabic / English",
+  "visa_note": "Oman Vision 2040 + Omanization. Skilled-worker visas remain common for tech, energy, banking.",
+  "demand": "Steady - Petroleum Development Oman, OQ Group, banking digital transformation, hospitality/tourism (Mukhayam, Hawana Salalah).",
+  "gdpr_strict": false,
+  "notes": "Patterns guessed for new market - bot will SMTP-probe + quarantine bouncers automatically.",
+  "contacts": [
+    {"company": "Michael Page Oman",    "email": "oman@michaelpage.com",          "category": "Recruiter"},
+    {"company": "Hays Oman",            "email": "muscat@hays.com",               "category": "Recruiter"},
+    {"company": "Charterhouse Oman",    "email": "muscat@charterhouseme.ae",      "category": "Recruiter"},
+    {"company": "Black Pearl Oman",     "email": "oman@blackpearlconsult.com",    "category": "Recruiter"},
+    {"company": "Manpower Oman",        "email": "oman@manpowergroup.com",        "category": "Recruiter"},
+    {"company": "Marc Ellis Oman",      "email": "oman@marcellisconsulting.com",  "category": "Recruiter"},
+
+    {"company": "Petroleum Development Oman","email": "careers@pdo.co.om",        "category": "Employer"},
+    {"company": "OQ Group",             "email": "careers@oq.com",                "category": "Employer"},
+    {"company": "Omantel",              "email": "careers@omantel.om",            "category": "Employer"},
+    {"company": "Ooredoo Oman",         "email": "careers@ooredoo.om",            "category": "Employer"},
+    {"company": "Bank Muscat",          "email": "careers@bankmuscat.com",        "category": "Employer"},
+    {"company": "NBO",                  "email": "careers@nbo.om",                "category": "Employer"},
+    {"company": "Bank Sohar",           "email": "careers@banksohar.net",         "category": "Employer"},
+    {"company": "Sohar International",  "email": "careers@soharinternational.com","category": "Employer"},
+    {"company": "BankDhofar",           "email": "careers@bankdhofar.com",        "category": "Employer"},
+    {"company": "ASYAD Group",          "email": "careers@asyadgroup.com",        "category": "Employer"},
+    {"company": "Salalah Port",         "email": "careers@salalahport.com",       "category": "Employer"},
+    {"company": "Oman Airports",        "email": "careers@omanairports.co.om",    "category": "Employer"},
+    {"company": "Oman Air",             "email": "careers@omanair.com",           "category": "Employer"},
+    {"company": "Mwasalat",             "email": "careers@mwasalat.om",           "category": "Employer"},
+    {"company": "OQ8",                  "email": "careers@oq8.om",                "category": "Employer"},
+    {"company": "Mukhayam Oman",        "email": "careers@mukhayam.om",           "category": "Employer"},
+
+    {"company": "Deloitte Oman",        "email": "omanrecruitment@deloitte.com",  "category": "Consulting"},
+    {"company": "PwC Oman",             "email": "oman_recruitment@pwc.com",      "category": "Consulting"},
+    {"company": "EY Oman",              "email": "omancareers@om.ey.com",         "category": "Consulting"},
+    {"company": "KPMG Oman",            "email": "omancareers@kpmg.com",          "category": "Consulting"},
+    {"company": "Accenture Oman",       "email": "oman.careers@accenture.com",    "category": "Consulting"},
+
+    {"company": "TCS Oman",             "email": "careers.om@tcs.com",            "category": "Tech"},
+    {"company": "Infosys Oman",         "email": "careers_om@infosys.com",        "category": "Tech"},
+    {"company": "Wipro Oman",           "email": "careers.om@wipro.com",          "category": "Tech"}
+  ]
+}

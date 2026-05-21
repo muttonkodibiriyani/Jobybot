@@ -7,6 +7,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
 const STATIC_ROUTES: Array<{ path: string; priority?: number; freq?: MetadataRoute.Sitemap[number]["changeFrequency"] }> = [
   { path: "/",            priority: 1.0,  freq: "weekly"  },
   { path: "/demo",        priority: 0.9,  freq: "weekly"  },
+  { path: "/install",     priority: 0.9,  freq: "monthly" },
   { path: "/pricing",     priority: 0.9,  freq: "monthly" },
   { path: "/buy-india",   priority: 0.9,  freq: "monthly" },
   { path: "/dashboard",   priority: 0.7,  freq: "monthly" },

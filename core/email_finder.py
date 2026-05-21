@@ -107,11 +107,19 @@ def clean_company(name: str) -> str:
 
 
 def known_domain(company: str) -> Optional[str]:
-    """Check overrides map."""
+    """Check overrides map using *whole-word* matching.
+
+    A naïve `k in co` substring check incorrectly matches "noon" inside
+    "snoonu", "ey" inside "honeywell", "du" inside "dubai holding", etc.
+    Those mismatches cause us to send to the wrong domain and bounce.
+    Use regex word boundaries so the company name has to contain the key
+    as a discrete token (longer multi-word keys still match left-to-right).
+    """
     co = company.lower()
-    for k, v in KNOWN_DOMAINS.items():
-        if k in co:
-            return v
+    # Prefer longer keys first so "emirates nbd" wins over plain "emirates"
+    for k in sorted(KNOWN_DOMAINS.keys(), key=len, reverse=True):
+        if re.search(rf"\b{re.escape(k)}\b", co):
+            return KNOWN_DOMAINS[k]
     return None
 
 

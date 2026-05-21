@@ -1,6 +1,22 @@
+import type { Metadata } from "next";
 import { PRICING } from "@/lib/config";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import Link from "next/link";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
+
+export const metadata: Metadata = {
+  title: "Pricing · ₹2,999 lifetime · No subscriptions",
+  description:
+    "JobyBots Pro is a one-time ₹2,999 (₹2,999 / $49 / AED 179) lifetime license. UPI for India, card / Apple Pay / Google Pay worldwide. 7-day refund, no recurring charges.",
+  alternates: { canonical: `${SITE_URL}/pricing` },
+  openGraph: {
+    title: "JobyBots Pricing — ₹2,999 lifetime",
+    description: "One-time payment. Lifetime upgrades. 7-day refund.",
+    url: `${SITE_URL}/pricing`,
+    type: "website",
+  },
+};
 
 export default function PricingPage() {
   const plan = PRICING.pro;

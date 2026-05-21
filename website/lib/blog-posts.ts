@@ -32,6 +32,61 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "letter-to-anyone-job-hunting-2026",
+    title: "A Letter to Anyone Job-Hunting in 2026",
+    metaTitle: "A Letter to Anyone Job-Hunting in 2026 — From the Founder of JobyBots",
+    description:
+      "An honest founder letter to anyone trying for a job, recently laid off, or thinking about switching careers in 2026. No funnel, no growth hack — just the story behind the tool I built after my own search broke me.",
+    publishedAt: "2026-05-22",
+    updatedAt: "2026-05-22",
+    readingTimeMin: 9,
+    author: { name: "Darapu Tharakeswara Reddy", url: "/about" },
+    tags: ["founder-letter", "career", "burnout", "mental-health"],
+    body: [
+      { type: "p", text: "If you are reading this between two interviews you never asked for at companies you never quite wanted, or after the third recruiter ghost of the week, or while a redundancy notice sits in another tab — please read this slowly. I wrote it for you. Not for VCs, not for the search engine, not for the launch. For you." },
+
+      { type: "h2", text: "What this actually is" },
+      { type: "p", text: "I am the founder of JobyBots, a small local-first AI tool that automates the parts of job-hunting that should never have been a human's job in the first place: the searching, the tailoring, the validating, the sending. Before I built it, I spent six of the most demoralising months of my career trying to find my next role after seven years at Alshaya in Dubai. This is the letter I wish I had read in February 2026." },
+      { type: "p", text: "If you eventually choose to use JobyBots, that's wonderful. If you don't, I hope something in here helps anyway. The tool is downstream of the feelings. The feelings are why the tool exists." },
+
+      { type: "h2", text: "The thing nobody tells you about job-hunting in 2026" },
+      { type: "p", text: "The number of applications per role has tripled in 18 months. The average LinkedIn tech post now receives 1,200 applications in the first 24 hours. Of those, roughly 800 are from real humans and 400 are from auto-fill bots. Your beautifully tailored résumé sits in a queue with 1,199 others." },
+      { type: "p", text: "Recruiters know this. So they don't read résumés any more — they skim a six-second scan, looking for one specific phrase that exactly matches the job description. If that phrase isn't there, you don't exist. The interview economy quietly became a keyword-matching economy and nobody sent us the memo." },
+      { type: "p", text: "I learned this the hard way. I sent 200 manual cold emails between February and March 2026. Six replies. Two of them were 'thanks but no'. Zero interviews. I am not a bad candidate; my résumé has shipped real revenue, built real systems, raised real teams. The market is just brutal right now, and the brutality has nothing to do with you." },
+
+      { type: "h2", text: "What I want you to internalise before anything else" },
+      { type: "p", text: "Job-hunting in 2026 is a probability game played at scale. The person sending 50 applications a week is statistically very unlikely to land a role in a reasonable timeline — not because they're worse, but because 50 is too small a number against 1,200-applicant posts. The person sending 1,000 is mathematically far better positioned, even with identical credentials." },
+      { type: "p", text: "This is unfair. It is also the system we are in. You can either play that system or you can spend a year burning your savings while you 'do it the right way'. I tried the right way for three months. I do not recommend it." },
+
+      { type: "h2", text: "The night I wrote the first line of JobyBots" },
+      { type: "p", text: "It was 2:14 AM on a Wednesday in February. I had just sent application number 187 of the week, and I had three replies to show for the week. I closed the laptop, opened my notebook, and wrote one sentence: 'Build the bot that does this for me.'" },
+      { type: "p", text: "I am not pretending the bot is a magic interview generator. It isn't. What it is: a tireless companion that does the parts a machine should have always done — scanning eight job sites every 30 minutes, scoring each match against my résumé with Gemini, validating recruiter emails before sending, drafting a 5-sentence cover letter that quotes one real requirement from the job description and one real outcome from my résumé." },
+      { type: "p", text: "What I do with my human hours: prepare for actual conversations, sleep, see my family, work out, write code on side projects that interest me. Things that 2 AM at 200-emails-deep makes impossible." },
+
+      { type: "h2", text: "If you have been laid off" },
+      { type: "p", text: "First — I'm sorry. The way modern tech does layoffs is dehumanising on purpose. The all-hands, the cut-the-cameras, the auto-revoked credentials before you've even processed the Zoom call. It is not a reflection of your worth. It is a quarterly cost-cutting exercise that happened to include your seat." },
+      { type: "p", text: "The instinct after a layoff is to apply to 500 jobs in panic. Do not do this from your own keyboard. You will burn through your good résumé, your good cover letters, and your sender reputation in the first week, and you will end up in the second week with zero replies and zero stamina. Automate the volume. Spend your human energy on the eight or nine roles that actually excite you." },
+
+      { type: "h2", text: "If you have been searching for months" },
+      { type: "p", text: "You are not lazy. You are not 'not networking enough'. You are not 'not LinkedIn-ing right'. The system has changed. The 2019 playbook — five tailored applications a day for a month — is not enough volume in 2026 to overcome the noise floor." },
+      { type: "p", text: "Two truths I needed to hear in month four: (1) Most rejections are not personal. The role was probably internal-listed before it was external. (2) The reason your friend got hired faster is usually that they applied to more roles, not that they were better." },
+
+      { type: "h2", text: "If you are about to switch" },
+      { type: "p", text: "Do it. The longer you stay in a role you have outgrown, the more the role shapes how recruiters see you, until 'product manager who's been at Alshaya for 9 years' becomes 'unmoveable, probably difficult, probably overpaid for the next role'. Three to six years per role is the modern sweet spot." },
+      { type: "p", text: "Start the search before you quit. Automate the volume. Let the bot do the cold sweep while you keep your current paycheck. When you have the offer, you can quit on your own terms." },
+
+      { type: "h2", text: "If you are looking from outside the UAE / Saudi" },
+      { type: "p", text: "We added Saudi, Qatar, Oman, Bahrain, plus India, Singapore, UK, Germany, Netherlands, Ireland and Canada because this stuff matters more outside the US. A senior PM in Dubai earns 2-3× the same role in Bangalore. A solution architect in Riyadh on iqama earns 4× the same role in Hyderabad. If you can move, the maths is overwhelming. Most of the friction is the search loop itself — and that's exactly what JobyBots automates." },
+
+      { type: "h2", text: "The promise" },
+      { type: "p", text: "JobyBots costs ₹2,999 (about $35) once, forever. There is no subscription. There is a 7-day refund if it doesn't help. The founder (me) answers WhatsApp messages on Mon-Sat 10-20 IST. If you've read this far and you can't afford ₹2,999 right now, email me — I'll send you the community edition on GitHub for free, no questions asked, and I'll mean it." },
+      { type: "p", text: "I built the tool I wished existed in February. Whatever your role is in 2026 — applicant, hiring manager, laid-off engineer, returning parent, switching careers, fresh graduate — I hope you find the thing that quietly does the part of your day that should never have been your job." },
+      { type: "p", text: "You will land somewhere. Statistically you will, and emotionally you must. Until then, take care of yourself. Then automate the boring stuff." },
+
+      { type: "quote", text: "If JobyBots doesn't help you land conversations, I refund you. If it does, tell one other person who is tired today.", attribution: "Darapu Tharakeswara Reddy · Founder, JobyBots" },
+    ],
+  },
+  {
     slug: "ai-job-search-2026",
     title: "The 2026 AI Job Search Playbook: From 4 Replies a Month to 4 a Day",
     metaTitle: "The 2026 AI Job Search Playbook — JobyBots",

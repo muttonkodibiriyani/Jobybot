@@ -18,7 +18,7 @@ export default function BlogIndex() {
       <h1 className="display-1 mt-3 text-ink">
         Field reports from the <span className="shimmer-text">AI job-hunting</span> frontier.
       </h1>
-      <p className="lead mt-6 max-w-2xl">
+      <p className="lead mt-6 max-w-2xl text-slate-700">
         Real data, real numbers, real money. Everything we publish is grounded
         in the 12,500+ applications JobyBots has shipped on behalf of users.
       </p>
@@ -30,27 +30,31 @@ export default function BlogIndex() {
             className="card flex h-full flex-col justify-between transition-transform hover:-translate-y-0.5 hover:shadow-card"
           >
             <div>
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
+              <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.18em] text-accent-strong">
                 {new Date(p.publishedAt).toLocaleDateString("en-GB", {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
                 })}{" "}
-                · {p.readingTimeMin} min read
+                &middot; {p.readingTimeMin} min read
               </p>
               <h2 className="mt-4 font-display text-2xl font-semibold text-ink">
-                <Link href={`/blog/${p.slug}`} className="hover:text-accent">
+                <Link
+                  href={`/blog/${p.slug}`}
+                  aria-label={`Read article: ${p.title}`}
+                  className="hover:text-accent"
+                >
                   {p.title}
                 </Link>
               </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-ink-muted">
+              <p className="mt-4 text-[15px] leading-relaxed text-slate-700">
                 {p.description}
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {p.tags.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full bg-surface-subtle px-3 py-1 text-[11px] font-medium text-ink-muted"
+                    className="rounded-full bg-surface-subtle px-3 py-1 text-[12px] font-semibold text-slate-700"
                   >
                     #{t}
                   </span>
@@ -59,9 +63,10 @@ export default function BlogIndex() {
             </div>
             <Link
               href={`/blog/${p.slug}`}
-              className="mt-8 font-display text-sm font-semibold text-accent"
+              aria-label={`Continue reading: ${p.title}`}
+              className="mt-8 font-display text-sm font-semibold text-accent-strong hover:text-accent"
             >
-              Read article →
+              Read full article &rarr;
             </Link>
           </article>
         ))}

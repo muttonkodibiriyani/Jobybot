@@ -106,9 +106,9 @@ export default function TestimonialsPage() {
         <h1 className="display-1 mt-3 text-ink">
           Real users. <span className="shimmer-text">Real reply numbers.</span>
         </h1>
-        <p className="lead mt-6 max-w-2xl">
-          We don't pay for reviews and we don't accept anonymous five-stars.
-          Every review below is a real user who agreed to be quoted.
+        <p className="lead mt-6 max-w-2xl text-slate-700">
+          We don&apos;t pay for reviews and we don&apos;t accept anonymous
+          five-stars. Every review below is a real user who agreed to be quoted.
         </p>
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -119,13 +119,13 @@ export default function TestimonialsPage() {
                   <span key={i}>★</span>
                 ))}
               </div>
-              <p className="mt-4 text-[15px] leading-relaxed text-ink">"{r.body}"</p>
+              <p className="mt-4 text-[15px] leading-relaxed text-ink">&ldquo;{r.body}&rdquo;</p>
               <div className="mt-6 border-t border-surface-divider pt-4">
                 <p className="font-display text-base font-semibold text-ink">{r.name}</p>
-                <p className="text-sm text-ink-muted">
-                  {r.role} · {r.city}
+                <p className="text-sm text-slate-700">
+                  {r.role} &middot; {r.city}
                 </p>
-                <p className="mt-2 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
+                <p className="mt-2 font-mono text-[12px] font-semibold uppercase tracking-[0.18em] text-accent-strong">
                   Outcome: {r.outcome}
                 </p>
               </div>
@@ -137,20 +137,28 @@ export default function TestimonialsPage() {
           <p className="font-display text-2xl font-semibold text-ink">
             Add yours? Email us a short note.
           </p>
-          <p className="lead mx-auto mt-4 max-w-xl">
-            We feature one new review every Friday. If you've shipped a job
-            using JobyBots, we'd love to hear the story.
+          <p className="lead mx-auto mt-4 max-w-xl text-slate-700">
+            We feature one new review every Friday. If you&apos;ve shipped a
+            job using JobyBots, we&apos;d love to hear the story.
           </p>
           <div className="mt-6">
-            <a href="mailto:tharakesh.iitp@gmail.com?subject=JobyBots%20testimonial" className="btn-accent">
-              Share your story →
+            <a
+              href="mailto:tharakesh.iitp@gmail.com?subject=JobyBots%20testimonial"
+              aria-label="Email your JobyBots testimonial to the founder"
+              className="btn-accent"
+            >
+              Share your testimonial &rarr;
             </a>
           </div>
         </div>
 
         <div className="mt-12">
-          <Link href="/buy-india" className="btn-ghost">
-            See pricing →
+          <Link
+            href="/buy-india"
+            aria-label="See JobyBots pricing options"
+            className="btn-ghost"
+          >
+            See JobyBots pricing &rarr;
           </Link>
         </div>
       </section>

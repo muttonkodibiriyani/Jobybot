@@ -20,11 +20,11 @@ const TAG_LABEL: Record<string, string> = {
 };
 
 const TAG_COLOR: Record<string, string> = {
-  release:  "bg-accent/10 text-accent",
-  feature:  "bg-emerald-50 text-emerald-700",
-  fix:      "bg-blue-50 text-blue-700",
-  docs:     "bg-slate-100 text-slate-700",
-  infra:    "bg-purple-50 text-purple-700",
+  release:  "bg-accent/15 text-accent-strong",
+  feature:  "bg-emerald-100 text-emerald-800",
+  fix:      "bg-blue-100 text-blue-800",
+  docs:     "bg-slate-200 text-slate-800",
+  infra:    "bg-purple-100 text-purple-800",
 };
 
 export default function ChangelogPage() {
@@ -34,8 +34,8 @@ export default function ChangelogPage() {
       <h1 className="display-1 mt-3 text-ink">
         Every <span className="shimmer-text">shipped change</span>, written for humans.
       </h1>
-      <p className="lead mt-6 max-w-2xl">
-        We don't hide releases behind a customer portal. Every feature,
+      <p className="lead mt-6 max-w-2xl text-slate-700">
+        We don&apos;t hide releases behind a customer portal. Every feature,
         every fix, every market pack lives below.
       </p>
 
@@ -49,7 +49,7 @@ export default function ChangelogPage() {
               <span className="font-mono text-sm font-semibold text-ink">
                 {entry.version}
               </span>
-              <span className="text-sm text-ink-muted">
+              <span className="text-sm text-slate-700">
                 {new Date(entry.date).toLocaleDateString("en-GB", {
                   year: "numeric",
                   month: "long",
@@ -57,7 +57,7 @@ export default function ChangelogPage() {
                 })}
               </span>
               <span
-                className={`rounded-full px-3 py-1 text-[11px] font-medium ${TAG_COLOR[entry.tag] || "bg-slate-100 text-slate-700"}`}
+                className={`rounded-full px-3 py-1 text-[12px] font-semibold ${TAG_COLOR[entry.tag] || "bg-slate-200 text-slate-800"}`}
               >
                 {TAG_LABEL[entry.tag] || entry.tag}
               </span>
@@ -73,8 +73,12 @@ export default function ChangelogPage() {
       </div>
 
       <div className="mt-16 text-center">
-        <Link href="/buy-india" className="btn-accent">
-          See what's possible — ₹2,999 lifetime →
+        <Link
+          href="/buy-india"
+          aria-label="Buy JobyBots Pro lifetime license for 2,999 rupees"
+          className="btn-accent"
+        >
+          See what&apos;s possible &mdash; &#8377;2,999 lifetime &rarr;
         </Link>
       </div>
     </section>

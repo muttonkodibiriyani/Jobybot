@@ -36,6 +36,9 @@ const config: Config = {
         accent: {
           DEFAULT: "#FF6B00",
           hover: "#E85D00",
+          // Darker orange that passes WCAG AA contrast on white & subtle
+          // backgrounds (~5.5:1). Use for small text labels & body links.
+          strong: "#B84500",
           soft: "#FFF4EB",
           ring: "#FFB07A",
         },

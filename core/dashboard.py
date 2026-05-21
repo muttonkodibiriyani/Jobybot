@@ -21,6 +21,8 @@ def render_dashboard(daily_cap: int) -> None:
     bounces = db.get_invalid_emails(50)
     events = db.get_run_log(100)
     jobs = db.get_jobs(status="found", limit=200)
+    discovery_recent = db.recent_discovery(50)
+    discovery_counts = db.discovery_tier_counts(days=7)
 
     today_pct = min(100, int((s["emails_today"] / max(daily_cap, 1)) * 100))
 
@@ -83,6 +85,41 @@ def render_dashboard(daily_cap: int) -> None:
         f'<td class="mono">{_h((r["bounced_at"] or "")[:19])}</td></tr>'
         for r in bounces
     ) or '<tr><td colspan="4" class="muted">No bounces logged.</td></tr>'
+
+    # ── Discovery Quality panel ─────────────────────────────────────
+    # Per-tier success/fail counts last 7 days
+    tier_summary: Dict[str, Dict[str, int]] = {}
+    for r in discovery_counts:
+        tier = r.get("tier", "?")
+        dec  = r.get("decision", "?")
+        tier_summary.setdefault(tier, {})[dec] = int(r.get("n", 0))
+
+    tier_rows = ""
+    for tier_name in ("t0_cache", "t1_careers", "t2_linkedin", "t3_pattern", "final"):
+        bucket = tier_summary.get(tier_name, {})
+        if not bucket:
+            continue
+        total = sum(bucket.values())
+        hits = bucket.get("hit", 0) + bucket.get("found", 0) + bucket.get("probe_ok", 0)
+        pct = int((hits / total) * 100) if total else 0
+        details = " · ".join(f"{k}={v}" for k, v in bucket.items())
+        tier_rows += (
+            f'<div class="src-row"><span class="mono">{_h(tier_name)}</span>'
+            f'<span><strong>{hits}</strong>/{total} hits ({pct}%)</span></div>'
+            f'<div class="muted" style="text-align:left;padding:0 0 8px 8px;font-size:11px">{_h(details)}</div>'
+        )
+    if not tier_rows:
+        tier_rows = '<div class="muted">No discovery attempts yet — run an email blast.</div>'
+
+    discovery_rows = "".join(
+        f'<tr><td class="mono">{_h((r["at"] or "")[:19])}</td>'
+        f'<td>{_h((r["company"] or "")[:30])}</td>'
+        f'<td><span class="tag">{_h(r["tier"])}</span></td>'
+        f'<td class="mono">{_h((r["candidate_email"] or "")[:36])}</td>'
+        f'<td>{_h(r["decision"])}</td>'
+        f'<td class="mono">{_h(r["probe_code"] or "")}</td></tr>'
+        for r in discovery_recent
+    ) or '<tr><td colspan="6" class="muted">No discovery attempts yet.</td></tr>'
 
     event_rows = "".join(
         f'<tr><td class="mono">{_h((r["at"] or "")[:19])}</td>'
@@ -181,10 +218,22 @@ def render_dashboard(daily_cap: int) -> None:
     <tbody>{job_rows}</tbody></table>
   </section>
 
+  <div class="two">
+    <section>
+      <h2>Discovery quality (last 7 days)</h2>
+      {tier_rows}
+    </section>
+    <section>
+      <h2>Recent bounces / invalid addresses</h2>
+      <table><thead><tr><th>Email</th><th>Reason</th><th>SMTP code</th><th>When</th></tr></thead>
+      <tbody>{bounce_rows}</tbody></table>
+    </section>
+  </div>
+
   <section>
-    <h2>Recent bounces / invalid addresses</h2>
-    <table><thead><tr><th>Email</th><th>Reason</th><th>SMTP code</th><th>When</th></tr></thead>
-    <tbody>{bounce_rows}</tbody></table>
+    <h2>Recent email discovery attempts</h2>
+    <table><thead><tr><th>When</th><th>Company</th><th>Tier</th><th>Candidate</th><th>Decision</th><th>Code</th></tr></thead>
+    <tbody>{discovery_rows}</tbody></table>
   </section>
 </div>
 </body></html>

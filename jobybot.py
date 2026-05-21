@@ -20,10 +20,11 @@ from config import get_settings, Settings
 from core import db
 from core.resume_parser import build_profile, load_profile
 from core.job_matcher import score_job
-from core.email_finder import find_email
+from core.email_finder import find_email  # legacy fallback
+from core.email_finder_v2 import find_email_v2
 from core.email_sender import send_application
 from core.email_validator import validate_email
-from core.bounce_tracker import scan_bounces
+from core.bounce_tracker import scan_bounces, recent_bounces, total_bounce_count
 from core.dashboard import render_dashboard, DASHBOARD_HTML
 from core.utils import jitter_sleep
 
@@ -62,6 +63,10 @@ def country_locations(country: str) -> List[str]:
     """Return search location strings for a country."""
     cmap = {
         "UAE":         ["Dubai, United Arab Emirates", "Abu Dhabi, United Arab Emirates"],
+        "Saudi":       ["Riyadh, Saudi Arabia", "Jeddah, Saudi Arabia"],
+        "Qatar":       ["Doha, Qatar"],
+        "Oman":        ["Muscat, Oman"],
+        "Bahrain":     ["Manama, Bahrain"],
         "Singapore":   ["Singapore"],
         "Germany":     ["Berlin, Germany", "Munich, Germany", "Frankfurt, Germany"],
         "Netherlands": ["Amsterdam, Netherlands"],
@@ -100,12 +105,16 @@ def active_sources(settings: Settings) -> List:
 
 
 def load_market(country: str) -> Dict[str, Any]:
-    fname = "primary_uae.json" if country.upper() == "UAE" \
-        else f"secondary_{country.lower()}.json"
-    fpath = Path(__file__).parent / "markets" / fname
-    if not fpath.exists():
-        return {"contacts": []}
-    return json.loads(fpath.read_text(encoding="utf-8"))
+    """Return market metadata + contacts for a country. Tries both
+    ``primary_<country>.json`` and ``secondary_<country>.json``.
+    """
+    base = Path(__file__).parent / "markets"
+    key = country.lower()
+    for fname in (f"primary_{key}.json", f"secondary_{key}.json"):
+        fpath = base / fname
+        if fpath.exists():
+            return json.loads(fpath.read_text(encoding="utf-8"))
+    return {"contacts": []}
 
 
 def is_gdpr_market(country: str) -> bool:
@@ -241,13 +250,26 @@ def do_email_blast(settings: Settings) -> int:
 
     db.log_event("blast_start", "")
     for country in settings.all_markets:
-        if is_gdpr_market(country):
-            logger.info(f"[{country}] GDPR strict — apply via official websites only (skipping email blast)")
-            db.log_event("gdpr_skip", country)
-            continue
-
         market = load_market(country)
-        contacts = market.get("contacts", [])
+        if is_gdpr_market(country):
+            # GDPR-hybrid: if the market file has a `legitimate_interest_contacts`
+            # array (used by UK), email ONLY those addresses. They are limited
+            # to mailboxes that were published on company job posts as the
+            # "apply to" address — emailing them is defensible under UK GDPR
+            # Art. 6(1)(f) legitimate interests.
+            li_contacts = market.get("legitimate_interest_contacts") or []
+            if li_contacts:
+                logger.info(
+                    f"[{country}] GDPR-hybrid: emailing {len(li_contacts)} "
+                    f"legitimate-interest contacts (publicly published apply mailboxes)"
+                )
+                contacts = li_contacts
+            else:
+                logger.info(f"[{country}] GDPR strict — apply via official websites only (skipping email blast)")
+                db.log_event("gdpr_skip", country)
+                continue
+        else:
+            contacts = market.get("contacts", [])
 
         # Pre-flight: split into "fresh" and "already emailed".
         # If we already cold-emailed someone within the FOLLOWUP_DAYS window,
@@ -319,6 +341,120 @@ def do_email_blast(settings: Settings) -> int:
     )
     render_dashboard(settings.daily_email_cap)
     return sent
+
+
+def do_jobs_blast(settings: Settings, top_n: int = 20) -> int:
+    """Discover-and-send blast against the highest-matched jobs in the DB.
+
+    For every "found" job above MATCH_THRESHOLD that we haven't already
+    emailed via this job_id, run the 5-tier email_finder_v2 waterfall to
+    locate a real recruiter address (career-page mailto, LinkedIn poster,
+    pattern + SMTP probe). If one passes the SMTP gate, send a tailored
+    email referencing the actual job title and description.
+
+    Limited to `top_n` jobs per cycle to keep cycle time bounded.
+    """
+    if (settings.email_finder_tier or "off").lower() == "off":
+        return 0
+
+    profile = load_profile()
+    sent = 0
+
+    # Pull top jobs sorted by match_score desc that haven't already been
+    # emailed (no row in emails_sent with this job_id).
+    import sqlite3
+    con = sqlite3.connect(db.DB_PATH)
+    con.row_factory = sqlite3.Row
+    jobs = con.execute(
+        "SELECT * FROM jobs WHERE status='found' "
+        "AND match_score >= ? "
+        "AND id NOT IN (SELECT job_id FROM emails_sent WHERE job_id IS NOT NULL) "
+        "ORDER BY match_score DESC LIMIT ?",
+        (settings.match_threshold, top_n),
+    ).fetchall()
+    con.close()
+
+    if not jobs:
+        logger.info("Jobs blast: no fresh high-match jobs to outreach")
+        return 0
+
+    db.log_event("jobs_blast_start", f"top_n={top_n} candidates={len(jobs)}")
+    logger.info(f"Jobs blast: trying to discover recruiters for {len(jobs)} top-scored jobs")
+
+    cookie = settings.linkedin_cookie or ""
+
+    for j in jobs:
+        if db.emails_sent_today() >= settings.daily_email_cap:
+            logger.warning("Daily cap reached, jobs blast stopping")
+            break
+
+        company = j["company"]
+        job_url = j["url"]
+        market = _country_from_location(j["location"] or "")
+
+        try:
+            disc = find_email_v2(
+                company,
+                job_url=job_url,
+                market=market,
+                linkedin_cookie=cookie,
+                enable_smtp_probe=settings.smtp_probe_enabled,
+            )
+        except Exception as e:
+            logger.warning(f"find_email_v2 failed for {company}: {e}")
+            disc = None
+
+        if not disc or not disc.email:
+            db.log_event("jobs_blast_no_email", f"{company} ({j['source']})")
+            continue
+
+        ok = send_application(
+            settings,
+            recipient=disc.email,
+            company=company,
+            category="Employer",
+            profile=profile,
+            job_id=j["id"],
+            recruiter_first_name=disc.first_name or "",
+            job_title=j["title"] or "",
+            job_description=j["description"] or "",
+        )
+        if ok:
+            sent += 1
+        jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
+
+    db.log_event("jobs_blast_done", f"{sent} sent")
+    logger.success(f"Jobs blast: {sent} discover-and-send emails")
+    return sent
+
+
+def _country_from_location(location: str) -> str:
+    """Reverse-lookup: 'Dubai, United Arab Emirates' -> 'UAE'."""
+    if not location:
+        return "UAE"
+    loc = location.lower()
+    mapping = {
+        "uae": "UAE", "united arab emirates": "UAE", "dubai": "UAE",
+        "abu dhabi": "UAE", "sharjah": "UAE",
+        "saudi": "Saudi", "riyadh": "Saudi", "jeddah": "Saudi",
+        "qatar": "Qatar", "doha": "Qatar",
+        "oman": "Oman", "muscat": "Oman",
+        "bahrain": "Bahrain", "manama": "Bahrain",
+        "singapore": "Singapore",
+        "australia": "Australia", "sydney": "Australia", "melbourne": "Australia",
+        "canada": "Canada", "toronto": "Canada", "vancouver": "Canada",
+        "india": "India", "bangalore": "India", "hyderabad": "India",
+        "mumbai": "India", "pune": "India", "delhi": "India",
+        "united kingdom": "UK", "uk": "UK", "london": "UK", "manchester": "UK",
+        "germany": "Germany", "berlin": "Germany",
+        "netherlands": "Netherlands", "amsterdam": "Netherlands",
+        "ireland": "Ireland", "dublin": "Ireland",
+        "sweden": "Sweden", "stockholm": "Sweden",
+    }
+    for needle, country in mapping.items():
+        if needle in loc:
+            return country
+    return "UAE"
 
 
 def do_bounce_scan(settings: Settings) -> int:
@@ -444,6 +580,8 @@ def run() -> None:
 
     new = do_search(settings)
     sent = do_email_blast(settings)
+    jb_sent = do_jobs_blast(settings, top_n=20)
+    sent += jb_sent
     fups = do_followups(settings)
 
     jobs = db.get_jobs(status="found", limit=200)
@@ -476,6 +614,7 @@ def schedule() -> None:
             do_bounce_scan(settings)
             do_search(settings)
             do_email_blast(settings)
+            do_jobs_blast(settings, top_n=20)
             do_followups(settings)
             jobs = db.get_jobs(status="found", limit=200)
             update_inbox_html(jobs)
@@ -533,6 +672,37 @@ def doctor() -> None:
         print("\nAll checks passed.")
     else:
         print("\nFix the ✗ items, then run again.")
+
+
+@cli.command()
+@click.option("--backfill", is_flag=True, default=False,
+              help="Re-scan up to 90 days of inbox history (ignores cursor).")
+@click.option("--days", type=int, default=14,
+              help="Days back to scan (default 14; backfill widens to 90).")
+def bounces(backfill: bool, days: int) -> None:
+    """Scan Gmail for delivery-failure notifications and quarantine bad addresses."""
+    settings = get_settings()
+    setup_logging(settings.log_level)
+    db.init_db()
+
+    before = total_bounce_count()
+    n = scan_bounces(
+        settings.gmail_address,
+        settings.gmail_app_password,
+        days_back=days,
+        backfill=backfill,
+    )
+    after = total_bounce_count()
+
+    print()
+    print(f"  Newly quarantined this run : {n}")
+    print(f"  Total in invalid_emails    : {after}  (was {before})")
+    if n > 0:
+        print()
+        print("  Most recent bounces:")
+        for b in recent_bounces(limit=10):
+            print(f"    - {b['email']:<40s}  {b.get('reason', '')[:60]}")
+    print()
 
 
 @cli.command()

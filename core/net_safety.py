@@ -57,3 +57,19 @@ def safe_head(url: str, **kwargs) -> requests.Response:
     kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
     kwargs.setdefault("verify", True)
     return requests.head(url, **kwargs)
+
+
+def open_get(url: str, **kwargs) -> requests.Response:
+    """Generic HTTP GET for *any* host (e.g. scraping a company careers
+    page). Same TLS-verify + timeout defaults as ``safe_get`` but without
+    the job-board allowlist.
+
+    Use this only for read-only, public web pages that don't receive any
+    of the user's secrets. The bot still uses ``safe_get`` for the job
+    boards themselves.
+    """
+    kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+    kwargs.setdefault("verify", True)
+    kwargs.setdefault("allow_redirects", True)
+    kwargs.setdefault("headers", {"User-Agent": "Mozilla/5.0 JobyBots-careers-page-finder"})
+    return requests.get(url, **kwargs)

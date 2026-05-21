@@ -13,7 +13,8 @@ from typing import Tuple
 from loguru import logger
 
 from . import db
-from .cover_letter import render, subject_for
+from .cover_letter import render
+from .subjects import pick_subject, followup_subject
 from .email_validator import validate_email
 
 
@@ -74,8 +75,16 @@ def send_application(
     profile,
     followup: int = 0,
     job_id: str | None = None,
+    recruiter_first_name: str = "",
+    job_title: str = "",
+    job_description: str = "",
 ) -> bool:
-    """High-level: render + send + log. Returns True if sent."""
+    """High-level: render + send + log. Returns True if sent.
+
+    If ``recruiter_first_name`` is provided (typically discovered by the
+    LinkedIn finder), the generated email opens with the recruiter's first
+    name, which materially lifts reply rates.
+    """
 
     if db.already_emailed(recipient, followup):
         logger.debug(f"Already emailed {recipient} (followup={followup})")
@@ -87,7 +96,7 @@ def send_application(
 
     valid, reason = validate_email(recipient)
     if not valid:
-        logger.warning(f"✗ skip {recipient} ({reason})")
+        logger.warning(f"skip {recipient} ({reason})")
         db.log_event("skip_invalid_email", f"{recipient}: {reason}")
         return False
 
@@ -103,13 +112,64 @@ def send_application(
         "years":    profile.get("years_exp", 7),
         "company":  company,
         "days":     settings.followup_days,
+        "recruiter_first_name": recruiter_first_name or "",
     }
 
     cat = "Followup" if followup else category
-    body    = render(cat, ctx)
-    subject = subject_for(category, settings.user_name, ctx["years"])
+    body = render(cat, ctx)
+
+    # AI-tailored body (uses Gemini if key present + job_description provided)
+    if (
+        not followup
+        and getattr(settings, "ai_enabled", True)
+        and getattr(settings, "gemini_api_key", "")
+        and job_title
+        and job_description
+    ):
+        try:
+            from .ai_writer import tailored_email
+            ai_body = tailored_email(
+                user_name=settings.user_name,
+                user_summary=settings.user_summary,
+                resume_text=profile.get("resume_text", "")[:6000],
+                job_title=job_title,
+                job_description=job_description,
+                company=company,
+                recruiter_first_name=recruiter_first_name,
+                gemini_key=settings.gemini_api_key,
+                groq_key=getattr(settings, "groq_api_key", ""),
+                model_gemini=getattr(settings, "gemini_model", "gemini-flash-latest"),
+                model_groq=getattr(settings, "groq_model", "llama-3.3-70b-versatile"),
+            )
+            if ai_body and len(ai_body.strip()) > 40:
+                body = ai_body
+        except Exception as e:
+            logger.debug(f"AI tailoring failed, falling back: {e}")
+
     if followup:
-        subject = f"Following up — {subject}"
+        # Re-use the most recent outgoing subject for the recipient so the
+        # follow-up threads correctly in their Gmail.
+        prior = None
+        try:
+            with db._conn() as c:  # type: ignore[attr-defined]
+                r = c.execute(
+                    "SELECT subject FROM emails_sent WHERE recipient=? "
+                    "AND followup=0 ORDER BY sent_at DESC LIMIT 1",
+                    (recipient,),
+                ).fetchone()
+                prior = r["subject"] if r else None
+        except Exception:
+            prior = None
+        subject = followup_subject(prior or "Application")
+    else:
+        subject = pick_subject(
+            company=company,
+            category=category,
+            name=settings.user_name,
+            years=ctx["years"],
+            location=settings.user_location,
+            visa=settings.user_visa,
+        )
 
     ok, reason = send_email(
         settings.gmail_address,
@@ -123,13 +183,13 @@ def send_application(
 
     if ok:
         db.log_email(recipient, company, category, subject, job_id, followup)
-        db.log_event("email_sent", f"{recipient} ({company})")
-        logger.success(f"→ {recipient} ({company})")
+        db.log_event("email_sent", f"{recipient} ({company}) | {subject[:60]}")
+        logger.success(f"→ {recipient} ({company}) — \"{subject[:60]}\"")
     else:
         # SMTP-level rejection — quarantine the address so we never retry
         if reason.startswith("recipient_refused") or reason.startswith("smtp_5"):
             db.mark_invalid_email(recipient, reason)
         db.log_event("email_failed", f"{recipient}: {reason}")
-        logger.warning(f"✗ {recipient}: {reason}")
+        logger.warning(f"failed {recipient}: {reason}")
 
     return ok

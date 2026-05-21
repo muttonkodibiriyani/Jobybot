@@ -66,6 +66,19 @@ class Settings(BaseSettings):
     ai_enabled:      bool = Field(True, description="Master switch. False disables all LLM calls.")
     ai_min_match:    int  = Field(60, description="Score below which jobs are dropped entirely.")
 
+    # Email-finder v2 settings
+    # ---------------------------------------------------------------
+    # `EMAIL_FINDER_TIER` controls how aggressive discovery is:
+    #   off       -> use only the curated market JSON files (legacy behaviour)
+    #   t1        -> + careers-page scrape (highest precision, fully ToS-safe)
+    #   t2        -> + LinkedIn cookie-based HR lookup  (Tier 3 in the plan)
+    #   t3        -> + country-aware pattern guessing  (lowest precision)
+    # SMTP RCPT probe always runs on top of T1-T3 unless disabled.
+    email_finder_tier:   str  = Field("t2", description="off | t1 | t2 | t3")
+    smtp_probe_enabled:  bool = Field(True)
+    linkedin_cookie:     str  = Field("", description="LinkedIn `li_at` session cookie for T2 finder. Get it from chrome devtools -> Application -> Cookies -> https://www.linkedin.com -> li_at.")
+    linkedin_finder_daily_cap: int = Field(30)
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

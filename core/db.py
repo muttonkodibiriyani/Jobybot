@@ -89,6 +89,43 @@ def init_db() -> None:
                 at          TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_runlog_at ON run_log(at);
+
+            -- Per-company discovery audit: every attempt, every tier, every outcome.
+            -- Used by the dashboard "Discovery quality" panel and to debug bad guesses.
+            CREATE TABLE IF NOT EXISTS email_discovery_log (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                company         TEXT NOT NULL,
+                source_url      TEXT,
+                tier            TEXT NOT NULL,
+                candidate_email TEXT,
+                probe_code      TEXT,
+                decision        TEXT NOT NULL,
+                latency_ms      INTEGER DEFAULT 0,
+                at              TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_discovery_co  ON email_discovery_log(company);
+            CREATE INDEX IF NOT EXISTS idx_discovery_at  ON email_discovery_log(at);
+
+            -- SMTP RCPT probe results (don't re-probe the same address per cycle).
+            CREATE TABLE IF NOT EXISTS smtp_probe_cache (
+                email       TEXT PRIMARY KEY,
+                code        TEXT,
+                message     TEXT,
+                checked_at  TEXT NOT NULL
+            );
+
+            -- LinkedIn logged-in lookup quota (one row per day).
+            CREATE TABLE IF NOT EXISTS linkedin_finder_quota (
+                date        TEXT PRIMARY KEY,
+                lookups     INTEGER NOT NULL DEFAULT 0
+            );
+
+            -- Bounce IMAP cursor (per-folder).
+            CREATE TABLE IF NOT EXISTS bounce_cursor (
+                folder      TEXT PRIMARY KEY,
+                last_uid    INTEGER NOT NULL,
+                updated_at  TEXT NOT NULL
+            );
             """
         )
 
@@ -275,6 +312,91 @@ def get_run_log(limit: int = 50) -> List[Dict[str, Any]]:
             "SELECT * FROM run_log ORDER BY id DESC LIMIT ?", (limit,)
         ).fetchall()
         return [dict(r) for r in rows]
+
+
+# ─── Email discovery audit ───────────────────────────────────────
+def log_discovery(
+    company: str,
+    tier: str,
+    decision: str,
+    *,
+    source_url: str = "",
+    candidate_email: str = "",
+    probe_code: str = "",
+    latency_ms: int = 0,
+) -> None:
+    """Record one attempt to discover a company's recruiter email."""
+    with _conn() as c:
+        c.execute(
+            "INSERT INTO email_discovery_log "
+            "(company, source_url, tier, candidate_email, probe_code, decision, latency_ms, at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (company, source_url, tier, candidate_email, probe_code, decision,
+             int(latency_ms), dt.datetime.utcnow().isoformat()),
+        )
+
+
+def recent_discovery(limit: int = 50) -> List[Dict[str, Any]]:
+    """Newest discovery attempts for the dashboard panel."""
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT * FROM email_discovery_log ORDER BY id DESC LIMIT ?", (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def discovery_tier_counts(days: int = 7) -> List[Dict[str, Any]]:
+    """Aggregate per-tier success counts for the last N days."""
+    cutoff = (dt.datetime.utcnow() - dt.timedelta(days=days)).isoformat()
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT tier, decision, COUNT(*) AS n FROM email_discovery_log "
+            "WHERE at >= ? GROUP BY tier, decision ORDER BY tier, decision",
+            (cutoff,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+# ─── SMTP probe cache ────────────────────────────────────────────
+def get_smtp_probe(email: str) -> Optional[Dict[str, Any]]:
+    with _conn() as c:
+        r = c.execute(
+            "SELECT * FROM smtp_probe_cache WHERE email=?", (email.lower(),)
+        ).fetchone()
+        return dict(r) if r else None
+
+
+def cache_smtp_probe(email: str, code: str, message: str = "") -> None:
+    with _conn() as c:
+        c.execute(
+            "INSERT OR REPLACE INTO smtp_probe_cache (email, code, message, checked_at) "
+            "VALUES (?, ?, ?, ?)",
+            (email.lower(), code, message[:200], dt.datetime.utcnow().isoformat()),
+        )
+
+
+# ─── LinkedIn finder quota ────────────────────────────────────────
+def linkedin_lookups_today() -> int:
+    today = dt.date.today().isoformat()
+    with _conn() as c:
+        r = c.execute(
+            "SELECT lookups FROM linkedin_finder_quota WHERE date=?", (today,)
+        ).fetchone()
+        return int(r[0]) if r else 0
+
+
+def bump_linkedin_lookup() -> int:
+    today = dt.date.today().isoformat()
+    with _conn() as c:
+        c.execute(
+            "INSERT INTO linkedin_finder_quota (date, lookups) VALUES (?, 1) "
+            "ON CONFLICT(date) DO UPDATE SET lookups = lookups + 1",
+            (today,),
+        )
+        r = c.execute(
+            "SELECT lookups FROM linkedin_finder_quota WHERE date=?", (today,)
+        ).fetchone()
+        return int(r[0]) if r else 0
 
 
 def jobs_by_source() -> List[Dict[str, Any]]:

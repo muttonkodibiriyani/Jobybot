@@ -39,6 +39,7 @@ def tailored_email(
     job_description: str,
     company: str = "",
     *,
+    recruiter_first_name: str = "",
     gemini_key: str = "",
     groq_key: str = "",
     model_gemini: str = "gemini-flash-latest",
@@ -48,14 +49,25 @@ def tailored_email(
     Generate a personalised 4-6 sentence recruiter email tailored to the
     job description and the candidate's résumé.
 
+    If ``recruiter_first_name`` is supplied (typically from the LinkedIn
+    finder), the email opens with "Hi <first_name>," instead of the generic
+    "Hi," — this is a significant deliverability + reply-rate win.
+
     Always returns a non-empty string — falls back to template on failure.
     """
+    salutation = f"Hi {recruiter_first_name.strip().split()[0]}," if recruiter_first_name.strip() else "Hi,"
+
     prompt = (
         f"Write a concise, professional 4-6 sentence recruiter email from a "
         f"job candidate (signed off as '{user_name}') applying for the following "
-        f"role. Tone: confident, warm, no fluff. NO subject line, NO 'Dear sir/madam'. "
-        f"Open with 'Hi,'. Reference one specific requirement from the JD that the "
-        f"résumé strongly demonstrates. End with 'Best regards,\\n{user_name}'.\n\n"
+        f"role. Tone: confident, warm, no fluff. NO subject line, NO 'Dear sir/madam', "
+        f"NO 'I hope this email finds you well'. "
+        f"Open with EXACTLY this salutation on its own line: \"{salutation}\". "
+        f"In sentence 2, reference ONE specific requirement from the JD that the "
+        f"résumé strongly demonstrates, with a concrete number / outcome where possible. "
+        f"In sentence 3-4 mention the candidate's location, visa status, and notice if "
+        f"clearly relevant. End with a low-friction ask (e.g. 'Open to a quick chat?'). "
+        f"Sign off with 'Best regards,\\n{user_name}'.\n\n"
         f"=== RÉSUMÉ ===\n{resume_text[:5000]}\n\n"
         f"=== JOB ===\nTitle: {job_title}\nCompany: {company}\nDescription:\n{job_description[:3000]}\n"
     )

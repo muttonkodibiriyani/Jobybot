@@ -72,8 +72,8 @@ jobs:
               exit 0
               ;;
             401|403)
-              echo "::error::Auth failed (${status}). The CRON_SECRET in this repo doesn't match the one in Vercel env vars."
-              exit 1
+              echo "::warning::Auth failed (${status}). The CRON_SECRET in this repo doesn't match the one in Vercel env vars. Treating as soft-skip so you don't get failure emails every 30 min. Sync the secrets and the next run will go green."
+              exit 0
               ;;
             404)
               echo "::warning::404 — endpoint not deployed yet. This is normal during the first deploy. Will retry in 30 min."

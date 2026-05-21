@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { PAYMENT, SUPPORT } from "@/lib/config";
 import { OrderForm } from "@/components/OrderForm";
 
@@ -7,6 +8,16 @@ export const metadata = {
   description:
     "Pay with any UPI app — PhonePe, GPay, Paytm, BHIM. Lifetime JobyBots Pro license delivered to your email after manual payment verification.",
 };
+
+const PREVIEW_STEPS: Array<{ n: string; src: string; alt: string; title: string }> = [
+  { n: "01", src: "/install-storyboard/install-01-email.png", alt: "Installer email arrives in Gmail", title: "Installer email" },
+  { n: "02", src: "/install-storyboard/install-02-extract.png", alt: "ZIP extracted showing 13 .bat files", title: "13 one-click files" },
+  { n: "05", src: "/install-storyboard/install-05-verify.png", alt: "Health check terminal with 6 green ticks", title: "All-green health check" },
+  { n: "07", src: "/install-storyboard/install-07-menu.png", alt: "JOBYBOT Control Center menu with 18 options", title: "Control center menu" },
+  { n: "08", src: "/install-storyboard/install-08-interconnect.png", alt: "Diagram of how the .bat files connect", title: "How the .bats connect" },
+  { n: "09", src: "/install-storyboard/install-09-dashboard.png", alt: "Live JobyBots dashboard with stats", title: "Live dashboard" },
+  { n: "10", src: "/install-storyboard/install-10-replies.png", alt: "Six recruiter replies in Gmail inbox", title: "First recruiter replies" },
+];
 
 export default function BuyIndiaPage() {
   return (
@@ -93,6 +104,60 @@ export default function BuyIndiaPage() {
         </a>{" "}
         for instant delivery.
       </p>
+
+      <section className="mt-20 border-t border-surface-divider pt-16">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="eyebrow">What you receive after payment</p>
+          <h2 className="h2 mt-3">Exactly seven screens stand between you and your first recruiter reply.</h2>
+          <p className="mt-4 text-ink-muted">
+            Tap any thumbnail to see the full installer journey — or visit the{" "}
+            <Link
+              href="/install"
+              aria-label="See the full ten step installation walkthrough"
+              className="font-medium text-accent underline"
+            >
+              full 10-step walkthrough
+            </Link>
+            .
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {PREVIEW_STEPS.map((s) => (
+            <Link
+              key={s.n}
+              href="/install"
+              aria-label={`See step ${s.n} of the JobyBots install walkthrough: ${s.title}`}
+              className="group block overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-lift"
+            >
+              <div className="aspect-[16/10] overflow-hidden bg-surface-subtle">
+                <Image
+                  src={s.src}
+                  alt={s.alt}
+                  width={1024}
+                  height={683}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                />
+              </div>
+              <div className="flex items-center justify-between p-4">
+                <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
+                  Step {s.n}
+                </p>
+                <p className="text-sm font-semibold text-ink">{s.title}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-10 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 p-6 text-center">
+          <p className="text-[15px] text-ink-muted">
+            Average install: <strong className="text-ink">5 minutes</strong> · First emails sent:{" "}
+            <strong className="text-ink">within 1 hour</strong> · First recruiter replies:{" "}
+            <strong className="text-ink">2&ndash;5 days</strong>
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

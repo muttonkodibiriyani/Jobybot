@@ -57,6 +57,7 @@ website/.next/
 website/.env.local
 website/data/
 releases/*.zip
+releases/*.mp4
 !releases/.gitkeep
 website/fix-tags.py
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/Reveal";
+import { MotionFade, MotionMagnet, MotionParallax } from "@/components/MotionFade";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
 
@@ -100,26 +101,30 @@ export default function AboutPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(founderLd) }}
       />
 
-      {/* HERO with animated mesh background */}
+      {/* HERO with animated mesh background + parallax */}
       <section className="relative overflow-hidden mesh-bg">
-        <div className="mx-auto max-w-page section-pad px-4 sm:px-6 lg:px-8">
-          <Reveal>
+        <MotionParallax strength={20} className="pointer-events-none absolute inset-0 opacity-60">
+          <div className="absolute -top-20 -right-32 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
+          <div className="absolute top-1/2 -left-32 h-96 w-96 rounded-full bg-blue-300/20 blur-3xl" />
+        </MotionParallax>
+        <div className="relative mx-auto max-w-page section-pad px-4 sm:px-6 lg:px-8">
+          <MotionFade>
             <p className="eyebrow">A letter from the founder</p>
-          </Reveal>
-          <Reveal delay={1}>
+          </MotionFade>
+          <MotionFade delay={0.1} y={32}>
             <h1 className="display-1 mt-4 text-ink">
               I built JobyBots because <span className="shimmer-text">job-hunting in 2026</span> broke me first.
             </h1>
-          </Reveal>
-          <Reveal delay={2}>
+          </MotionFade>
+          <MotionFade delay={0.25}>
             <p className="lead mt-8 max-w-3xl text-ink">
               If you're reading this between job applications at 1 AM, or between
               two Zoom interviews with the same recruiter who already forgot your
               name, or with a redundancy package open in another tab — this page
               is for you, not for investors.
             </p>
-          </Reveal>
-          <Reveal delay={3}>
+          </MotionFade>
+          <MotionFade delay={0.4}>
             <p className="lead mt-5 max-w-3xl text-ink-muted">
               I'm Darapu Tharakeswara Reddy. I spent seven years at Alshaya in
               Dubai building data products and AI agents across MENA retail.
@@ -128,7 +133,7 @@ export default function AboutPage() {
               chance of a human ever reading my résumé. JobyBots is the tool
               I wished existed during that grind.
             </p>
-          </Reveal>
+          </MotionFade>
         </div>
       </section>
 
@@ -260,20 +265,24 @@ export default function AboutPage() {
               is worth more.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
-              <Link
-                href="/buy-india"
-                aria-label="Buy JobyBots Pro lifetime license for 2,999 rupees"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-ink shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lift"
-              >
-                Get JobyBots Pro — ₹2,999 lifetime →
-              </Link>
-              <Link
-                href="/demo"
-                aria-label="Watch a 2 minute video demo of JobyBots"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-7 py-3.5 text-[15px] font-semibold text-white transition-all hover:bg-white/10"
-              >
-                Watch the 2-minute demo
-              </Link>
+              <MotionMagnet>
+                <Link
+                  href="/buy-india"
+                  aria-label="Buy JobyBots Pro lifetime license for 2,999 rupees"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-ink shadow-card transition-all hover:shadow-lift"
+                >
+                  Get JobyBots Pro — ₹2,999 lifetime →
+                </Link>
+              </MotionMagnet>
+              <MotionMagnet>
+                <Link
+                  href="/demo"
+                  aria-label="Watch a 2 minute video demo of JobyBots"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-7 py-3.5 text-[15px] font-semibold text-white transition-all hover:bg-white/10"
+                >
+                  Watch the 2-minute demo
+                </Link>
+              </MotionMagnet>
             </div>
           </div>
         </Reveal>

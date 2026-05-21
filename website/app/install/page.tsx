@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/Reveal";
+import { MotionMagnet } from "@/components/MotionFade";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
 
@@ -177,20 +178,24 @@ export default function InstallPage() {
         </Reveal>
         <Reveal delay={3}>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              href="/buy-india"
-              aria-label="Buy JobyBots for two thousand nine hundred ninety nine rupees and start installing"
-              className="rounded-full bg-accent px-6 py-3 text-base font-semibold text-white shadow-lg shadow-accent/30 hover:bg-accent-strong transition"
-            >
-              Buy now — install in 5 minutes
-            </Link>
-            <Link
-              href="/demo"
-              aria-label="Watch the JobyBots demo video before installing"
-              className="rounded-full border border-slate-300 px-6 py-3 text-base font-semibold text-slate-700 hover:bg-slate-50 transition"
-            >
-              Watch the 2-min demo first
-            </Link>
+            <MotionMagnet>
+              <Link
+                href="/buy-india"
+                aria-label="Buy JobyBots for two thousand nine hundred ninety nine rupees and start installing"
+                className="inline-flex rounded-full bg-accent px-6 py-3 text-base font-semibold text-white shadow-lg shadow-accent/30 hover:bg-accent-strong transition"
+              >
+                Buy now — install in 5 minutes
+              </Link>
+            </MotionMagnet>
+            <MotionMagnet>
+              <Link
+                href="/demo"
+                aria-label="Watch the JobyBots demo video before installing"
+                className="inline-flex rounded-full border border-slate-300 px-6 py-3 text-base font-semibold text-slate-700 hover:bg-slate-50 transition"
+              >
+                Watch the 2-min demo first
+              </Link>
+            </MotionMagnet>
           </div>
         </Reveal>
       </section>

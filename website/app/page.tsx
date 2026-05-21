@@ -3,8 +3,56 @@ import { ComparisonTable } from "@/components/ComparisonTable";
 import { AISearchDemo } from "@/components/AISearchDemo";
 import { HeroGear } from "@/components/HeroGear";
 import { FeatureCard } from "@/components/FeatureCard";
+import { HeroVideo } from "@/components/HeroVideo";
 import { Reveal } from "@/components/Reveal";
 import { SUPPORT, PAYMENT } from "@/lib/config";
+
+const DEMO_VIDEO_ID = "fwKCITDa2MM";
+
+const FAQ_ITEMS: Array<{ q: string; a: string }> = [
+  {
+    q: "Is JobyBots safe to use on LinkedIn?",
+    a: "Yes. JobyBots does not log into your LinkedIn account or click any apply buttons. It only reads public job listings, scores them with Gemini, and emails recruiters from your Gmail. No automation against LinkedIn's UI that would violate their ToS.",
+  },
+  {
+    q: "Do you upload my résumé to a server?",
+    a: "No. JobyBots is a local-first Python app. Your résumé, Gmail App Password, and Gemini API key live in a folder on your own machine. The website only handles purchase and license verification.",
+  },
+  {
+    q: "How many job applications can it send per day?",
+    a: "Up to 200 personalised applications per day. The daily cap is configurable in .env (DAILY_EMAIL_CAP). Each email is sent from your Gmail with a randomised 20-60 second delay so you stay below Gmail's bulk-mail threshold.",
+  },
+  {
+    q: "Which markets does JobyBots support?",
+    a: "Primary: UAE. Secondary: Saudi Arabia, Qatar, Oman, Bahrain, India, Singapore, Canada, Australia, UK, Germany, Netherlands, Ireland. UK and EU markets run in GDPR-safe mode (apply via official sites or legitimate-interest contacts only).",
+  },
+  {
+    q: "Is there a refund policy?",
+    a: "Yes — 7 days, no questions asked. Email tharakesh.iitp@gmail.com or fill the refund form on /refund and we'll process it within 24 hours.",
+  },
+  {
+    q: "Does it work on Mac?",
+    a: "Yes — Windows 10/11 and macOS 12+. The installer is identical: extract the .zip, double-click JOBYBOT.bat (Windows) or JOBYBOT.sh (Mac), and answer 5 setup questions.",
+  },
+  {
+    q: "Will I need to learn Python or coding?",
+    a: "No. The one-click installer handles Python setup automatically. You'll edit one .env file (5 fields) and run one command. Total install time: about 15 minutes.",
+  },
+  {
+    q: "How is JobyBots different from LazyApply or Sonara?",
+    a: "Three differences: (1) Pay once (₹2,999) vs subscription, (2) Runs on your laptop so your data stays private, (3) Targets the GCC + India market with curated recruiter contacts that US-focused tools don't have.",
+  },
+];
+
+const faqLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
 
 const stats = [
   { value: "200", suffix: "",  label: "AI applications / day" },
@@ -66,6 +114,10 @@ const aiCapabilities = [
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+      />
       {/* ════════════════════ HERO ════════════════════ */}
       <section className="relative overflow-hidden mesh-bg">
         {/* Soft gradient accents */}
@@ -119,11 +171,11 @@ export default function HomePage() {
                   Get JobyBots · ₹{PAYMENT.amountInr.toLocaleString("en-IN")}
                   <span aria-hidden>→</span>
                 </Link>
-                <Link href="/demo" className="btn-outline">
+                <Link href="#watch-demo" className="btn-outline">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                     <path d="M8 5v14l11-7z" />
                   </svg>
-                  Watch the AI work
+                  Watch the 2-min demo
                 </Link>
               </div>
             </Reveal>
@@ -146,6 +198,37 @@ export default function HomePage() {
           {/* Right: animated gear — 5 columns so it stays comfortably in frame */}
           <Reveal as="div" delay={2} className="lg:col-span-5">
             <HeroGear />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ════════════════════ VIDEO DEMO ════════════════════ */}
+      <section
+        id="watch-demo"
+        className="mx-auto max-w-page px-4 pb-8 sm:px-6 lg:px-8 lg:pb-12"
+      >
+        <div className="mx-auto max-w-4xl">
+          <Reveal>
+            <p className="eyebrow text-center">2-minute walkthrough</p>
+          </Reveal>
+          <Reveal delay={1}>
+            <h2 className="display-2 mt-3 text-center text-ink">
+              See JobyBots <span className="shimmer-text">apply to jobs</span> for you.
+            </h2>
+          </Reveal>
+          <Reveal delay={2}>
+            <p className="lead mx-auto mt-5 max-w-2xl text-center">
+              Real screen-recording of the bot scanning LinkedIn, scoring each
+              match with Gemini, validating recruiter emails, and sending
+              personalized applications — running entirely on a laptop.
+            </p>
+          </Reveal>
+
+          <Reveal delay={3} className="mt-10">
+            <HeroVideo
+              id={DEMO_VIDEO_ID}
+              title="JobyBots — Your AI Job Hunter. 24/7. Live demo."
+            />
           </Reveal>
         </div>
       </section>
@@ -430,6 +513,51 @@ export default function HomePage() {
               </Reveal>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ════════════════════ FAQ ════════════════════ */}
+      <section className="border-y border-surface-divider bg-surface-subtle">
+        <div className="mx-auto max-w-page section-pad px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <Reveal>
+              <p className="eyebrow">Frequently asked</p>
+            </Reveal>
+            <Reveal delay={1}>
+              <h2 className="display-2 mt-3 text-ink">
+                Honest answers, <span className="shimmer-text">no fine print</span>.
+              </h2>
+            </Reveal>
+          </div>
+
+          <div className="mx-auto mt-12 max-w-3xl space-y-3">
+            {FAQ_ITEMS.map((f, i) => (
+              <Reveal key={f.q} delay={((i % 6) + 1) as 1 | 2 | 3 | 4 | 5 | 6}>
+                <details className="group rounded-2xl border border-surface-divider bg-white p-5 shadow-xs transition-all open:shadow-card">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+                    <span className="font-display text-lg font-semibold text-ink">
+                      {f.q}
+                    </span>
+                    <span
+                      aria-hidden
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-surface-divider text-ink-muted transition-transform group-open:rotate-45"
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-4 text-[15px] leading-relaxed text-ink-muted">
+                    {f.a}
+                  </p>
+                </details>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={4} className="mt-10 text-center">
+            <Link href="/faq" className="btn-ghost">
+              See the full FAQ →
+            </Link>
+          </Reveal>
         </div>
       </section>
 

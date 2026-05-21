@@ -1,0 +1,52 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    paths:
+      - "website/**"
+      - ".github/workflows/lighthouse.yml"
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - ".github/workflows/lighthouse.yml"
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    defaults:
+      run:
+        working-directory: website
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+          NEXT_PUBLIC_INR_PRICE: "2999"
+          NEXT_PUBLIC_DEMO_VIDEO_ID: "fwKCITDa2MM"
+        run: npm run build
+
+      - name: Start
+        env:
+          NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+        run: |
+          npm run start &
+          npx --yes wait-on http://localhost:3000
+
+      - name: Lighthouse CI
+        run: npx --yes @lhci/cli@0.13.x autorun --config=./lighthouserc.json

@@ -1,12 +1,29 @@
 import Link from "next/link";
 import { AISearchDemo } from "@/components/AISearchDemo";
 import { DashboardLive } from "@/components/DashboardLive";
+import { HeroVideo } from "@/components/HeroVideo";
 import { PAYMENT, SUPPORT } from "@/lib/config";
+
+const DEMO_VIDEO_ID = "fwKCITDa2MM";
 
 export const metadata = {
   title: "Demo · See JobyBots' AI search live",
   description:
     "Watch the JobyBots AI agent search LinkedIn, Indeed, Naukri and Bayt — score every job against your résumé with Gemini, and email recruiters. Live interactive demo plus install walkthrough.",
+  openGraph: {
+    title: "JobyBots — 2-minute walkthrough · Watch the AI apply for jobs",
+    description:
+      "Real screen-recording of the JobyBots AI scanning LinkedIn, scoring matches with Gemini, validating recruiter emails, and sending personalised applications.",
+    type: "video.other",
+    videos: [
+      {
+        url: `https://www.youtube.com/embed/${DEMO_VIDEO_ID}`,
+        type: "text/html",
+        width: 1280,
+        height: 720,
+      },
+    ],
+  },
 };
 
 const steps = [
@@ -70,8 +87,6 @@ const aiSteps = [
 ];
 
 export default function DemoPage() {
-  const videoUrl = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL ?? "";
-
   return (
     <>
       {/* HERO: live AI demo — light theme matching homepage */}
@@ -126,28 +141,11 @@ export default function DemoPage() {
               real screen recording.
             </p>
           </div>
-          <div className="card mx-auto mt-10 max-w-3xl p-2">
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-ink">
-              {videoUrl ? (
-                <iframe
-                  src={videoUrl}
-                  title="JobyBots demo"
-                  className="absolute inset-0 h-full w-full"
-                  allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
-                  loading="lazy"
-                />
-              ) : (
-                <div className="flex h-full flex-col items-center justify-center text-center text-white">
-                  <div className="text-6xl">▶</div>
-                  <p className="mt-4 text-lg font-semibold">Demo video uploading soon</p>
-                  <p className="mt-2 max-w-sm text-sm text-white/60">
-                    Until then, the live AI search above and the dashboard
-                    preview below show exactly what you'll get.
-                  </p>
-                </div>
-              )}
-            </div>
+          <div className="mx-auto mt-10 max-w-3xl">
+            <HeroVideo
+              id={DEMO_VIDEO_ID}
+              title="JobyBots — install walkthrough and first 50 applications"
+            />
           </div>
         </div>
       </section>

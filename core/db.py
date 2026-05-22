@@ -222,6 +222,17 @@ def emails_sent_today() -> int:
         return int(r[0]) if r else 0
 
 
+def recent_emails(limit: int = 20) -> List[Dict[str, Any]]:
+    """Most recent outbound emails (successfully sent, not bounces)."""
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT recipient, company, category, subject, sent_at, followup, job_id "
+            "FROM emails_sent ORDER BY sent_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
 def followups_due() -> List[Dict[str, Any]]:
     """Emails sent 7+ days ago that haven't been followed up yet."""
     cutoff = (dt.datetime.utcnow() - dt.timedelta(days=7)).isoformat()

@@ -202,6 +202,95 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ════════════════════ HOW IT WORKS (3 clicks) ════════════════════ */}
+      <section className="mx-auto max-w-page px-4 pt-8 pb-2 sm:px-6 lg:px-8">
+        <Reveal>
+          <div className="rounded-3xl border border-surface-divider bg-white p-6 sm:p-8 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <p className="eyebrow">Three clicks from purchase to first email</p>
+              <Link
+                href="/security"
+                className="text-xs font-semibold text-accent hover:underline"
+              >
+                Why is this safe? →
+              </Link>
+            </div>
+            <ol className="grid gap-4 md:grid-cols-3">
+              <li className="rounded-2xl border border-surface-divider bg-cream/50 p-5">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-display text-3xl font-extrabold text-accent tabular-nums">01</span>
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-ink-muted">Pay</span>
+                </div>
+                <h3 className="mt-3 font-display text-lg font-bold text-ink">
+                  Buy once · ₹{PAYMENT.amountInr.toLocaleString("en-IN")}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                  Instant Stripe / UPI checkout. Email with the installer link
+                  ZIP for Windows + macOS lands in your inbox in 60 seconds.
+                </p>
+                <Link
+                  href="/buy-india"
+                  className="mt-3 inline-flex text-xs font-semibold text-accent hover:underline"
+                >
+                  Go to checkout →
+                </Link>
+              </li>
+              <li className="rounded-2xl border-2 border-accent bg-white p-5 shadow-card">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-display text-3xl font-extrabold text-accent tabular-nums">02</span>
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent">Configure in your browser</span>
+                </div>
+                <h3 className="mt-3 font-display text-lg font-bold text-ink">
+                  Open the /setup wizard
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                  Five fields with help links: name, Gmail App Password, Gemini
+                  key, roles, markets. The wizard builds a clean{" "}
+                  <code className="rounded bg-surface-subtle px-1.5 py-0.5 text-[11px]">.env</code>{" "}
+                  file <strong>entirely in your browser</strong> — credentials never
+                  reach our servers.
+                </p>
+                <Link
+                  href="/setup"
+                  className="mt-3 inline-flex text-xs font-semibold text-accent hover:underline"
+                >
+                  Try the wizard now →
+                </Link>
+              </li>
+              <li className="rounded-2xl border border-surface-divider bg-cream/50 p-5">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-display text-3xl font-extrabold text-accent tabular-nums">03</span>
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-ink-muted">Run</span>
+                </div>
+                <h3 className="mt-3 font-display text-lg font-bold text-ink">
+                  Drop <code className="rounded bg-surface-subtle px-1.5 py-0.5 text-[11px]">.env</code> + double-click setup
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                  Windows: <code className="text-[11px]">SETUP_FOR_FRIENDS.bat</code>.
+                  Mac: <code className="text-[11px]">mac/Setup.command</code>.
+                  Schedule it 24/7. Watch replies in your Gmail and the local
+                  dashboard.
+                </p>
+                <Link
+                  href="/install"
+                  className="mt-3 inline-flex text-xs font-semibold text-accent hover:underline"
+                >
+                  See the 10-step walkthrough →
+                </Link>
+              </li>
+            </ol>
+
+            <div className="mt-6 flex flex-wrap items-center gap-2 text-[12px] text-ink-muted">
+              <span className="inline-flex items-center gap-1.5">
+                <span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <strong className="text-ink">No big config files to edit by hand.</strong>
+              </span>
+              <span>The wizard generates a 30-line <code className="text-[11px]">.env</code> the bot reads automatically.</span>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
       {/* ════════════════════ VIDEO DEMO ════════════════════ */}
       <section
         id="watch-demo"

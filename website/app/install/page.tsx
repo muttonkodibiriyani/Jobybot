@@ -7,9 +7,9 @@ import { MotionMagnet } from "@/components/MotionFade";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
 
 export const metadata: Metadata = {
-  title: "Install JobyBots in 5 minutes · 10-step visual guide",
+  title: "Install JobyBots in 5 minutes · Windows + macOS visual guide",
   description:
-    "A photoreal, 10-step walkthrough of installing JobyBots on Windows — from the email that arrives after you pay, to the first recruiter replies five days later. No jargon, no IT skills needed.",
+    "A photoreal, step-by-step walkthrough of installing JobyBots on Windows or macOS — from the email that arrives after you pay, to the first recruiter replies five days later. No jargon, no IT skills needed. Use the /setup wizard to generate your config in your browser without us ever seeing your credentials.",
   alternates: { canonical: `${SITE_URL}/install` },
   openGraph: {
     title: "Install JobyBots — the 10-step visual walkthrough",
@@ -189,14 +189,70 @@ export default function InstallPage() {
             </MotionMagnet>
             <MotionMagnet>
               <Link
-                href="/demo"
-                aria-label="Watch the JobyBots demo video before installing"
+                href="/setup"
+                aria-label="Open the configuration wizard"
                 className="inline-flex rounded-full border border-slate-300 px-6 py-3 text-base font-semibold text-slate-700 hover:bg-slate-50 transition"
               >
-                Watch the 2-min demo first
+                Open setup wizard →
+              </Link>
+            </MotionMagnet>
+            <MotionMagnet>
+              <Link
+                href="/security"
+                aria-label="Read the JobyBots security explanation"
+                className="inline-flex rounded-full border border-slate-300 px-6 py-3 text-base font-semibold text-slate-700 hover:bg-slate-50 transition"
+              >
+                Why are .bat / .command safe?
               </Link>
             </MotionMagnet>
           </div>
+        </Reveal>
+
+        {/* OS PICKER */}
+        <Reveal delay={4}>
+          <div className="mt-12 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Pick your platform
+            </p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <a
+                href="#windows"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 transition hover:border-accent hover:bg-cream"
+              >
+                <p className="text-xs font-mono uppercase tracking-[0.18em] text-slate-500">
+                  Windows 10 / 11
+                </p>
+                <p className="mt-1 text-base font-semibold text-ink">
+                  Run <code>SETUP_FOR_FRIENDS.bat</code>
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  10-step photoreal walkthrough below.
+                </p>
+              </a>
+              <a
+                href="#macos"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 transition hover:border-accent hover:bg-cream"
+              >
+                <p className="text-xs font-mono uppercase tracking-[0.18em] text-slate-500">
+                  macOS 12+ (Intel + Apple Silicon)
+                </p>
+                <p className="mt-1 text-base font-semibold text-ink">
+                  Run <code>mac/Setup.command</code>
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  6 double-click files, full launchd scheduling.
+                </p>
+              </a>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="mx-auto max-w-4xl px-6 pb-2" id="windows">
+        <Reveal>
+          <p className="text-xs font-mono uppercase tracking-[0.22em] text-accent-strong">
+            Windows install · 10 photoreal steps
+          </p>
         </Reveal>
       </section>
 
@@ -245,6 +301,133 @@ export default function InstallPage() {
             </Reveal>
           ))}
         </ol>
+      </section>
+
+      {/* ─── macOS section ───────────────────────────────────────── */}
+      <section className="mx-auto max-w-5xl px-6 pb-16" id="macos">
+        <Reveal>
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-12 shadow-2xl shadow-slate-900/5">
+            <p className="text-xs font-mono uppercase tracking-[0.22em] text-accent-strong">
+              macOS install · 6 double-click files
+            </p>
+            <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-ink tracking-tight">
+              Same flow, native on Mac.
+            </h2>
+            <p className="mt-4 text-base text-slate-700 leading-relaxed">
+              The Mac package is the same JobyBots brain with macOS-native
+              entry points. Six <code>.command</code> files in a{" "}
+              <code>mac/</code> subfolder, a <code>launchd</code>{" "}
+              <code>.plist</code> for 24/7 scheduling, and a friendly{" "}
+              <code>Setup.command</code> that walks you through Python,
+              dependencies, configuration, and a Gmail+Gemini health check.
+              Tested on macOS 12 Monterey, 13 Ventura, 14 Sonoma and 15
+              Sequoia. Works on Intel Macs and Apple Silicon (M1 / M2 / M3 /
+              M4).
+            </p>
+
+            <ol className="mt-8 grid gap-4 sm:grid-cols-2">
+              {[
+                {
+                  n: "01",
+                  title: "Download the JobyBots-Mac.zip",
+                  body: "Your purchase email contains a Mac ZIP. Drag to Desktop, double-click to extract.",
+                },
+                {
+                  n: "02",
+                  title: "Right-click → Open on Setup.command",
+                  body: "macOS asks once because we're an indie tool. Right-click → Open → Open. Happens once. From then on Mac trusts JobyBots.",
+                },
+                {
+                  n: "03",
+                  title: "Setup walks you through Python + .env",
+                  body: "Detects Python 3.10+ (offers Homebrew if missing), creates .venv, installs libraries, opens .env in TextEdit.",
+                },
+                {
+                  n: "04",
+                  title: "Drop your résumé.pdf in the folder",
+                  body: "JobyBots auto-detects the first PDF and reads it as your résumé. Locked to chmod 600 (owner-only).",
+                },
+                {
+                  n: "05",
+                  title: "Health check — green ticks",
+                  body: "Gmail SMTP test. Gemini API test. SQLite init. Daily cap set. Six green checks → ready.",
+                },
+                {
+                  n: "06",
+                  title: "Double-click StartAutoSchedule.command",
+                  body: "Installs a launchd agent in ~/Library/LaunchAgents. Bot runs every 30 min, even when you log out.",
+                },
+                {
+                  n: "07",
+                  title: "Use the JobyBot.command menu",
+                  body: "Front-door menu — run a cycle, open the dashboard, edit settings, view logs. All from one terminal screen.",
+                },
+                {
+                  n: "08",
+                  title: "Watch live in the browser",
+                  body: "Dashboard.command opens data/dashboard.html — auto-refreshes every 15 seconds while a cycle is running.",
+                },
+              ].map((s, i) => (
+                <Reveal
+                  key={s.n}
+                  as="li"
+                  delay={Math.min(4, (i % 4) + 1) as 1 | 2 | 3 | 4}
+                  className="rounded-2xl border border-slate-100 bg-slate-50 p-5"
+                >
+                  <p className="font-display text-2xl font-bold text-accent-strong tabular-nums">
+                    {s.n}
+                  </p>
+                  <p className="mt-2 font-display text-base font-semibold text-ink">
+                    {s.title}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                    {s.body}
+                  </p>
+                </Reveal>
+              ))}
+            </ol>
+
+            {/* Mac uninstall + scheduling reference */}
+            <div className="mt-10 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl bg-cream p-5 ring-1 ring-amber-100">
+                <p className="text-xs font-mono uppercase tracking-[0.18em] text-accent-strong">
+                  Useful Mac commands
+                </p>
+                <ul className="mt-3 space-y-1 text-xs font-mono text-slate-800">
+                  <li>tail -f data/jobybot_launchd.log</li>
+                  <li>launchctl list | grep jobybots</li>
+                  <li>launchctl unload ~/Library/LaunchAgents/com.jobybots.scheduler.plist</li>
+                </ul>
+              </div>
+              <div className="rounded-2xl bg-cream p-5 ring-1 ring-amber-100">
+                <p className="text-xs font-mono uppercase tracking-[0.18em] text-accent-strong">
+                  Uninstall = drag to Trash
+                </p>
+                <p className="mt-3 text-xs leading-relaxed text-slate-800">
+                  1) Double-click <code>StopBot.command</code> (removes the
+                  scheduler).<br />
+                  2) Drag the <code>JobyBots-Pro</code> folder to Trash.<br />
+                  3) That's it. Nothing else lives on your system.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/setup"
+                className="inline-flex rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink-soft transition"
+              >
+                Build my .env in the browser →
+              </Link>
+              <Link
+                href="/security"
+                className="inline-flex rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+              >
+                Why this is safe →
+              </Link>
+            </div>
+          </div>
+        </Reveal>
       </section>
 
       <section className="mx-auto max-w-3xl px-6 pb-24">

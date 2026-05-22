@@ -135,6 +135,30 @@
   .eyebrow {
     @apply font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-muted;
   }
+
+  /* ─── Form fields used by /setup wizard and /signup ─────────────── */
+  .input {
+    @apply block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5
+           text-[14px] text-ink placeholder:text-slate-400
+           transition-colors duration-150
+           focus:border-accent focus:outline-none
+           focus:ring-2 focus:ring-accent/20;
+  }
+  textarea.input { @apply min-h-[80px] resize-y leading-relaxed; }
+  select.input   { @apply pr-9 appearance-none; }
+  /* Custom chevron for select.input — written as plain CSS so Tailwind's
+     arbitrary-value parser doesn't choke on the embedded SVG comma + quotes */
+  select.input {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667799' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+  }
+
+  .kbd {
+    @apply inline-flex items-center rounded border border-slate-300 bg-slate-50
+           px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-700;
+  }
 }
 
 @layer utilities {

@@ -45,6 +45,22 @@ const config: Config = {
         success: "#00D166",
         warning: "#FF9F0A",
         error: "#FF3B30",
+
+        // ── Aliases used by /trust, /technology, /terms, /easy-apply ──
+        // These were introduced in newer pages and need to resolve to
+        // sensible default values so text on dark `bg-ink` sections is
+        // legible. (Bug: missing colors made <li> text inherit "no color"
+        // which on dark backgrounds reads as black-on-black.)
+        paper: {
+          DEFAULT: "#FFFFFF",   // text on dark backgrounds
+          soft:    "#F5F5F7",
+        },
+        line:    "#E5E5E7",     // hairline borders on cards
+        bg: {
+          DEFAULT: "#FFFFFF",
+          soft:    "#F5F5F7",   // bg-bg-soft → very light gray panel
+        },
+        cream:   "#FAF6F0",     // warm off-white used by other pages
       },
       fontFamily: {
         // Plus Jakarta Sans for headings/UI, Inter for body

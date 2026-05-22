@@ -54,10 +54,10 @@ export function Header() {
 
         <div className="hidden items-center gap-3 md:flex">
           <Link
-            href="/signup"
+            href="/login"
             className="text-sm font-medium text-ink-muted transition-colors hover:text-ink"
           >
-            Sign up
+            Sign in
           </Link>
           <Link
             href="/buy-india"

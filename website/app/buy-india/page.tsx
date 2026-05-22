@@ -1,13 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { PAYMENT, SUPPORT } from "@/lib/config";
 import { OrderForm } from "@/components/OrderForm";
+import { verifySession, CUSTOMER_SESSION_COOKIE } from "@/lib/auth";
+import { getCustomerByEmail } from "@/lib/customers";
 
 export const metadata = {
-  title: "Buy JobyBots Pro — UPI ₹2,999 · India (PhonePe / GPay / Paytm)",
+  title: "Pay ₹2,999 by UPI · JobyBots Pro · India",
   description:
-    "Pay with any UPI app — PhonePe, GPay, Paytm, BHIM. Lifetime JobyBots Pro license delivered to your email after manual payment verification.",
+    "Step 2 of signup: scan the UPI QR with PhonePe / GPay / Paytm and submit your payment screenshot. Owner verifies manually within 30 minutes.",
 };
+
+export const dynamic = "force-dynamic";
 
 const PREVIEW_STEPS: Array<{ n: string; src: string; alt: string; title: string }> = [
   { n: "01", src: "/install-storyboard/install-01-email.png", alt: "Installer email arrives in Gmail", title: "Installer email" },
@@ -19,16 +25,39 @@ const PREVIEW_STEPS: Array<{ n: string; src: string; alt: string; title: string 
   { n: "10", src: "/install-storyboard/install-10-replies.png", alt: "Six recruiter replies in Gmail inbox", title: "First recruiter replies" },
 ];
 
-export default function BuyIndiaPage() {
+export default async function BuyIndiaPage() {
+  // Try to read the customer session — if signed up, we lock the form
+  // to that account so order ↔ customer linkage is automatic.
+  const jar = await cookies();
+  const token = jar.get(CUSTOMER_SESSION_COOKIE)?.value;
+  const sessionEmail = verifySession(token);
+  const customer = sessionEmail ? await getCustomerByEmail(sessionEmail) : null;
+
+  // If the customer is already active, no reason to be on this page.
+  if (customer?.status === "active") redirect("/portal");
+
   return (
     <div className="mx-auto max-w-page section-pad px-4">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="eyebrow">India · UPI Payment</p>
-        <h1 className="h1 mt-2">₹{PAYMENT.amountInr.toLocaleString("en-IN")} · Lifetime · Delivered to your email</h1>
+        <p className="eyebrow">India · UPI Payment · Step 2 of signup</p>
+        <h1 className="h1 mt-2">₹{PAYMENT.amountInr.toLocaleString("en-IN")} · Lifetime · One-time</h1>
         <p className="lead mt-4">
-          Pay with any UPI app and submit the form below. Owner verifies within{" "}
-          {SUPPORT.verificationWindow} and emails your download link automatically.
-          7-day money-back guarantee.
+          {customer ? (
+            <>
+              Hi <strong>{customer.name}</strong>, your account is created.
+              Pay below and we&apos;ll email you the moment payment is verified —
+              usually within {SUPPORT.verificationWindow}.
+            </>
+          ) : (
+            <>
+              Pay with any UPI app and submit the form below. Owner verifies
+              within {SUPPORT.verificationWindow} and emails you the moment
+              your payment is approved. 7-day money-back guarantee.{" "}
+              <Link href="/signup" className="font-semibold text-accent underline">
+                New? Create an account first →
+              </Link>
+            </>
+          )}
         </p>
       </div>
 
@@ -69,9 +98,14 @@ export default function BuyIndiaPage() {
           <p className="text-sm font-semibold text-accent">Step 2 of 2</p>
           <h2 className="mt-2 text-2xl font-bold">Confirm your payment</h2>
           <p className="mt-1 text-ink-muted">
-            We email your installer to the address below after verification.
+            We email you the moment your payment is verified — usually in {SUPPORT.verificationWindow}.
           </p>
-          <OrderForm amountInr={PAYMENT.amountInr} />
+          <OrderForm
+            amountInr={PAYMENT.amountInr}
+            lockedName={customer?.name}
+            lockedEmail={customer?.email}
+            lockedPhone={customer?.phone}
+          />
           <p className="mt-6 rounded-lg bg-surface-subtle p-3 text-xs text-ink-muted">
             Owner verifies pending payments every 30 minutes. Need it now? WhatsApp{" "}
             <a className="font-semibold underline" href={`tel:${SUPPORT.phone.replace(/\s/g, "")}`}>

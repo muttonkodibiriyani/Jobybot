@@ -4,6 +4,7 @@ import path from "node:path";
 import { saveOrder, newOrderId, type Order } from "@/lib/orders";
 import { sendAdminNotify } from "@/lib/mailer";
 import { rateLimit, clientIp, trackSuspicious } from "@/lib/security";
+import { getCustomerByEmail, updateCustomerStatus } from "@/lib/customers";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -73,6 +74,17 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
     await saveOrder(order);
+
+    // Bind the order to the customer account (if one exists for this email)
+    // and flip them to pending_verification so they get a clear message at /login.
+    try {
+      const existing = await getCustomerByEmail(email);
+      if (existing) {
+        await updateCustomerStatus(email, "pending_verification", { orderId: id });
+      }
+    } catch (e) {
+      console.error("customer link failed:", e);
+    }
 
     // Notify the admin with the screenshot attached so it works on Vercel too
     try {

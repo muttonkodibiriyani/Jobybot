@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { updateOrderStatus, getOrder } from "@/lib/orders";
-import { sendDeliveryEmail } from "@/lib/mailer";
+import { sendActivationEmail, sendRejectionEmail } from "@/lib/mailer";
+import { updateCustomerStatus, getCustomerByEmail } from "@/lib/customers";
 
 export const runtime = "nodejs";
 
@@ -27,12 +28,37 @@ export async function POST(req: NextRequest) {
   if (!updated) {
     return NextResponse.json({ ok: false, error: "Order not found" }, { status: 404 });
   }
-  if (body.action === "approve") {
-    try {
-      await sendDeliveryEmail({ id: updated.id, name: updated.name, email: updated.email });
-    } catch (e) {
-      console.error("delivery mail failed", e);
+  // On approve → flip the linked customer to "active" and send the
+  // "you can sign in now" email. On reject → flip to "rejected" + notify.
+  const email = updated.email.trim().toLowerCase();
+  try {
+    if (body.action === "approve") {
+      const customer = await getCustomerByEmail(email);
+      if (customer) {
+        await updateCustomerStatus(email, "active", { orderId: updated.id });
+      }
+      await sendActivationEmail({
+        name: updated.name,
+        email,
+        orderId: updated.id,
+      });
+    } else {
+      const customer = await getCustomerByEmail(email);
+      if (customer) {
+        await updateCustomerStatus(email, "rejected", {
+          orderId: updated.id,
+          notes: body.notes ?? "",
+        });
+      }
+      await sendRejectionEmail({
+        name: updated.name,
+        email,
+        orderId: updated.id,
+        reason: body.notes ?? "Couldn't verify the UPI transaction.",
+      });
     }
+  } catch (e) {
+    console.error("customer activation / email failed", e);
   }
   return NextResponse.json({ ok: true, order: updated });
 }

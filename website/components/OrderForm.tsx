@@ -1,8 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
-export function OrderForm({ amountInr }: { amountInr: number }) {
+interface Props {
+  amountInr: number;
+  /** When the customer is signed in, lock the identity fields so the order
+   *  is bound to their account. They can still edit phone if the UPI number
+   *  is different from the account phone. */
+  lockedName?: string;
+  lockedEmail?: string;
+  lockedPhone?: string;
+}
+
+export function OrderForm({ amountInr, lockedName, lockedEmail, lockedPhone }: Props) {
   const [status, setStatus] = useState<"idle" | "submitting" | "ok" | "error">("idle");
   const [orderId, setOrderId] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -12,11 +23,10 @@ export function OrderForm({ amountInr }: { amountInr: number }) {
     setStatus("submitting");
     setError("");
     const fd = new FormData(e.currentTarget);
+    if (lockedName) fd.set("name", lockedName);
+    if (lockedEmail) fd.set("email", lockedEmail);
     try {
-      const res = await fetch("/api/india-order", {
-        method: "POST",
-        body: fd,
-      });
+      const res = await fetch("/api/india-order", { method: "POST", body: fd });
       const data = (await res.json()) as { ok: boolean; orderId?: string; error?: string };
       if (!res.ok || !data.ok) {
         setStatus("error");
@@ -33,15 +43,34 @@ export function OrderForm({ amountInr }: { amountInr: number }) {
 
   if (status === "ok") {
     return (
-      <div className="mt-6 rounded-2xl border border-success/30 bg-success/5 p-6">
-        <p className="text-success font-bold">✓ Payment submitted</p>
-        <p className="mt-2 text-sm">
-          Order <strong>{orderId}</strong> received. We&apos;ll verify within
-          ~30 minutes and email your download link to the address you provided.
-        </p>
-        <p className="mt-4 text-sm text-ink-muted">
-          Please keep this email reachable. If you don&apos;t see anything in 2 hours,
-          check spam or reply to the confirmation email.
+      <div className="mt-6 space-y-4">
+        <div className="rounded-2xl border border-success/30 bg-success/5 p-6">
+          <p className="text-success font-bold">✓ Payment submitted for verification</p>
+          <p className="mt-2 text-sm">
+            Order <strong>{orderId || "received"}</strong>. The founder will
+            confirm your UPI transaction (usually within 30 minutes) and you&apos;ll
+            get an activation email at <strong>{lockedEmail || "your registered email"}</strong>.
+          </p>
+          <p className="mt-3 text-sm text-ink-muted">
+            After that email arrives, sign in with your registered email/phone
+            and password to configure and download your installer.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-surface-border bg-white p-5 text-sm">
+          <p className="font-semibold text-ink">What happens next?</p>
+          <ol className="mt-3 ml-5 list-decimal space-y-1.5 text-ink-muted">
+            <li>Founder cross-checks the UPI reference and amount.</li>
+            <li>You get a &ldquo;your account is active&rdquo; email (~30 min).</li>
+            <li>You sign in at <Link href="/login" className="text-accent underline">jobybots.com/login</Link>.</li>
+            <li>Portal opens, you configure your <code>.env</code>, download the ZIP.</li>
+          </ol>
+        </div>
+        <p className="text-xs text-ink-muted text-center">
+          Need it now?{" "}
+          <a href="https://wa.me/971505619548" className="font-semibold text-accent underline">
+            WhatsApp the founder
+          </a>{" "}
+          with your screenshot.
         </p>
       </div>
     );
@@ -49,11 +78,39 @@ export function OrderForm({ amountInr }: { amountInr: number }) {
 
   return (
     <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+      {lockedEmail && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          Paying as <strong>{lockedName}</strong> · <span className="font-mono">{lockedEmail}</span>.
+          The activation email will go to this address.
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Full name" name="name" required placeholder="Tharak Reddy" />
-        <Field label="Phone (UPI)" name="phone" required placeholder="+91 98xxx xxxxx" />
+        <Field
+          label="Full name"
+          name="name"
+          required
+          placeholder="Tharak Reddy"
+          defaultValue={lockedName}
+          readOnly={!!lockedName}
+        />
+        <Field
+          label="Phone (UPI)"
+          name="phone"
+          required
+          placeholder="+91 98xxx xxxxx"
+          defaultValue={lockedPhone}
+        />
       </div>
-      <Field label="Email (delivery)" name="email" type="email" required placeholder="you@gmail.com" />
+      <Field
+        label="Email (account)"
+        name="email"
+        type="email"
+        required
+        placeholder="you@gmail.com"
+        defaultValue={lockedEmail}
+        readOnly={!!lockedEmail}
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field
           label="UPI reference / Txn ID"
@@ -101,8 +158,8 @@ export function OrderForm({ amountInr }: { amountInr: number }) {
 
       <p className="text-center text-xs text-ink-muted">
         By submitting you agree to our{" "}
-        <a href="/terms" className="underline">terms</a> and{" "}
-        <a href="/privacy" className="underline">privacy</a> policy.
+        <Link href="/terms" className="underline">terms</Link> and{" "}
+        <Link href="/privacy" className="underline">privacy</Link> policy.
       </p>
     </form>
   );
@@ -114,6 +171,8 @@ function Field(props: {
   type?: string;
   required?: boolean;
   placeholder?: string;
+  defaultValue?: string;
+  readOnly?: boolean;
 }) {
   return (
     <label className="block">
@@ -123,7 +182,11 @@ function Field(props: {
         type={props.type ?? "text"}
         required={props.required}
         placeholder={props.placeholder}
-        className="mt-2 block w-full rounded-lg border border-surface-border bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+        defaultValue={props.defaultValue}
+        readOnly={props.readOnly}
+        className={`mt-2 block w-full rounded-lg border border-surface-border bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 ${
+          props.readOnly ? "cursor-not-allowed bg-slate-50 text-slate-600" : ""
+        }`}
       />
     </label>
   );

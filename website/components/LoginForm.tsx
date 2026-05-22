@@ -4,62 +4,64 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const KEY_PATTERN = /^JB-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/i;
+type LoginResponse = {
+  ok: boolean;
+  error?: string;
+  message?: string;
+  next?: string;
+  email?: string;
+  status?: string;
+};
 
-export function LoginForm({ initialEmail = "" }: { initialEmail?: string }) {
+export function LoginForm({
+  initialIdentifier = "",
+}: {
+  initialIdentifier?: string;
+}) {
   const router = useRouter();
-  const [email, setEmail] = useState(initialEmail);
-  const [key, setKey] = useState("");
+  const [identifier, setIdentifier] = useState(initialIdentifier);
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Auto-format the key as the user types: uppercase + auto-dash every 4 chars after JB-
-  function formatKey(raw: string): string {
-    const cleaned = raw.toUpperCase().replace(/[^A-Z2-9]/g, "");
-    if (!cleaned) return "";
-    let prefix = "JB";
-    let body = cleaned;
-    if (cleaned.startsWith("JB")) body = cleaned.slice(2);
-    const groups = body.match(/.{1,4}/g) || [];
-    return [prefix, ...groups].slice(0, 4).join("-");
-  }
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorCta, setErrorCta] = useState<{ label: string; href: string } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    if (!email) {
-      setError("Email is required.");
-      return;
-    }
-    if (!KEY_PATTERN.test(key)) {
-      setError("License key should look like JB-XXXX-XXXX-XXXX.");
+    setErrorMsg(null);
+    setErrorCta(null);
+    if (!identifier || !password) {
+      setErrorMsg("Both fields are required.");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/license/validate", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, key }),
+        body: JSON.stringify({ identifier, password }),
         credentials: "same-origin",
       });
-      const data = await res.json();
+      const data = (await res.json()) as LoginResponse;
       if (!res.ok || !data.ok) {
-        if (data.error === "invalid_key") {
-          setError(
-            "That email and license key don't match. Double-check your purchase email."
-          );
-        } else if (data.error === "missing_fields") {
-          setError("Please fill both fields.");
-        } else {
-          setError("Couldn't sign in. Try again, or email the founder.");
+        const code = data.error ?? "unknown";
+        setErrorMsg(data.message ?? humaniseLoginError(code));
+        if (code === "pending_payment") {
+          setErrorCta({ label: "Complete payment →", href: data.next ?? "/buy-india" });
+        } else if (code === "pending_verification") {
+          // No CTA — they're already waiting.
+        } else if (code === "rejected" || code === "refunded") {
+          setErrorCta({
+            label: "Email founder",
+            href: "mailto:tharakesh.iitp@gmail.com?subject=JobyBots%20access",
+          });
         }
         setLoading(false);
         return;
       }
       router.push("/portal");
     } catch {
-      setError("Network error. Check your connection and try again.");
+      setErrorMsg("Network error. Try again in a moment.");
       setLoading(false);
     }
   }
@@ -70,54 +72,66 @@ export function LoginForm({ initialEmail = "" }: { initialEmail?: string }) {
         Sign in
       </p>
       <h2 className="mt-1.5 text-2xl font-bold text-ink">
-        Email + license key
+        Email or phone &amp; password
       </h2>
       <p className="mt-2 text-sm text-slate-600">
-        These were sent to you immediately after payment. Check your spam folder
-        if you can't find them.
+        Use whichever you registered with — both work.
       </p>
 
       <div className="mt-7 space-y-5">
         <label className="block">
           <span className="text-sm font-semibold text-ink">
-            Purchase email <span className="text-accent">*</span>
+            Email or phone <span className="text-accent">*</span>
           </span>
           <input
-            type="email"
+            type="text"
             required
-            autoComplete="email"
             autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@gmail.com"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="you@gmail.com  or  +91 98xxxxxxxx"
             className="input mt-1.5"
+            autoComplete="username"
           />
         </label>
 
         <label className="block">
           <span className="text-sm font-semibold text-ink">
-            License key <span className="text-accent">*</span>
+            Password <span className="text-accent">*</span>
           </span>
-          <input
-            type="text"
-            required
-            autoComplete="off"
-            spellCheck={false}
-            value={key}
-            onChange={(e) => setKey(formatKey(e.target.value))}
-            placeholder="JB-XXXX-XXXX-XXXX"
-            className="input mt-1.5 font-mono tracking-widest text-base"
-            maxLength={17}
-          />
-          <span className="mt-1 block text-xs text-slate-500">
-            17 characters · format <span className="font-mono">JB-XXXX-XXXX-XXXX</span> · letters auto-uppercased
-          </span>
+          <div className="relative mt-1.5">
+            <input
+              type={showPw ? "text" : "password"}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password"
+              className="input pr-20"
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              className="absolute inset-y-0 right-3 my-auto h-7 rounded-md px-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+              tabIndex={-1}
+            >
+              {showPw ? "Hide" : "Show"}
+            </button>
+          </div>
         </label>
       </div>
 
-      {error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
+      {errorMsg && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p>{errorMsg}</p>
+          {errorCta && (
+            <Link
+              href={errorCta.href}
+              className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-900/10 px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-900/20"
+            >
+              {errorCta.label}
+            </Link>
+          )}
         </div>
       )}
 
@@ -132,19 +146,19 @@ export function LoginForm({ initialEmail = "" }: { initialEmail?: string }) {
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 text-xs text-slate-500">
         <div className="space-y-1">
           <p>
-            Lost your key?{" "}
+            Forgot your password?{" "}
             <a
-              href="mailto:tharakesh.iitp@gmail.com?subject=Lost%20my%20JobyBots%20license%20key"
+              href="mailto:tharakesh.iitp@gmail.com?subject=Reset%20my%20JobyBots%20password"
               className="text-accent-strong underline"
             >
               Email the founder
-            </a>
-            .
+            </a>{" "}
+            — manual reset for now.
           </p>
           <p>
             New here?{" "}
-            <Link href="/buy-india" className="text-accent-strong underline">
-              Buy JobyBots
+            <Link href="/signup" className="text-accent-strong underline">
+              Create an account
             </Link>
             .
           </p>
@@ -158,4 +172,13 @@ export function LoginForm({ initialEmail = "" }: { initialEmail?: string }) {
       </div>
     </form>
   );
+}
+
+function humaniseLoginError(code: string): string {
+  switch (code) {
+    case "invalid_credentials": return "That email/phone + password combination doesn't match.";
+    case "missing_fields":      return "Please fill both fields.";
+    case "rate_limited":        return "Too many attempts. Try again in 10 minutes.";
+    default:                    return "Couldn't sign you in. Please try again.";
+  }
 }

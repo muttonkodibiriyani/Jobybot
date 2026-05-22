@@ -42,11 +42,11 @@ type FormState = {
   dailyCap: number;
 };
 
-function defaults(email: string): FormState {
+function defaults(email: string, name = "", phone = ""): FormState {
   return {
-    name: "",
+    name,
     email,
-    phone: "",
+    phone,
     linkedin: "",
     location: "Dubai, UAE",
     visa: "UAE Resident Visa",
@@ -74,9 +74,17 @@ const STEPS = [
   { id: 6, label: "Download",   help: "Your ZIP" },
 ] as const;
 
-export function PortalDashboard({ email }: { email: string }) {
+export function PortalDashboard({
+  email,
+  name = "",
+  phone = "",
+}: {
+  email: string;
+  name?: string;
+  phone?: string;
+}) {
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormState>(defaults(email));
+  const [form, setForm] = useState<FormState>(defaults(email, name, phone));
   const [showSecrets, setShowSecrets] = useState(false);
   const [zipStatus, setZipStatus] = useState<
     "idle" | "building" | "ready" | "error"
@@ -146,8 +154,8 @@ export function PortalDashboard({ email }: { email: string }) {
 
   async function logout() {
     try {
-      await fetch("/api/license/validate", {
-        method: "DELETE",
+      await fetch("/api/auth/logout", {
+        method: "POST",
         credentials: "same-origin",
       });
     } catch {

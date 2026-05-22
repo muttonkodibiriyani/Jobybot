@@ -83,6 +83,13 @@ def render_dashboard(daily_cap: int) -> None:
     discovery_recent = db.recent_discovery(40)
     discovery_counts = db.discovery_tier_counts(days=7)
 
+    # ── Manual-review queue (NEW: bot prepares emails, customer clicks send) ─
+    # When DRAFT_MODE is on, the bot writes emails to `pending_emails` instead
+    # of sending them. The customer reviews & one-clicks "send" from the local
+    # REVIEW_QUEUE.bat at http://127.0.0.1:7868 — no surprises, no bounces.
+    queue_stats = db.pending_queue_stats()
+    queue_recent = db.list_pending_emails(limit=10)
+
     today_pct = min(100, int((s["emails_today"] / max(daily_cap, 1)) * 100))
 
     # ── Deliverability % ────────────────────────────────────────────
@@ -242,6 +249,36 @@ def render_dashboard(daily_cap: int) -> None:
     if not job_rows:
         job_rows = '<tr><td colspan="5" class="muted">No matched jobs yet — run a cycle.</td></tr>'
 
+    # ── Review queue rows ────────────────────────────────────────────
+    queue_cards = ""
+    for r in queue_recent:
+        recipient = _h(_short(r.get("recipient") or "", 36))
+        company   = _h(_short(r.get("company") or "", 28))
+        subject   = _h(_short(r.get("subject") or "", 60))
+        when      = _h((r.get("created_at") or "")[:16].replace("T", " "))
+        queue_cards += (
+            f'<div class="send-card" style="background:#FFF8F0;border-color:#FFD7B5">'
+            f'  <div class="send-meta">'
+            f'    <span class="badge" style="background:#FFE7CC;color:#B45309">⏳ awaiting your click</span>'
+            f'    <span class="send-when">{when}</span>'
+            f'  </div>'
+            f'  <div class="send-co">{company}</div>'
+            f'  <div class="send-sub">{subject}</div>'
+            f'  <div class="send-to mono">to {recipient}</div>'
+            f'</div>'
+        )
+    if not queue_cards:
+        if queue_stats.get("pending", 0) == 0:
+            queue_cards = (
+                '<div class="muted" style="padding:24px">'
+                'Queue is empty. Whenever the bot finds a fresh recruiter '
+                'with a verified email, it lands here for your one-click '
+                'approval — never auto-sent.'
+                '</div>'
+            )
+        else:
+            queue_cards = '<div class="muted" style="padding:24px">No items to preview.</div>'
+
     # ── Compose HTML ────────────────────────────────────────────────
     body = f"""<!DOCTYPE html>
 <html lang="en"><head>
@@ -373,6 +410,11 @@ def render_dashboard(daily_cap: int) -> None:
   <!-- KPI row: results-first ordering -->
   <div class="row">
     <div class="kpi win">
+      <div class="label">Awaiting your click</div>
+      <div class="value">{queue_stats.get("pending", 0):,}</div>
+      <div class="sub">drafts ready to review &amp; send · open <span class="mono">REVIEW_QUEUE.bat</span></div>
+    </div>
+    <div class="kpi">
       <div class="label">Emails sent today</div>
       <div class="value">{s["emails_today"]:,}<span style="font-size:14px;color:#888;font-weight:500"> / {daily_cap}</span></div>
       <div class="sub">{today_pct}% of daily cap used</div>
@@ -408,6 +450,26 @@ def render_dashboard(daily_cap: int) -> None:
         <a class="btn primary" href="https://jobybots.com/setup" target="_blank">Edit config</a>
       </div>
     </div>
+  </section>
+
+  <!-- Pending review queue (the new manual-send workflow) -->
+  <section style="background:linear-gradient(180deg,#FFFCF7 0%,#FFFFFF 100%);border-color:#FFE7CC">
+    <h2>
+      Pending review queue
+      <span class="hint">{queue_stats.get("pending", 0):,} pending · {queue_stats.get("sent_today", 0):,} sent today · {queue_stats.get("skipped_today", 0):,} skipped today</span>
+    </h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:-4px 0 14px">
+      <div style="font-size:13px;color:#444;max-width:640px;line-height:1.55">
+        The bot <strong>never auto-sends</strong> when <span class="mono">DRAFT_MODE=true</span> (default).
+        It writes each ready-to-go email here, attaches your résumé, then waits
+        for you to review &amp; click <em>Send</em>. Open the local review UI
+        below — it runs entirely on your machine.
+      </div>
+      <div class="actions">
+        <a class="btn accent" href="http://127.0.0.1:7868" target="_blank">Open review UI →</a>
+      </div>
+    </div>
+    <div class="sends">{queue_cards}</div>
   </section>
 
   <!-- Top matched jobs -->

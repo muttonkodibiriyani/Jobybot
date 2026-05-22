@@ -51,6 +51,18 @@ Step 4 "Install dependencies"
 & $venvPy -m pip install -r python-deps.txt --quiet
 Write-Host "[OK] Libraries installed"
 
+# Easy Apply requires a one-time Chromium download (~150MB). We only fetch it
+# if the user has opted in via ENABLE_EASY_APPLY=true in their .env, so the
+# default friend setup stays small.
+$envFile = Join-Path $root ".env"
+if ((Test-Path $envFile) -and (Select-String -Path $envFile -Pattern '^\s*ENABLE_EASY_APPLY\s*=\s*true' -Quiet -ErrorAction SilentlyContinue)) {
+    Step "4b" "Easy Apply enabled - downloading Chromium (one-time, ~150MB)"
+    & $venvPy -m playwright install chromium
+    Write-Host "[OK] Chromium installed for Easy Apply"
+} else {
+    Write-Host "[i] Easy Apply not enabled in .env - skipping Chromium download" -ForegroundColor DarkGray
+}
+
 Step 5 "Your settings file (.env)"
 if (-not (Test-Path ".env")) {
     Copy-Item ".env.example" ".env"

@@ -103,9 +103,15 @@ export default function TermsPage() {
           <div className="mt-5 space-y-4 text-sm">
             <PlatformRule name="LinkedIn" url="https://www.linkedin.com/legal/user-agreement">
               We only read jobs from your authenticated session, never scrape behind a login that
-              isn&apos;t yours, and never automate connection requests, messages, or job-applications
-              inside LinkedIn. The optional <code>li_at</code> cookie is your session cookie under
-              your control; you may revoke it at any time.
+              isn&apos;t yours, and never automate connection requests or messages inside LinkedIn.
+              The optional <code>li_at</code> cookie is your session cookie under your control; you
+              may revoke it at any time.{" "}
+              <strong>LinkedIn Easy Apply automation is an opt-in feature</strong> that is OFF by
+              default — see{" "}
+              <Link href="/easy-apply" className="text-accent underline">/easy-apply</Link>{" "}
+              for the algorithm, risks, and how to enable it. Enabling it puts your LinkedIn
+              account at risk of restriction; you accept that risk by setting{" "}
+              <code>ENABLE_EASY_APPLY=true</code>.
             </PlatformRule>
             <PlatformRule name="Bayt" url="https://www.bayt.com/en/site-services-agreement/">
               Public job listings are read at a rate of one page every ~2 seconds with the standard

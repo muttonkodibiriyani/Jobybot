@@ -127,6 +127,39 @@ def init_db() -> None:
                 updated_at  TEXT NOT NULL
             );
 
+            -- LinkedIn Easy Apply audit log. One row per attempted application.
+            -- Status flow: queued -> applied | skipped | needs_review | failed
+            CREATE TABLE IF NOT EXISTS easy_apply_log (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                linkedin_job_id TEXT,
+                job_title       TEXT,
+                company         TEXT,
+                location        TEXT,
+                job_url         TEXT,
+                status          TEXT NOT NULL,
+                reason          TEXT,
+                screenshot_path TEXT,
+                step_count      INTEGER DEFAULT 0,
+                duration_ms     INTEGER DEFAULT 0,
+                at              TEXT NOT NULL,
+                UNIQUE(linkedin_job_id) ON CONFLICT IGNORE
+            );
+            CREATE INDEX IF NOT EXISTS idx_easyapply_status ON easy_apply_log(status);
+            CREATE INDEX IF NOT EXISTS idx_easyapply_at     ON easy_apply_log(at);
+
+            -- Cached answers for Easy Apply questions. Once we learn that
+            -- "Years of experience with Python?" should be "5", we remember
+            -- it (per-user, per-canonical-question) so the AI doesn't re-decide
+            -- every cycle and the answer stays consistent.
+            CREATE TABLE IF NOT EXISTS easy_apply_answers (
+                question_key TEXT PRIMARY KEY,   -- canonicalised label (lower, stripped)
+                question_raw TEXT,               -- original label as seen on the form
+                answer       TEXT NOT NULL,
+                input_kind   TEXT NOT NULL,      -- text|number|select|radio|checkbox|textarea
+                source       TEXT NOT NULL,      -- profile|pattern|ai|user|fallback
+                updated_at   TEXT NOT NULL
+            );
+
             -- Review queue (draft mode). Every email the bot WOULD send lands
             -- here first so the customer can review the recipient + body before
             -- a single message leaves the laptop. Sent rows are kept for audit.
@@ -245,6 +278,106 @@ def emails_sent_today() -> int:
             (f"{today}%",),
         ).fetchone()
         return int(r[0]) if r else 0
+
+
+# ─── Easy Apply audit log ────────────────────────────────────────
+def log_easy_apply(
+    *,
+    linkedin_job_id: str,
+    status: str,
+    job_title: str = "",
+    company: str = "",
+    location: str = "",
+    job_url: str = "",
+    reason: str = "",
+    screenshot_path: str = "",
+    step_count: int = 0,
+    duration_ms: int = 0,
+) -> bool:
+    """Insert one row. Returns False on dup (we already tried this job)."""
+    with _conn() as c:
+        cur = c.execute(
+            "INSERT OR IGNORE INTO easy_apply_log "
+            "(linkedin_job_id, job_title, company, location, job_url, status, "
+            " reason, screenshot_path, step_count, duration_ms, at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                linkedin_job_id,
+                job_title[:200],
+                company[:200],
+                location[:200],
+                job_url[:500],
+                status,
+                reason[:500],
+                screenshot_path[:300],
+                int(step_count),
+                int(duration_ms),
+                dt.datetime.utcnow().isoformat(),
+            ),
+        )
+        return cur.rowcount > 0
+
+
+def already_easy_applied(linkedin_job_id: str) -> bool:
+    with _conn() as c:
+        r = c.execute(
+            "SELECT 1 FROM easy_apply_log WHERE linkedin_job_id=?",
+            (linkedin_job_id,),
+        ).fetchone()
+        return bool(r)
+
+
+def easy_applies_today() -> int:
+    today = dt.date.today().isoformat()
+    with _conn() as c:
+        r = c.execute(
+            "SELECT COUNT(*) FROM easy_apply_log "
+            "WHERE status='applied' AND at LIKE ?",
+            (today + "%",),
+        ).fetchone()
+        return int(r[0]) if r else 0
+
+
+def recent_easy_apply(limit: int = 50) -> List[Dict[str, Any]]:
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT * FROM easy_apply_log ORDER BY id DESC LIMIT ?", (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+# ─── Easy Apply Q&A cache ────────────────────────────────────────
+def get_easy_apply_answer(question_key: str) -> Optional[Dict[str, Any]]:
+    with _conn() as c:
+        r = c.execute(
+            "SELECT * FROM easy_apply_answers WHERE question_key=?",
+            (question_key,),
+        ).fetchone()
+        return dict(r) if r else None
+
+
+def save_easy_apply_answer(
+    question_key: str,
+    *,
+    answer: str,
+    input_kind: str,
+    source: str,
+    question_raw: str = "",
+) -> None:
+    with _conn() as c:
+        c.execute(
+            "INSERT OR REPLACE INTO easy_apply_answers "
+            "(question_key, question_raw, answer, input_kind, source, updated_at) "
+            "VALUES (?,?,?,?,?,?)",
+            (
+                question_key,
+                question_raw[:300],
+                answer[:2000],
+                input_kind,
+                source,
+                dt.datetime.utcnow().isoformat(),
+            ),
+        )
 
 
 # ─── Pending review queue (DRAFT_MODE) ───────────────────────────

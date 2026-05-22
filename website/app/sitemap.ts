@@ -12,6 +12,7 @@ const STATIC_ROUTES: Array<{ path: string; priority?: number; freq?: MetadataRou
   { path: "/security",    priority: 0.8,  freq: "monthly" },
   { path: "/trust",       priority: 0.8,  freq: "monthly" },
   { path: "/technology",  priority: 0.8,  freq: "monthly" },
+  { path: "/easy-apply",  priority: 0.85, freq: "monthly" },
   { path: "/pricing",     priority: 0.9,  freq: "monthly" },
   { path: "/buy-india",   priority: 0.9,  freq: "monthly" },
   { path: "/dashboard",       priority: 0.7,  freq: "monthly" },

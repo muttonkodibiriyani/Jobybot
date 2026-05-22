@@ -669,6 +669,35 @@ def queue(port: int, no_browser: bool) -> None:
     serve(port=port or settings.queue_server_port, open_browser=not no_browser)
 
 
+@cli.command(name="easy-apply")
+@click.option("--cap", default=0, type=int,
+              help="Override EASY_APPLY_DAILY_CAP for this run only.")
+@click.option("--no-dry-run", is_flag=True,
+              help="ACTUALLY click Submit (default: navigate + fill only).")
+@click.option("--headless", is_flag=True,
+              help="Hide the Chromium window (default: visible so you can stop it).")
+def easy_apply_cmd(cap: int, no_dry_run: bool, headless: bool) -> None:
+    """LinkedIn Easy Apply automation (OPT-IN).
+
+    Requires ENABLE_EASY_APPLY=true in .env, a valid LINKEDIN_COOKIE,
+    and `playwright` installed. See https://jobybots.com/easy-apply for
+    risks and how to control them.
+    """
+    settings = get_settings()
+    setup_logging(settings.log_level)
+
+    if cap and cap > 0:
+        settings.easy_apply_daily_cap = cap  # type: ignore[assignment]
+    if no_dry_run:
+        settings.easy_apply_dry_run = False  # type: ignore[assignment]
+    if headless:
+        settings.easy_apply_headless = True  # type: ignore[assignment]
+
+    from core.easy_apply import run_easy_apply
+    stats = run_easy_apply(settings)
+    logger.info(f"final stats: {stats}")
+
+
 @cli.command()
 def doctor() -> None:
     """Check configuration & dependencies."""

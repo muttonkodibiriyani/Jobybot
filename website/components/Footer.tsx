@@ -35,6 +35,7 @@ export function Footer() {
               <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
               <li><Link href="/buy-india" className="hover:text-white">Buy with UPI</Link></li>
               <li><Link href="/demo" className="hover:text-white">Demo</Link></li>
+              <li><Link href="/easy-apply" className="hover:text-white">LinkedIn Easy Apply</Link></li>
               <li><Link href="/signup" className="hover:text-white">Sign up</Link></li>
             </ul>
           </div>

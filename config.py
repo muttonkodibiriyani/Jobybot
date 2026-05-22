@@ -85,6 +85,40 @@ class Settings(BaseSettings):
     ai_enabled:      bool = Field(True, description="Master switch. False disables all LLM calls.")
     ai_min_match:    int  = Field(60, description="Score below which jobs are dropped entirely.")
 
+    # ── LinkedIn Easy Apply (opt-in, off by default) ─────────────
+    # When True, the bot can also apply to LinkedIn "Easy Apply" jobs
+    # directly inside the browser (Playwright + your li_at cookie). This
+    # is a separate code path from the email blast — you can run BOTH,
+    # one, or neither.
+    #
+    # IMPORTANT: LinkedIn ToS §8.2 prohibits automating actions on the
+    # platform. Enabling this puts your LinkedIn account at risk of
+    # restriction. Defaults below keep that risk minimal:
+    #   • OFF by default (you must explicitly set ENABLE_EASY_APPLY=true)
+    #   • dry-run by default (we navigate but don't click "Submit")
+    #   • 10 applications/day cap (LinkedIn quietly limits @ ~25/day)
+    #   • headful by default (you see what the bot is doing, can stop it)
+    enable_easy_apply:        bool = Field(False, description="Enable LinkedIn Easy Apply automation (OPT-IN).")
+    easy_apply_dry_run:       bool = Field(True,  description="If True, navigate and fill but DO NOT click Submit.")
+    easy_apply_headless:      bool = Field(False, description="If False, you see the Chromium window (recommended).")
+    easy_apply_daily_cap:     int  = Field(10,    description="Max submissions per 24 h. Hard cap; never exceeded.")
+    easy_apply_min_delay_sec: int  = Field(20,    description="Min wait between two applications.")
+    easy_apply_max_delay_sec: int  = Field(60,    description="Max wait between two applications.")
+    easy_apply_filter_date_posted: str = Field("r604800", description="LinkedIn date filter: r86400=24h, r604800=7d, r2592000=30d.")
+    easy_apply_exp_levels:    str  = Field("2,3,4", description="Comma-sep LinkedIn levels: 1=intern,2=entry,3=associate,4=mid-senior,5=director,6=exec.")
+    easy_apply_skip_companies: str = Field("",     description="Comma-sep company names to skip (blacklist).")
+    easy_apply_required_keywords: str = Field("", description="Comma-sep keywords that MUST appear in the job description to apply.")
+    easy_apply_skip_keywords: str = Field("us citizen,security clearance,senior director", description="Comma-sep keywords that mean SKIP the job.")
+    easy_apply_max_years:     int  = Field(8,     description="Skip jobs whose description requires more than this many years of experience.")
+
+    # Profile defaults pulled into Easy Apply forms (override in .env to
+    # override the answer the bot picks for the corresponding question).
+    profile_years_experience: int  = Field(7,     description="Default 'years of experience' answer.")
+    profile_authorized_to_work: bool = Field(True, description="Pre-fill 'Authorized to work in [country]?' answer.")
+    profile_require_sponsorship: bool = Field(False, description="Pre-fill 'Will you require sponsorship?' answer.")
+    profile_notice_period_days: int = Field(30,    description="Default notice period in days.")
+    profile_desired_salary:   int  = Field(0,     description="Default desired salary (0 = let bot estimate).")
+
     # Email-finder v2 settings
     # ---------------------------------------------------------------
     # `EMAIL_FINDER_TIER` controls how aggressive discovery is:

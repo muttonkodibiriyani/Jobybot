@@ -68,6 +68,11 @@ const LAYERS: Layer[] = [
           "Pure-Python cron-style scheduler. Runs the cycle every N minutes inside the bot process — no Windows Task Scheduler dependency for the main loop (we also register a daily 9am task as a belt-and-suspenders fallback).",
       },
       {
+        label: "Playwright (Easy Apply, optional)",
+        detail:
+          "When ENABLE_EASY_APPLY=true, the bot drives a real Chromium window via Playwright (headed by default so you watch it). Only used for LinkedIn Easy Apply automation. ~150MB Chromium downloaded once. Off by default. See /easy-apply for the full algorithm.",
+      },
+      {
         label: "stdlib http.server",
         detail:
           "Review Queue web UI uses only Python's built-in HTTP server. No Flask, no FastAPI, no extra dependency surface. ~250 lines including the HTML.",

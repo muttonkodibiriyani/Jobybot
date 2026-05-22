@@ -106,6 +106,13 @@ const HARD_RULES: Array<{
     why: "Auto-updaters are the most common supply-chain attack vector. You decide when (and whether) to take new code.",
     enforced_in: "Look — there's no updater script at all. Promise.",
   },
+  {
+    title: "Never auto-applies on LinkedIn without explicit opt-in",
+    rule:
+      "Easy Apply automation is OFF by default. Even when ENABLE_EASY_APPLY=true, the bot is in DRY-RUN mode (fills form, screenshots it, stops at Submit). 10/day hard cap. Random 20-60s jitter. Visible browser. Never auto-clicks Follow.",
+    why: "Easy Apply violates LinkedIn ToS §8.2. We refuse to make that a silent default. You opt in twice (enable + un-dry-run) before any application is submitted, and you watch every click in a real Chromium window. See /easy-apply for the full risk surface.",
+    enforced_in: "core/easy_apply.py · run_easy_apply() · enable_easy_apply + dry_run gates",
+  },
 ];
 
 const NEVER_LIST = [
@@ -133,7 +140,7 @@ export default function TrustPage() {
               Trust &amp; safety
             </p>
             <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-              The 10 rules the bot can&apos;t break.
+              The 11 rules the bot can&apos;t break.
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-ink-muted">
               Every guardrail is enforced in code, not in a policy doc. Open the

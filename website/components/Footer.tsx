@@ -48,10 +48,13 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-white/50">Legal</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/50">Trust</p>
             <ul className="mt-4 space-y-2 text-sm text-white/80">
               <li><Link href="/terms" className="hover:text-white">Terms</Link></li>
               <li><Link href="/privacy" className="hover:text-white">Privacy</Link></li>
+              <li><Link href="/security" className="hover:text-white">Security</Link></li>
+              <li><Link href="/trust" className="hover:text-white">Bot boundaries</Link></li>
+              <li><Link href="/technology" className="hover:text-white">Technology stack</Link></li>
               <li>
                 <a href="https://github.com/muttonkodibiriyani/Jobybot" className="hover:text-white">
                   GitHub (community)

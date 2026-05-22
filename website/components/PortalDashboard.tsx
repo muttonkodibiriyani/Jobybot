@@ -165,6 +165,35 @@ export function PortalDashboard({
     }
   }
 
+  async function moveLicense() {
+    if (
+      !confirm(
+        "Move your license to a different machine?\n\n" +
+          "Your current installation will stop working at its next cycle. " +
+          "The first cycle on your new laptop will re-bind automatically.\n\n" +
+          "Continue?"
+      )
+    ) return;
+    try {
+      const res = await fetch("/api/license/move", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        alert(
+          `Done. Your license is unbound (move #${data.moves}).\n\n` +
+            "Set up the bot on your new machine, run RUN_BOT_NOW.bat once, " +
+            "and it will register automatically."
+        );
+      } else {
+        alert("Could not move license: " + (data.error || `HTTP ${res.status}`));
+      }
+    } catch (err) {
+      alert("Network error: " + (err instanceof Error ? err.message : "unknown"));
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-cream via-white to-white">
       {/* Top bar */}
@@ -199,6 +228,14 @@ export function PortalDashboard({
             >
               Security
             </Link>
+            <button
+              type="button"
+              onClick={moveLicense}
+              title="Free the license from this machine so a new laptop can register it on next cycle"
+              className="hidden sm:inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-100"
+            >
+              Move my license
+            </button>
             <button
               type="button"
               onClick={logout}

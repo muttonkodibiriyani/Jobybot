@@ -32,12 +32,31 @@ class Settings(BaseSettings):
     secondary_markets: str = Field("Singapore,Germany,Netherlands,Ireland,Canada,UK")
 
     # Limits
-    daily_email_cap:      int = Field(200)
+    # ------------------------------------------------------------------
+    # 50/day is the Gmail SMTP-safe limit for *cold* outreach.
+    #  • Gmail consumer accounts: 500 messages/day hard cap, but anything
+    #    > ~50 unsolicited recipients/day flips you into the spam-classifier
+    #    bucket and starts quarantining new sends. (Workspace = 2 000/day
+    #    but the same cold-outreach heuristic applies.)
+    #  • 50 is also Google's recommended "warmup ceiling" for new senders.
+    #  • Customers can raise via DAILY_EMAIL_CAP in their .env once their
+    #    domain reputation is established.
+    daily_email_cap:      int = Field(50)
     hourly_job_limit:     int = Field(20)
     match_threshold:      int = Field(50)
     run_interval_minutes: int = Field(60)
     min_delay_sec:        int = Field(30)
     max_delay_sec:        int = Field(120)
+
+    # ── Review-queue (DRAFT_MODE) ────────────────────────────────
+    # When True, instead of sending emails the bot writes them to the
+    # pending_emails table and the customer reviews + sends them from the
+    # Queue UI (http://localhost:7868). Default ON because (a) it protects
+    # the customer's sender reputation, (b) they explicitly opt-in to every
+    # outbound message, and (c) it removes "the bot sent something I didn't
+    # like" support tickets.
+    draft_mode:           bool = Field(True, description="If True, queue emails for human review instead of sending directly.")
+    queue_server_port:    int  = Field(7868, description="Local-only port for the review-queue web UI.")
 
     # Sources
     enable_linkedin_search: bool = Field(True)

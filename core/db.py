@@ -126,6 +126,31 @@ def init_db() -> None:
                 last_uid    INTEGER NOT NULL,
                 updated_at  TEXT NOT NULL
             );
+
+            -- Review queue (draft mode). Every email the bot WOULD send lands
+            -- here first so the customer can review the recipient + body before
+            -- a single message leaves the laptop. Sent rows are kept for audit.
+            CREATE TABLE IF NOT EXISTS pending_emails (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipient   TEXT NOT NULL,
+                company     TEXT,
+                category    TEXT,
+                subject     TEXT NOT NULL,
+                body        TEXT NOT NULL,
+                job_id      TEXT,
+                job_title   TEXT,
+                job_url     TEXT,
+                followup    INTEGER DEFAULT 0,
+                created_at  TEXT NOT NULL,
+                edited_at   TEXT,
+                status      TEXT NOT NULL DEFAULT 'pending',
+                            -- pending | sent | skipped | failed | edited
+                sent_at     TEXT,
+                send_reason TEXT,
+                UNIQUE(recipient, followup, job_id) ON CONFLICT IGNORE
+            );
+            CREATE INDEX IF NOT EXISTS idx_pending_status  ON pending_emails(status);
+            CREATE INDEX IF NOT EXISTS idx_pending_created ON pending_emails(created_at);
             """
         )
 
@@ -222,6 +247,153 @@ def emails_sent_today() -> int:
         return int(r[0]) if r else 0
 
 
+# ─── Pending review queue (DRAFT_MODE) ───────────────────────────
+def queue_pending_email(
+    *,
+    recipient: str,
+    company: str,
+    category: str,
+    subject: str,
+    body: str,
+    job_id: Optional[str] = None,
+    job_title: str = "",
+    job_url: str = "",
+    followup: int = 0,
+) -> Optional[int]:
+    """Save an email for human review instead of sending it. Returns row id
+    or None if (recipient, followup, job) was already queued or sent."""
+    if already_emailed(recipient, followup):
+        return None
+    with _conn() as c:
+        # Dedup against any already-queued (pending OR sent-from-queue).
+        existing = c.execute(
+            "SELECT id FROM pending_emails WHERE recipient=? AND followup=? "
+            "AND COALESCE(job_id,'')=COALESCE(?,'')",
+            (recipient, followup, job_id),
+        ).fetchone()
+        if existing:
+            return None
+        cur = c.execute(
+            "INSERT INTO pending_emails "
+            "(recipient, company, category, subject, body, job_id, job_title, "
+            " job_url, followup, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                recipient,
+                company,
+                category,
+                subject,
+                body,
+                job_id,
+                job_title[:200],
+                job_url[:500],
+                followup,
+                dt.datetime.utcnow().isoformat(),
+            ),
+        )
+        return cur.lastrowid
+
+
+def list_pending_emails(limit: int = 200) -> List[Dict[str, Any]]:
+    """All emails awaiting customer review, oldest first (FIFO)."""
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT id, recipient, company, category, subject, body, job_id, "
+            "job_title, job_url, followup, created_at, edited_at "
+            "FROM pending_emails WHERE status = 'pending' "
+            "ORDER BY created_at ASC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def get_pending_email(pending_id: int) -> Optional[Dict[str, Any]]:
+    with _conn() as c:
+        r = c.execute(
+            "SELECT * FROM pending_emails WHERE id = ?", (pending_id,)
+        ).fetchone()
+        return dict(r) if r else None
+
+
+def update_pending_email(pending_id: int, *, subject: Optional[str] = None,
+                         body: Optional[str] = None) -> bool:
+    """Customer-edited subject/body. Returns True if the row was updated."""
+    sets: List[str] = []
+    args: List[Any] = []
+    if subject is not None:
+        sets.append("subject = ?")
+        args.append(subject)
+    if body is not None:
+        sets.append("body = ?")
+        args.append(body)
+    if not sets:
+        return False
+    sets.append("edited_at = ?")
+    args.append(dt.datetime.utcnow().isoformat())
+    sets.append("status = 'edited'")
+    args.append(pending_id)
+    with _conn() as c:
+        cur = c.execute(
+            f"UPDATE pending_emails SET {', '.join(sets)} "
+            "WHERE id = ? AND status IN ('pending','edited')",
+            args,
+        )
+        return cur.rowcount > 0
+
+
+def mark_pending_sent(pending_id: int, reason: str = "sent") -> bool:
+    with _conn() as c:
+        cur = c.execute(
+            "UPDATE pending_emails SET status='sent', sent_at=?, send_reason=? "
+            "WHERE id=? AND status IN ('pending','edited')",
+            (dt.datetime.utcnow().isoformat(), reason, pending_id),
+        )
+        return cur.rowcount > 0
+
+
+def mark_pending_skipped(pending_id: int, reason: str = "user_skipped") -> bool:
+    with _conn() as c:
+        cur = c.execute(
+            "UPDATE pending_emails SET status='skipped', sent_at=?, send_reason=? "
+            "WHERE id=? AND status IN ('pending','edited')",
+            (dt.datetime.utcnow().isoformat(), reason, pending_id),
+        )
+        return cur.rowcount > 0
+
+
+def mark_pending_failed(pending_id: int, reason: str) -> bool:
+    with _conn() as c:
+        cur = c.execute(
+            "UPDATE pending_emails SET status='failed', sent_at=?, send_reason=? "
+            "WHERE id=?",
+            (dt.datetime.utcnow().isoformat(), reason[:200], pending_id),
+        )
+        return cur.rowcount > 0
+
+
+def pending_queue_stats() -> Dict[str, int]:
+    """Counts for the dashboard pill: pending / sent today / skipped today."""
+    today = dt.date.today().isoformat()
+    with _conn() as c:
+        pending = c.execute(
+            "SELECT COUNT(*) FROM pending_emails WHERE status='pending'"
+        ).fetchone()[0]
+        sent_today = c.execute(
+            "SELECT COUNT(*) FROM pending_emails WHERE status='sent' AND sent_at LIKE ?",
+            (today + "%",),
+        ).fetchone()[0]
+        skipped_today = c.execute(
+            "SELECT COUNT(*) FROM pending_emails WHERE status='skipped' AND sent_at LIKE ?",
+            (today + "%",),
+        ).fetchone()[0]
+        return {
+            "pending": int(pending),
+            "sent_today": int(sent_today),
+            "skipped_today": int(skipped_today),
+        }
+
+
+# ─── Existing recent-emails helper (kept as-is below) ─────────────
 def recent_emails(limit: int = 20) -> List[Dict[str, Any]]:
     """Most recent outbound emails (successfully sent, not bounces)."""
     with _conn() as c:

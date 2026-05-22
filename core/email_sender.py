@@ -171,6 +171,31 @@ def send_application(
             visa=settings.user_visa,
         )
 
+    # DRAFT MODE: queue for human review instead of sending. The customer
+    # approves each message from the local Queue UI (http://localhost:7868)
+    # before a single byte hits Gmail. This protects sender reputation and
+    # gives the customer the final say on every outbound email.
+    if getattr(settings, "draft_mode", False):
+        queued_id = db.queue_pending_email(
+            recipient=recipient,
+            company=company,
+            category=cat,
+            subject=subject,
+            body=body,
+            job_id=job_id,
+            job_title=job_title,
+            job_url="",
+            followup=followup,
+        )
+        if queued_id:
+            db.log_event(
+                "email_queued",
+                f"{recipient} ({company}) | {subject[:60]} | queue#{queued_id}",
+            )
+            logger.info(f"queued #{queued_id} → {recipient} ({company}) — awaiting review")
+            return True  # successfully queued is "ok" from the cycle's POV
+        return False
+
     ok, reason = send_email(
         settings.gmail_address,
         settings.gmail_app_password,

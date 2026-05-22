@@ -611,6 +611,20 @@ def schedule() -> None:
 
     def cycle() -> None:
         try:
+            # License check first — one paid customer = one machine. Fail-open
+            # on network errors so a server outage never blocks the user.
+            try:
+                from core.license_check import verify_or_bind
+                ok, reason = verify_or_bind(license_email=settings.user_email)
+                if not ok:
+                    logger.error(f"License rejected: {reason}")
+                    db.log_event("license_blocked", reason[:200])
+                    return
+                if reason not in ("cached", "no_email_yet"):
+                    db.log_event("license_check", reason[:80])
+            except Exception as e:
+                logger.debug(f"license check soft-fail: {e}")
+
             do_bounce_scan(settings)
             do_search(settings)
             do_email_blast(settings)
@@ -642,6 +656,17 @@ def schedule() -> None:
         sched.start()
     except (KeyboardInterrupt, SystemExit):
         logger.info("Scheduler stopped")
+
+
+@cli.command()
+@click.option("--port", default=0, type=int, help="Override port (default: from .env)")
+@click.option("--no-browser", is_flag=True, help="Don't auto-open browser")
+def queue(port: int, no_browser: bool) -> None:
+    """Start the local review-queue web UI on http://localhost:7868."""
+    settings = get_settings()
+    setup_logging(settings.log_level)
+    from core.queue_server import serve
+    serve(port=port or settings.queue_server_port, open_browser=not no_browser)
 
 
 @cli.command()

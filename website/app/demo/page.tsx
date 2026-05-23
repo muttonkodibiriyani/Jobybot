@@ -3,8 +3,11 @@ import { AISearchDemo } from "@/components/AISearchDemo";
 import { DashboardLive } from "@/components/DashboardLive";
 import { HeroVideo } from "@/components/HeroVideo";
 import { PAYMENT, SUPPORT } from "@/lib/config";
+import { buildVideoLd } from "@/lib/video-schema";
 
 const DEMO_VIDEO_ID = "fwKCITDa2MM";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
+const VIDEO_LD = buildVideoLd({ pageUrl: `${SITE_URL}/demo` });
 
 export const metadata = {
   title: "Demo · See JobyBots' AI search live",
@@ -89,6 +92,13 @@ const aiSteps = [
 export default function DemoPage() {
   return (
     <>
+      {/* VideoObject JSON-LD: injected only on pages that actually
+          embed the video. Single source of truth in lib/video-schema.ts. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(VIDEO_LD) }}
+      />
+
       {/* HERO: live AI demo — light theme matching homepage */}
       <section className="relative overflow-hidden mesh-bg">
         <div

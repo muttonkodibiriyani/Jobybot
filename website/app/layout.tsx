@@ -221,22 +221,11 @@ const websiteLd = {
   },
 };
 
-const videoLd = {
-  "@context": "https://schema.org",
-  "@type": "VideoObject",
-  name: "JobyBots — Your AI Job Hunter. 24/7. Live demo.",
-  description:
-    "Watch JobyBots scan LinkedIn, score every job with Gemini AI, validate recruiter emails, and send 200 personalised applications a day — running entirely on a laptop.",
-  thumbnailUrl: demoThumbUrl,
-  uploadDate: "2026-05-21",
-  contentUrl: demoVideoUrl,
-  embedUrl: demoEmbedUrl,
-  publisher: {
-    "@type": "Organization",
-    name: "JobyBots",
-    logo: { "@type": "ImageObject", url: `${siteUrl}/jobybots-logo.png` },
-  },
-};
+// NOTE: VideoObject JSON-LD used to be injected here on every page.
+// Google Search Console flagged that as a structured-data warning because
+// most pages on the site don't actually embed the video. The schema now
+// lives in `lib/video-schema.ts` and is injected per-page on `/` and
+// `/demo` only — the two pages where <HeroVideo /> is rendered.
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -260,10 +249,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoLd) }}
         />
       </head>
       <body className="min-h-screen flex flex-col bg-surface text-ink font-sans antialiased">

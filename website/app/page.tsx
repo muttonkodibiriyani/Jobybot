@@ -6,8 +6,11 @@ import { FeatureCard } from "@/components/FeatureCard";
 import { HeroVideo } from "@/components/HeroVideo";
 import { Reveal } from "@/components/Reveal";
 import { SUPPORT, PAYMENT } from "@/lib/config";
+import { buildVideoLd } from "@/lib/video-schema";
 
 const DEMO_VIDEO_ID = "fwKCITDa2MM";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jobybots.com";
+const VIDEO_LD = buildVideoLd({ pageUrl: SITE_URL });
 
 const FAQ_ITEMS: Array<{ q: string; a: string }> = [
   {
@@ -117,6 +120,12 @@ export default function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+      />
+      {/* VideoObject JSON-LD: only on pages that actually embed
+          the demo video (homepage + /demo). See lib/video-schema.ts. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(VIDEO_LD) }}
       />
       {/* ════════════════════ HERO ════════════════════ */}
       <section className="relative overflow-hidden mesh-bg">

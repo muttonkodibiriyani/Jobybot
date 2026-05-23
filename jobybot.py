@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-"""Jobybot — main CLI."""
+﻿#!/usr/bin/env python3
+"""Jobybot â€” main CLI."""
 from __future__ import annotations
 
 import json
@@ -38,7 +38,7 @@ from sources.gulftalent       import GulfTalent
 from sources.company_careers  import CompanyCareers
 
 
-# ── Logging setup ─────────────────────────────────────────────────
+# â”€â”€ Logging setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def setup_logging(level: str) -> None:
     # Force UTF-8 on Windows consoles to avoid cp1252 errors with emoji
     try:
@@ -58,7 +58,7 @@ def setup_logging(level: str) -> None:
                format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}")
 
 
-# ── Sources by location ───────────────────────────────────────────
+# â”€â”€ Sources by location â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def country_locations(country: str) -> List[str]:
     """Return search location strings for a country."""
     cmap = {
@@ -123,7 +123,7 @@ def is_gdpr_market(country: str) -> bool:
     return bool(m.get("gdpr_strict") or m.get("apply_via_website_only"))
 
 
-# ── HTML click sheet ──────────────────────────────────────────────
+# â”€â”€ HTML click sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 INBOX_HTML = Path("data") / "click_apply_inbox.html"
 
 
@@ -156,11 +156,11 @@ h1{color:#0a66c2;margin-top:0}
 .tip{background:#fff3cd;padding:14px 18px;border-left:4px solid #ffc107;margin:18px 0;border-radius:4px;font-size:14px}
 </style></head><body><div class="box">"""
 
-    html += f'<h1>🎯 Jobybot — Click & Apply Inbox</h1>'
+    html += f'<h1>ðŸŽ¯ Jobybot â€” Click & Apply Inbox</h1>'
     html += f'<div class="stats"><b>{len(jobs)} matched jobs ready</b><br/>'
-    html += f'<small>Updated {dt.datetime.now().strftime("%Y-%m-%d %H:%M")} · Auto-refreshes every 10 min</small></div>'
+    html += f'<small>Updated {dt.datetime.now().strftime("%Y-%m-%d %H:%M")} Â· Auto-refreshes every 10 min</small></div>'
 
-    html += '<div class="tip">💡 Click <b>Open & Apply</b>, then in LinkedIn click the blue <b>Easy Apply</b> button. 30 seconds per job.</div>'
+    html += '<div class="tip">ðŸ’¡ Click <b>Open & Apply</b>, then in LinkedIn click the blue <b>Easy Apply</b> button. 30 seconds per job.</div>'
 
     for j in jobs[:200]:
         score = j.get("match_score", 0)
@@ -170,9 +170,9 @@ h1{color:#0a66c2;margin-top:0}
   <div class="info">
     <div class="title">{j['title']}</div>
     <div class="company">@ {j['company']}</div>
-    <div class="tags">{j['source']} · {j.get('location','')}</div>
+    <div class="tags">{j['source']} Â· {j.get('location','')}</div>
   </div>
-  <a class="btn" href="{j['url']}" target="_blank">Open & Apply →</a>
+  <a class="btn" href="{j['url']}" target="_blank">Open & Apply â†’</a>
 </div>"""
 
     html += "</div></body></html>"
@@ -180,9 +180,9 @@ h1{color:#0a66c2;margin-top:0}
     INBOX_HTML.write_text(html, encoding="utf-8")
 
 
-# ── Core ops ──────────────────────────────────────────────────────
+# â”€â”€ Core ops â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def do_search(settings: Settings) -> int:
-    """Parallel search: all sources × titles × markets. Returns new jobs added."""
+    """Parallel search: all sources Ã— titles Ã— markets. Returns new jobs added."""
     profile = load_profile()
     sources = active_sources(settings)
     new_total = 0
@@ -199,7 +199,7 @@ def do_search(settings: Settings) -> int:
                     tasks.append((src, title, loc, country))
 
     db.log_event("search_start", f"{len(tasks)} tasks across {len(settings.all_markets)} markets")
-    logger.info(f"Search plan: {len(tasks)} (source × title × location) calls — running in parallel")
+    logger.info(f"Search plan: {len(tasks)} (source Ã— title Ã— location) calls â€” running in parallel")
 
     def _one(src, title, loc):
         try:
@@ -255,7 +255,7 @@ def do_email_blast(settings: Settings) -> int:
             # GDPR-hybrid: if the market file has a `legitimate_interest_contacts`
             # array (used by UK), email ONLY those addresses. They are limited
             # to mailboxes that were published on company job posts as the
-            # "apply to" address — emailing them is defensible under UK GDPR
+            # "apply to" address â€” emailing them is defensible under UK GDPR
             # Art. 6(1)(f) legitimate interests.
             li_contacts = market.get("legitimate_interest_contacts") or []
             if li_contacts:
@@ -265,7 +265,7 @@ def do_email_blast(settings: Settings) -> int:
                 )
                 contacts = li_contacts
             else:
-                logger.info(f"[{country}] GDPR strict — apply via official websites only (skipping email blast)")
+                logger.info(f"[{country}] GDPR strict â€” apply via official websites only (skipping email blast)")
                 db.log_event("gdpr_skip", country)
                 continue
         else:
@@ -273,7 +273,7 @@ def do_email_blast(settings: Settings) -> int:
 
         # Pre-flight: split into "fresh" and "already emailed".
         # If we already cold-emailed someone within the FOLLOWUP_DAYS window,
-        # the daily blast must not pester them again — that responsibility
+        # the daily blast must not pester them again â€” that responsibility
         # lives in do_followups() which only fires on the configured cadence.
         fresh, already = [], []
         for ct in contacts:
@@ -284,7 +284,7 @@ def do_email_blast(settings: Settings) -> int:
         grand_already += len(already)
 
         logger.info(
-            f"\n[{country}] {len(contacts)} contacts  →  {len(fresh)} fresh to send, "
+            f"\n[{country}] {len(contacts)} contacts  â†’  {len(fresh)} fresh to send, "
             f"{len(already)} already emailed (will be revisited as 7-day follow-ups)"
         )
         db.log_event(
@@ -294,17 +294,17 @@ def do_email_blast(settings: Settings) -> int:
 
         # Re-render the dashboard now so the customer's open tab updates
         # immediately when this market starts.
-        render_dashboard(settings.daily_email_cap)
+        render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
 
         if not fresh:
-            logger.info(f"[{country}] nothing fresh to send — moving on")
+            logger.info(f"[{country}] nothing fresh to send â€” moving on")
             continue
 
         for i, c in enumerate(fresh, start=1):
             if db.emails_sent_today() >= settings.daily_email_cap:
                 logger.warning("Daily cap reached, stopping")
                 db.log_event("blast_capped", str(sent))
-                render_dashboard(settings.daily_email_cap)
+                render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
                 return sent
 
             ok = send_application(
@@ -320,16 +320,16 @@ def do_email_blast(settings: Settings) -> int:
             # Compact progress beat: every 5 sends OR last item of market.
             if i % 5 == 0 or i == len(fresh):
                 logger.info(
-                    f"  [{country}] progress {i}/{len(fresh)} — "
+                    f"  [{country}] progress {i}/{len(fresh)} â€” "
                     f"sent so far this cycle: {sent}, "
                     f"today total: {db.emails_sent_today()}/{settings.daily_email_cap}"
                 )
                 # Refresh dashboard mid-market so live tab keeps moving.
-                render_dashboard(settings.daily_email_cap)
+                render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
 
             jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
 
-        logger.success(f"[{country}] market complete — {sent} sent so far this cycle")
+        logger.success(f"[{country}] market complete â€” {sent} sent so far this cycle")
 
     db.log_event(
         "blast_done",
@@ -339,7 +339,7 @@ def do_email_blast(settings: Settings) -> int:
         f"Email blast complete: {sent} new emails sent "
         f"({grand_already} addresses skipped because they were already emailed earlier)"
     )
-    render_dashboard(settings.daily_email_cap)
+    render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
     return sent
 
 
@@ -495,10 +495,10 @@ def do_followups(settings: Settings) -> int:
     return sent
 
 
-# ── CLI ───────────────────────────────────────────────────────────
+# â”€â”€ CLI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @click.group()
 def cli() -> None:
-    """Jobybot — your 24/7 automated job application assistant."""
+    """Jobybot â€” your 24/7 automated job application assistant."""
 
 
 @cli.command()
@@ -508,7 +508,7 @@ def init() -> None:
     setup_logging(settings.log_level)
     db.init_db()
 
-    logger.info("🚀 Jobybot init")
+    logger.info("ðŸš€ Jobybot init")
     if not Path(settings.resume_path).exists():
         logger.error(f"Resume not found: {settings.resume_path}")
         sys.exit(1)
@@ -530,13 +530,13 @@ def init() -> None:
             s.ehlo()
             s.starttls(context=ctx)
             s.login(settings.gmail_address, settings.gmail_app_password)
-        logger.success("Gmail SMTP login OK ✓")
+        logger.success("Gmail SMTP login OK âœ“")
     except Exception as e:
         logger.error(f"Gmail SMTP failed: {e}")
-        logger.error("Check GMAIL_APP_PASSWORD in .env — must be App Password, not regular password")
+        logger.error("Check GMAIL_APP_PASSWORD in .env â€” must be App Password, not regular password")
         sys.exit(1)
 
-    logger.success("\n✓ Init complete. Now run:  python jobybot.py run    (one cycle)")
+    logger.success("\nâœ“ Init complete. Now run:  python jobybot.py run    (one cycle)")
     logger.success("                          python jobybot.py schedule (24/7 daemon)")
 
 
@@ -549,7 +549,7 @@ def search() -> None:
     n = do_search(settings)
     jobs = db.get_jobs(status="found", limit=200)
     update_inbox_html(jobs)
-    render_dashboard(settings.daily_email_cap)
+    render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
     logger.success(f"{n} new jobs. Inbox: {INBOX_HTML.absolute()}")
     logger.info(f"Dashboard: {DASHBOARD_HTML.absolute()}")
 
@@ -565,14 +565,14 @@ def email() -> None:
 
 @cli.command()
 def run() -> None:
-    """One full cycle: search → email blast → follow-ups → update inbox."""
+    """One full cycle: search â†’ email blast â†’ follow-ups â†’ update inbox."""
     settings = get_settings()
     setup_logging(settings.log_level)
     db.init_db()
 
-    logger.info("─" * 50)
+    logger.info("â”€" * 50)
     logger.info(f"CYCLE START: {dt.datetime.now()}")
-    logger.info("─" * 50)
+    logger.info("â”€" * 50)
 
     bounces = do_bounce_scan(settings)
     if bounces:
@@ -586,7 +586,7 @@ def run() -> None:
 
     jobs = db.get_jobs(status="found", limit=200)
     update_inbox_html(jobs)
-    render_dashboard(settings.daily_email_cap)
+    render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
 
     s = db.stats_summary()
     logger.success(
@@ -598,7 +598,24 @@ def run() -> None:
 
 @cli.command()
 def schedule() -> None:
-    """Start hourly background scheduler."""
+    """Start hourly background scheduler.
+
+    Refuses to start if another scheduler is already running on this machine
+    (PID lockfile in `data/scheduler.lock`). This is the single biggest cause
+    of "the bot didn't run" calls â€” Windows installs both a startup shortcut
+    AND a daily task, and without the lock they raced each other, ending
+    with two daemons sending duplicate emails and confusing the dashboard.
+    """
+    from core import scheduler_lock
+
+    alive, other_pid = scheduler_lock.is_alive()
+    if alive:
+        logger.warning(
+            f"Another scheduler is already running (PID {other_pid}). "
+            "Refusing to start a duplicate. Use 'jobybot status' to inspect."
+        )
+        return
+
     settings = get_settings()
     setup_logging(settings.log_level)
     db.init_db()
@@ -607,11 +624,12 @@ def schedule() -> None:
     from apscheduler.triggers.cron import CronTrigger
     from apscheduler.triggers.interval import IntervalTrigger
 
+    scheduler_lock.acquire()
     sched = BlockingScheduler(timezone="UTC")
 
     def cycle() -> None:
         try:
-            # License check first — one paid customer = one machine. Fail-open
+            # License check first â€” one paid customer = one machine. Fail-open
             # on network errors so a server outage never blocks the user.
             try:
                 from core.license_check import verify_or_bind
@@ -632,7 +650,7 @@ def schedule() -> None:
             do_followups(settings)
             jobs = db.get_jobs(status="found", limit=200)
             update_inbox_html(jobs)
-            render_dashboard(settings.daily_email_cap)
+            render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
         except Exception as e:
             logger.exception(f"Cycle error: {e}")
 
@@ -649,13 +667,120 @@ def schedule() -> None:
     )
 
     logger.success(
-        f"Scheduler running — cycle every {settings.run_interval_minutes} min. "
+        f"Scheduler running â€” cycle every {settings.run_interval_minutes} min. "
         "Press Ctrl+C to stop."
     )
     try:
         sched.start()
     except (KeyboardInterrupt, SystemExit):
         logger.info("Scheduler stopped")
+    finally:
+        scheduler_lock.release()
+
+
+@cli.command()
+def status() -> None:
+    """One-look health check: scheduler, queue, daily progress.
+
+    Use this when the customer says "is the bot doing anything?". Reports:
+    scheduler PID, last cycle, next cycle ETA, emails sent today vs. cap,
+    review-queue depth, bounce count, license-bind status.
+    """
+    from core import scheduler_lock
+
+    settings = get_settings()
+    db.init_db()
+    s = db.stats_summary()
+
+    print()
+    print(f"  Jobybot status  -  {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"  {'-' * 56}")
+
+    # â”€â”€ Scheduler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    alive, pid = scheduler_lock.is_alive()
+    if alive:
+        meta = scheduler_lock.read() or {}
+        started = meta.get("started_at", "?")
+        print(f"  Scheduler        : RUNNING  (pid {pid}, since {started})")
+        print(f"                     Cycle interval: every {settings.run_interval_minutes} min")
+    else:
+        print(f"  Scheduler        : NOT RUNNING  (start with: jobybot.py schedule)")
+
+    # â”€â”€ Last and next cycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    last_events = db.get_run_log(80)
+    last_done = next((e for e in last_events if (e["event"] or "") == "blast_done"), None)
+    if last_done:
+        last_at = (last_done.get("at") or "")[:19].replace("T", " ")
+        print(f"  Last cycle       : {last_at}  ({last_done.get('detail', '')[:60]})")
+    else:
+        print("  Last cycle       : (no completed cycle yet today)")
+
+    # â”€â”€ Email & queue counters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    qstats = db.pending_queue_stats()
+    cap = settings.daily_email_cap
+    pct = int((s["emails_today"] / max(cap, 1)) * 100)
+    print(f"  Emails sent today: {s['emails_today']:>4d} / {cap}    ({pct}% of cap)")
+    print(f"  Queue            : {qstats.get('pending', 0):>4d} pending,  "
+          f"{qstats.get('sent_today', 0)} sent today,  "
+          f"{qstats.get('skipped_today', 0)} skipped today")
+    print(f"  Jobs in pipeline : {s['total_jobs']:>4d}  ({s['jobs_today']} found today)")
+    print(f"  All-time sends   : {s['total_emails']:>4d}")
+
+    # â”€â”€ License + DRAFT_MODE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    print()
+    print(f"  Draft mode       : {'ON  (emails go to review queue)' if settings.draft_mode else 'OFF (auto-send)'}")
+    print(f"  Daily cap        : {cap} emails/day  (DAILY_EMAIL_CAP)")
+
+    # â”€â”€ Final summary line â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    print()
+    if alive and s["emails_today"] >= cap * 0.5:
+        print("  Health: GOOD - scheduler running and producing sends.")
+    elif alive:
+        print("  Health: WARMING UP - scheduler running, building up sends.")
+    else:
+        print("  Health: ATTENTION - scheduler is not running, start it now.")
+    print()
+
+
+@cli.command()
+def heartbeat() -> None:
+    """Idempotent daily check. Restart scheduler if dead, then run one cycle.
+
+    Designed to be wired into Windows Task Scheduler / launchd as the daily
+    9:00 trigger. Safe to invoke even if the scheduler is already alive:
+    it never double-starts.
+    """
+    from core import scheduler_lock
+
+    settings = get_settings()
+    setup_logging(settings.log_level)
+    db.init_db()
+
+    alive, pid = scheduler_lock.is_alive()
+    if not alive:
+        logger.info("Heartbeat: scheduler not running, starting it detached.")
+        # Spawn a new scheduler process and disown it. We don't use Popen with
+        # a wait() because the daily task should NOT block on a long daemon.
+        import subprocess
+        py = sys.executable
+        creationflags = 0
+        if sys.platform.startswith("win"):
+            # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP - survives the parent
+            creationflags = 0x00000008 | 0x00000200
+        with open(Path("data") / "scheduler-stdout.log", "ab") as log:
+            subprocess.Popen(
+                [py, str(Path(__file__).resolve()), "schedule"],
+                cwd=str(Path(__file__).resolve().parent),
+                stdout=log, stderr=log, stdin=subprocess.DEVNULL,
+                creationflags=creationflags,
+                close_fds=True,
+            )
+        logger.success("Heartbeat: scheduler launched.")
+    else:
+        logger.info(f"Heartbeat: scheduler already healthy (pid {pid}).")
+
+    # Always log the heartbeat so the dashboard's "next cycle" pill stays fresh.
+    db.log_event("heartbeat", f"alive={alive} pid={pid or '-'}")
 
 
 @cli.command()
@@ -715,17 +840,17 @@ def doctor() -> None:
         ("Daily email cap",  settings.daily_email_cap >= 1),
     ]
     for name, ok in checks:
-        sym = "✓" if ok else "✗"
+        sym = "âœ“" if ok else "âœ—"
         print(f"  {sym} {name}")
 
-    print(f"\n  ℹ Daily cap: {settings.daily_email_cap} emails/day (DAILY_EMAIL_CAP in .env)")
-    print("  ℹ Security: run SECURITY_CHECK.bat or docs/SECURITY.md")
-    print("  ℹ No remote access: Jobybot does not open network ports.")
+    print(f"\n  â„¹ Daily cap: {settings.daily_email_cap} emails/day (DAILY_EMAIL_CAP in .env)")
+    print("  â„¹ Security: run SECURITY_CHECK.bat or docs/SECURITY.md")
+    print("  â„¹ No remote access: Jobybot does not open network ports.")
 
     if all(ok for _, ok in checks):
         print("\nAll checks passed.")
     else:
-        print("\nFix the ✗ items, then run again.")
+        print("\nFix the âœ— items, then run again.")
 
 
 @cli.command()
@@ -777,25 +902,25 @@ def send_daily_summary(settings: Settings) -> None:
     """Email the user a summary of yesterday's activity."""
     s = db.stats_summary()
     from core.email_sender import send_email
-    body = f"""Jobybot daily summary — {dt.date.today().isoformat()}
+    body = f"""Jobybot daily summary â€” {dt.date.today().isoformat()}
 
 Today so far:
-  ✓ {s['emails_today']} personalized emails sent
+  âœ“ {s['emails_today']} personalized emails sent
   
 Cumulative:
-  ✓ {s['total_emails']} total emails
-  ✓ {s['total_jobs']} jobs in pipeline
-  ✓ {s['total_applied']} applications marked applied
+  âœ“ {s['total_emails']} total emails
+  âœ“ {s['total_jobs']} jobs in pipeline
+  âœ“ {s['total_applied']} applications marked applied
 
 Open inbox: {INBOX_HTML.absolute()}
 
-— Jobybot
+â€” Jobybot
 """
     send_email(
         settings.gmail_address,
         settings.gmail_app_password,
         settings.user_email,
-        f"Jobybot daily summary — {dt.date.today().isoformat()}",
+        f"Jobybot daily summary â€” {dt.date.today().isoformat()}",
         body,
         Path(settings.resume_path),
         "Jobybot",

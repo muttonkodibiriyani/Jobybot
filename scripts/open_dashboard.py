@@ -15,7 +15,7 @@ from core.dashboard import render_dashboard  # noqa: E402
 def main() -> int:
     s = get_settings()
     db.init_db()
-    render_dashboard(s.daily_email_cap)
+    render_dashboard(s.daily_email_cap, s.run_interval_minutes)
     p = Path("data") / "dashboard.html"
     print(f"Dashboard: {p.resolve()}")
     webbrowser.open(p.resolve().as_uri())

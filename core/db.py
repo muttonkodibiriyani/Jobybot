@@ -11,14 +11,28 @@ DB_PATH = Path("data") / "jobybot.db"
 
 def _conn() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    c = sqlite3.connect(DB_PATH)
+    # Generous timeout so concurrent readers (dashboard render + queue UI +
+    # scheduler cycle + audit script) don't trip over each other on a slow
+    # disk. SQLite already serialises writes via the WAL set up in init_db.
+    c = sqlite3.connect(DB_PATH, timeout=30.0)
     c.row_factory = sqlite3.Row
     return c
 
 
 def init_db() -> None:
-    """Create all tables if not present."""
+    """Create all tables if not present.
+
+    Also switches the DB into WAL (Write-Ahead Logging) mode so the
+    scheduler can WRITE while the dashboard renderer and queue UI READ
+    concurrently. The previous default 'delete' journal mode forced
+    exclusive locks which produced 'database is locked' errors whenever
+    a customer opened the dashboard while a cycle was mid-flight.
+    """
     with _conn() as c:
+        # PRAGMA statements must run OUTSIDE a transaction. `executescript`
+        # commits each statement, so this is safe.
+        c.execute("PRAGMA journal_mode=WAL")
+        c.execute("PRAGMA synchronous=NORMAL")  # safe with WAL, much faster
         c.executescript(
             """
             CREATE TABLE IF NOT EXISTS jobs (

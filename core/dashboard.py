@@ -73,7 +73,7 @@ def _favicon(url: str | None) -> str:
         return ""
 
 
-def render_dashboard(daily_cap: int) -> None:
+def render_dashboard(daily_cap: int, run_interval_minutes: int = 60) -> None:
     s = db.stats_summary()
     sources = db.jobs_by_source()
     bounces_all = db.get_invalid_emails(200)
@@ -89,6 +89,26 @@ def render_dashboard(daily_cap: int) -> None:
     # REVIEW_QUEUE.bat at http://127.0.0.1:7868 — no surprises, no bounces.
     queue_stats = db.pending_queue_stats()
     queue_recent = db.list_pending_emails(limit=10)
+
+    # ── Scheduler health (PID lockfile from core/scheduler_lock.py) ──
+    # Tells the customer at a glance whether the background daemon is
+    # alive, and when the next cycle will fire. The most common support
+    # call ("the bot isn't doing anything") is almost always either:
+    #   (a) the scheduler isn't running, or
+    #   (b) it IS running but everything in this market is already-emailed.
+    # This block answers (a) directly.
+    try:
+        from . import scheduler_lock
+        sched_alive, sched_pid = scheduler_lock.is_alive()
+        sched_meta = scheduler_lock.read() or {}
+    except Exception:
+        sched_alive, sched_pid, sched_meta = False, None, {}
+    sched_started = sched_meta.get("started_at", "")
+    last_done = next(
+        (e for e in events_all if (e["event"] or "").lower() == "blast_done"),
+        None,
+    )
+    last_done_at = (last_done.get("at") if last_done else "") or ""
 
     today_pct = min(100, int((s["emails_today"] / max(daily_cap, 1)) * 100))
 
@@ -448,6 +468,27 @@ def render_dashboard(daily_cap: int) -> None:
       <div class="actions">
         <a class="btn" href="https://mail.google.com" target="_blank">📬 Inbox</a>
         <a class="btn primary" href="https://jobybots.com/setup" target="_blank">Edit config</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scheduler health (tells customer if the background daemon is alive) -->
+  <section style="padding:16px 22px;border-color:{'#A7F3D0' if sched_alive else '#FCA5A5'};background:{'linear-gradient(180deg,#ECFDF5,#FFFFFF)' if sched_alive else 'linear-gradient(180deg,#FEF2F2,#FFFFFF)'}">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+      <div>
+        <div class="label" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:{'#067647' if sched_alive else '#B91C1C'}">
+          Scheduler {'RUNNING' if sched_alive else 'STOPPED'}
+        </div>
+        <div style="font-size:15px;font-weight:600;margin-top:4px;color:#0B0B0B">
+          {f'Background daemon healthy (pid {sched_pid}) &middot; cycles every {run_interval_minutes} min' if sched_alive else 'Bot is not currently scheduled &mdash; double-click START_AUTOSCHEDULE.bat to start it.'}
+        </div>
+        <div style="font-size:12px;color:#6B6B6B;margin-top:2px">
+          {f'Started {_h(sched_started[:16].replace("T", " "))} UTC' if sched_alive else 'No PID lockfile in data/scheduler.lock'}
+          {f' &middot; last completed cycle: {_h(last_done_at[:16].replace("T", " "))}' if last_done_at else ''}
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn" href="https://jobybots.com/install" target="_blank">How to start</a>
       </div>
     </div>
   </section>

@@ -26,15 +26,24 @@ function Show-Header {
     Write-Host "==============================================================" -ForegroundColor Cyan
     Write-Host "  Folder: $root"
 
-    # Is bot running?
-    $procs = Get-Process python -ErrorAction SilentlyContinue |
-             Where-Object { try { $_.Path -like "*$root*" } catch { $false } }
-    if ($procs) {
-        $proc = $procs[0]
-        $mins = [math]::Round((New-TimeSpan -Start $proc.StartTime).TotalMinutes, 1)
-        Write-Host "  Status: RUNNING (PID $($proc.Id), $mins min)" -ForegroundColor Green
-    } else {
-        Write-Host "  Status: NOT RUNNING" -ForegroundColor Red
+    # Single source of truth: PID lockfile written by `jobybot.py schedule`
+    # (see core/scheduler_lock.py). Avoids false-positives from the queue
+    # server, dashboard renderer, or other transient python.exe instances.
+    $lock = Join-Path $root "data\scheduler.lock"
+    $sched_alive = $false
+    if (Test-Path $lock) {
+        try {
+            $meta = Get-Content $lock -Raw | ConvertFrom-Json
+            $proc = Get-Process -Id $meta.pid -ErrorAction SilentlyContinue
+            if ($proc) {
+                $sched_alive = $true
+                $mins = [math]::Round((New-TimeSpan -Start $proc.StartTime).TotalMinutes, 1)
+                Write-Host "  Scheduler: RUNNING (PID $($meta.pid), $mins min)" -ForegroundColor Green
+            }
+        } catch {}
+    }
+    if (-not $sched_alive) {
+        Write-Host "  Scheduler: NOT RUNNING (use option 1 to start)" -ForegroundColor Red
     }
 
     # Stats from helper script
@@ -83,32 +92,52 @@ function Show-Menu {
     Write-Host "  17.  Backup all bot data to Desktop"
     Write-Host "  18.  Reset all bot memory (auto-backup first)"
     Write-Host ""
+    Write-Host "  REVIEW & AUDIT" -ForegroundColor Yellow
+    Write-Host "  -------------------"
+    Write-Host "  19.  Open Review Queue (approve / edit / send each email)"
+    Write-Host "  20.  Status snapshot (scheduler, queue, today's progress)"
+    Write-Host "  21.  Full E2E audit (every stage: search to dashboard)"
+    Write-Host ""
     Write-Host "   0.  Exit menu (bot keeps running if started)"
     Write-Host ""
 }
 
+function Op-OpenReviewQueue {
+    Show-Header
+    Write-Host "Starting the local review-queue UI on http://127.0.0.1:7868" -ForegroundColor Yellow
+    Write-Host "You can edit subject/body and one-click Send or Skip each pending email."
+    Write-Host ""
+    Start-Process -WindowStyle Hidden -FilePath $venvPy `
+        -ArgumentList $bot, "queue" `
+        -WorkingDirectory $root
+    Start-Sleep -Seconds 3
+    Start-Process "http://127.0.0.1:7868"
+    Write-Host "[OK] Review UI launched. The window will stay open in the background."
+    Pause-Menu
+}
+
+function Op-StatusSnapshot {
+    Show-Header
+    & $venvPy $bot status
+    Pause-Menu
+}
+
+function Op-AuditE2E {
+    Show-Header
+    Write-Host "Running full E2E audit (10 stages) ..." -ForegroundColor Yellow
+    & $venvPy "$scripts\_e2e_audit.py"
+    Pause-Menu
+}
+
 function Op-StartBackground {
     Show-Header
-    $running = Get-Process python -ErrorAction SilentlyContinue |
-               Where-Object { try { $_.Path -like "*$root*" } catch { $false } }
-    if ($running) {
-        Write-Host "Bot is already running. Use option 3 to stop it first." -ForegroundColor Yellow
-    } else {
-        Write-Host "Starting Jobybot scheduler in the background..." -ForegroundColor Yellow
-        Start-Process -WindowStyle Hidden -FilePath $venvPy `
-            -ArgumentList $bot, "schedule" `
-            -WorkingDirectory $root
-        Start-Sleep -Seconds 3
-        $proc = Get-Process python -ErrorAction SilentlyContinue |
-                Where-Object { try { $_.Path -like "*$root*" } catch { $false } } |
-                Select-Object -First 1
-        if ($proc) {
-            Write-Host "[OK] Started (PID $($proc.Id))" -ForegroundColor Green
-            Write-Host "     Bot now runs every hour, up to 200 emails/day (see DAILY_EMAIL_CAP in .env)."
-        } else {
-            Write-Host "[FAIL] Could not start. Run option 12 (Health check) to diagnose." -ForegroundColor Red
-        }
-    }
+    Write-Host "Starting Jobybot scheduler in the background (idempotent heartbeat)..." -ForegroundColor Yellow
+    # `heartbeat` is safe to invoke at any time: it starts the scheduler only
+    # if the PID lockfile reports no live daemon. The lock prevents the
+    # duplicate-scheduler race that used to be a top support issue.
+    & $venvPy $bot heartbeat
+    Start-Sleep -Seconds 3
+    & $venvPy $bot status
     Pause-Menu
 }
 
@@ -341,7 +370,7 @@ function Op-Reset {
 # ──────────────────────────────────────────────────────────────────────
 while ($true) {
     Show-Menu
-    $choice = Read-Host "  Enter choice (0-18)"
+    $choice = Read-Host "  Enter choice (0-21)"
     switch ($choice) {
         "1"  { Op-StartBackground }
         "2"  { Op-RunOneCycle }
@@ -361,7 +390,10 @@ while ($true) {
         "16" { Op-DisableAutoStart }
         "17" { Op-Backup }
         "18" { Op-Reset }
+        "19" { Op-OpenReviewQueue }
+        "20" { Op-StatusSnapshot }
+        "21" { Op-AuditE2E }
         "0"  { Write-Host ""; Write-Host "Goodbye! Bot keeps running in background if you started it."; exit 0 }
-        default { Write-Host "  Invalid choice. Pick a number from 0-18." -ForegroundColor Red; Start-Sleep 1 }
+        default { Write-Host "  Invalid choice. Pick a number from 0-21." -ForegroundColor Red; Start-Sleep 1 }
     }
 }

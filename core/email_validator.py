@@ -32,11 +32,18 @@ FREE_PROVIDERS = {
 _mx_memo: dict[str, bool] = {}
 
 
-_PUBLIC_DNS = ["1.1.1.1", "1.0.0.1", "8.8.8.8", "8.8.4.4", "9.9.9.9"]
+_PUBLIC_DNS = ["1.1.1.1", "8.8.8.8"]
 
 
 def _resolve_mx(domain: str, timeout: float) -> bool:
-    """Try system DNS first, then public DNS servers as fallback."""
+    """Try system DNS first, then a SINGLE public DNS fallback.
+
+    Was previously chained across 5 public servers with full timeout each,
+    so a non-existent domain burned 4s × 6 attempts = 24 s per lookup.
+    Now: ~timeout × 2 worst case (2 nameserver candidates, no A fallback).
+    A-record fallback was wrong anyway: an A record without MX usually
+    means a web host that does NOT accept mail (Cloudflare proxy etc).
+    """
     candidates = [None, _PUBLIC_DNS]
     for ns in candidates:
         try:
@@ -49,23 +56,17 @@ def _resolve_mx(domain: str, timeout: float) -> bool:
             if any(a.exchange.to_text() for a in answers):
                 return True
         except dns.resolver.NoAnswer:
-            # Domain exists, no MX — try A record fallback (some hosts accept mail on A)
-            try:
-                r2 = dns.resolver.Resolver()
-                r2.timeout = timeout
-                r2.lifetime = timeout
-                if ns:
-                    r2.nameservers = ns  # type: ignore[assignment]
-                r2.resolve(domain, "A")
-                return True
-            except Exception:
-                continue
+            # MX explicitly empty — domain doesn't accept mail.
+            return False
+        except dns.resolver.NXDOMAIN:
+            # Domain doesn't exist anywhere.
+            return False
         except Exception:
             continue
     return False
 
 
-def _has_mx(domain: str, timeout: float = 4.0) -> bool:
+def _has_mx(domain: str, timeout: float = 2.5) -> bool:
     if not domain:
         return False
     domain = domain.lower().strip()

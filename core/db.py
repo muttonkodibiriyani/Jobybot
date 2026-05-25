@@ -552,9 +552,16 @@ def recent_emails(limit: int = 20) -> List[Dict[str, Any]]:
         return [dict(r) for r in rows]
 
 
-def followups_due() -> List[Dict[str, Any]]:
-    """Emails sent 7+ days ago that haven't been followed up yet."""
-    cutoff = (dt.datetime.utcnow() - dt.timedelta(days=7)).isoformat()
+def followups_due(days: int | None = None) -> List[Dict[str, Any]]:
+    """Initial emails older than `days` (default = settings.followup_days)
+    whose recipients haven't been followed up yet."""
+    if days is None:
+        try:
+            from config import get_settings  # local import to avoid cycle
+            days = int(get_settings().followup_days or 7)
+        except Exception:
+            days = 7
+    cutoff = (dt.datetime.utcnow() - dt.timedelta(days=int(days))).isoformat()
     with _conn() as c:
         rows = c.execute(
             "SELECT * FROM emails_sent WHERE followup=0 AND sent_at < ? "

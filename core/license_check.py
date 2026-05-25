@@ -89,8 +89,33 @@ def _save_local_state(state: dict) -> None:
         pass
 
 
+class _Keep307Redirect(urllib.request.HTTPRedirectHandler):
+    """Follow 307/308 redirects while PRESERVING the POST method + body.
+
+    Vercel normalises requests with a 307 (e.g. jobybots.com -> www
+    or apex-without-trailing-slash -> with-slash). Python's default
+    HTTPRedirectHandler downgrades POST to GET on 301/302/303 and drops
+    the body, which breaks the license bind call. This subclass keeps
+    POST + body intact on 307/308 (per RFC 7231) and re-issues the
+    request to the new Location URL.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if code in (307, 308):
+            # Preserve method + body. urllib's `data` is bytes here.
+            new_req = urllib.request.Request(
+                newurl,
+                data=req.data,
+                headers=dict(req.header_items()),
+                method=req.get_method(),
+            )
+            return new_req
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def _post_json(url: str, payload: dict) -> Tuple[int, dict]:
     body = json.dumps(payload).encode("utf-8")
+    opener = urllib.request.build_opener(_Keep307Redirect())
     req = urllib.request.Request(
         url,
         data=body,
@@ -98,7 +123,7 @@ def _post_json(url: str, payload: dict) -> Tuple[int, dict]:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT_SEC) as r:
+        with opener.open(req, timeout=TIMEOUT_SEC) as r:
             raw = r.read().decode("utf-8", errors="replace")
             try:
                 data = json.loads(raw)
@@ -131,6 +156,12 @@ def verify_or_bind(license_email: Optional[str] = None,
         # to keep cycles fast and offline-friendly.
         return True, "cached"
 
+    # Suppress repeated network calls after a soft failure for 6 hours so we
+    # don't spam run_log with "server_error_307" on every cycle.
+    soft_at = float(state.get("soft_fail_at") or 0)
+    if soft_at and (time.time() - soft_at) < 6 * 3600:
+        return True, "cached_soft_fail"
+
     email = (license_email or os.environ.get("USER_EMAIL") or "").strip().lower()
     if not email:
         # No license email known yet — let the bot run. The website call
@@ -161,7 +192,14 @@ def verify_or_bind(license_email: Optional[str] = None,
         return False, msg
 
     # Other error (404, 401, 500) — fail open for now; we don't want a bad
-    # deploy to lock everyone out. Surface it loudly in the log.
+    # deploy to lock everyone out. Cache the fail-open decision for 6 hours
+    # so we don't spam the run_log with "server_error_307" every cycle.
+    state["soft_fail_at"] = time.time()
+    state["soft_fail_status"] = status
+    try:
+        _save_local_state(state)
+    except Exception:
+        pass
     logger.warning(f"license check returned {status}: {data}")
     return True, f"server_error_{status}"
 

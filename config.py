@@ -75,6 +75,12 @@ class Settings(BaseSettings):
     daily_summary_hour: int = Field(9)
     log_level:          str = Field("INFO")
 
+    # Scheduler timezone. APScheduler used to default to UTC, so "hour=9"
+    # fired at 1 PM UAE local. Set this to your IANA tz database name
+    # (e.g. "Asia/Dubai", "Asia/Riyadh", "Europe/London") and APScheduler
+    # will interpret all cron hours in that zone.
+    scheduler_tz:       str = Field("Asia/Dubai")
+
     # AI providers (all free-tier friendly; bot works without any of them
     # but enabling Gemini unlocks the smart match scoring + tailored cover
     # letters that the website advertises).

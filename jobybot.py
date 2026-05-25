@@ -327,7 +327,11 @@ def do_email_blast(settings: Settings) -> int:
                 # Refresh dashboard mid-market so live tab keeps moving.
                 render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
 
-            jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
+            # Only jitter-sleep AFTER an actual send. Skipped/invalid contacts
+            # should pass through instantly — otherwise a market of 50 fake
+            # pattern-guessed addresses burns ~1 hour of cycle time doing nothing.
+            if ok:
+                jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
 
         logger.success(f"[{country}] market complete â€” {sent} sent so far this cycle")
 
@@ -421,7 +425,7 @@ def do_jobs_blast(settings: Settings, top_n: int = 20) -> int:
         )
         if ok:
             sent += 1
-        jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
+            jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
 
     db.log_event("jobs_blast_done", f"{sent} sent")
     logger.success(f"Jobs blast: {sent} discover-and-send emails")
@@ -489,7 +493,7 @@ def do_followups(settings: Settings) -> int:
         )
         if ok:
             sent += 1
-        jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
+            jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
     if sent:
         logger.success(f"Sent {sent} follow-ups")
     return sent
@@ -625,7 +629,11 @@ def schedule() -> None:
     from apscheduler.triggers.interval import IntervalTrigger
 
     scheduler_lock.acquire()
-    sched = BlockingScheduler(timezone="UTC")
+    # Timezone bug fix: APScheduler used to run in UTC so "hour=9" actually
+    # fired at 13:00 UAE local. Now reads `SCHEDULER_TZ` from .env (defaults
+    # to Asia/Dubai). Customers in Saudi/Bahrain/Qatar/Oman/India can override.
+    sched = BlockingScheduler(timezone=settings.scheduler_tz)
+    logger.info(f"Scheduler timezone: {settings.scheduler_tz}")
 
     def cycle() -> None:
         try:
@@ -654,22 +662,42 @@ def schedule() -> None:
         except Exception as e:
             logger.exception(f"Cycle error: {e}")
 
-    # Hourly
+    # Job 1: continuous interval cycle. Fires immediately so a customer who
+    # starts the daemon at 11 PM still gets a cycle within seconds.
     sched.add_job(
         cycle, IntervalTrigger(minutes=settings.run_interval_minutes),
-        next_run_time=dt.datetime.utcnow() + dt.timedelta(seconds=10),
+        next_run_time=dt.datetime.now() + dt.timedelta(seconds=10),
         id="hourly_cycle", max_instances=1, coalesce=True,
     )
-    # Daily summary at user's hour
+    # Job 2: EXPLICIT morning anchor in the configured timezone. This is
+    # what makes "the bot runs at 9 AM UAE every day" a real promise even
+    # if interval timing drifted because of laptop sleep / wake cycles.
     sched.add_job(
-        send_daily_summary, CronTrigger(hour=settings.daily_summary_hour, minute=0),
+        cycle, CronTrigger(hour=settings.daily_summary_hour, minute=0),
+        id="morning_anchor", max_instances=1, coalesce=True,
+    )
+    # Job 3: daily summary email 30 min after the morning anchor.
+    sched.add_job(
+        send_daily_summary,
+        CronTrigger(hour=settings.daily_summary_hour, minute=30),
         args=[settings], id="daily_summary",
     )
 
     logger.success(
-        f"Scheduler running â€” cycle every {settings.run_interval_minutes} min. "
-        "Press Ctrl+C to stop."
+        f"Scheduler running in {settings.scheduler_tz}. "
+        f"Cycle every {settings.run_interval_minutes} min "
+        f"plus a morning anchor at {settings.daily_summary_hour:02d}:00 local."
     )
+    # Print the next fire time of each job so the customer sees concretely
+    # WHEN the bot will work next. Kills the "is it actually scheduled?" anxiety.
+    for job in sched.get_jobs():
+        try:
+            nxt = job.trigger.get_next_fire_time(None, dt.datetime.now(sched.timezone))
+            if nxt:
+                logger.info(f"  next {job.id:<16s} -> {nxt.strftime('%Y-%m-%d %H:%M %Z')}")
+        except Exception:
+            pass
+    logger.info("Press Ctrl+C to stop.")
     try:
         sched.start()
     except (KeyboardInterrupt, SystemExit):
@@ -740,6 +768,84 @@ def status() -> None:
     else:
         print("  Health: ATTENTION - scheduler is not running, start it now.")
     print()
+
+
+@cli.command(name="live-mode")
+@click.option("--on/--off", default=True,
+              help="--on flips DRAFT_MODE=false (auto-send). --off restores review queue.")
+def live_mode_cmd(on: bool) -> None:
+    """Toggle DRAFT_MODE in .env without you opening the file.
+
+    Default behaviour (DRAFT_MODE=true) writes emails to the review queue
+    so you click Send. After you've trusted the bot for a few days you can
+    run `jobybot live-mode --on` to flip to fully-automatic.
+
+    The command edits .env in place, backing up the previous value as a
+    commented line so you can revert by hand.
+    """
+    env_path = Path(".env")
+    if not env_path.exists():
+        print("  .env not found. Create it from .env.example first.")
+        return
+    text = env_path.read_text(encoding="utf-8")
+    target = "false" if on else "true"
+    old = "true" if on else "false"
+    out_lines: List[str] = []
+    found = False
+    for line in text.splitlines():
+        if line.strip().startswith("DRAFT_MODE=") and not line.strip().startswith("#"):
+            out_lines.append(f"# {line}    # previous value, set by `jobybot live-mode`")
+            out_lines.append(f"DRAFT_MODE={target}")
+            found = True
+        else:
+            out_lines.append(line)
+    if not found:
+        out_lines.append("")
+        out_lines.append(f"# Added by `jobybot live-mode`:")
+        out_lines.append(f"DRAFT_MODE={target}")
+    env_path.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
+    label = "LIVE (auto-send via Gmail)" if on else "DRAFT (queued for your click)"
+    print(f"  DRAFT_MODE now {target}. The bot is in {label} mode.")
+    print("  Restart the scheduler so the new mode takes effect: jobybot heartbeat")
+
+
+@cli.command(name="relax-followups")
+@click.option("--days", type=int, default=3, show_default=True,
+              help="How recent an 'already-emailed' contact must be to STILL be skipped.")
+def relax_followups_cmd(days: int) -> None:
+    """Let the bot re-touch recruiters faster.
+
+    Default 7-day cooldown is what depleted your market files: every UAE /
+    Saudi / Qatar / Bahrain / Oman recruiter has already been emailed once,
+    and the bot won't try them again until day 7. Lowering to 3 days means
+    you'll see fresh sends within ~72h.
+
+    Note: too low here = annoying recruiters. 3 days is the floor I'm
+    comfortable defending in any compliance review.
+    """
+    if days < 3:
+        print("  Refusing to set follow-up window below 3 days (recruiter hygiene).")
+        return
+    env_path = Path(".env")
+    if not env_path.exists():
+        print("  .env not found.")
+        return
+    text = env_path.read_text(encoding="utf-8")
+    out_lines: List[str] = []
+    found = False
+    for line in text.splitlines():
+        if line.strip().startswith("FOLLOWUP_DAYS=") and not line.strip().startswith("#"):
+            out_lines.append(f"# {line}    # previous value, set by `jobybot relax-followups`")
+            out_lines.append(f"FOLLOWUP_DAYS={days}")
+            found = True
+        else:
+            out_lines.append(line)
+    if not found:
+        out_lines.append("")
+        out_lines.append(f"# Added by `jobybot relax-followups`:")
+        out_lines.append(f"FOLLOWUP_DAYS={days}")
+    env_path.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
+    print(f"  FOLLOWUP_DAYS now {days}. Next cycle will allow re-touch after {days} days.")
 
 
 @cli.command()

@@ -122,6 +122,29 @@ INDEX_HTML = r"""<!doctype html>
   .badge.pending { background: #FFF7ED; color: #C2410C; }
   .badge.edited  { background: #ECFEFF; color: #0E7490; }
   .badge.followup { background: #F5F3FF; color: #6D28D9; }
+  .badge.tier-careers   { background: #ECFDF5; color: #047857; }
+  .badge.tier-ai        { background: #EFF6FF; color: #1D4ED8; }
+  .badge.tier-linkedin  { background: #F0F9FF; color: #075985; }
+  .badge.tier-curated   { background: #FEF3C7; color: #92400E; }
+  .badge.tier-pattern   { background: #FEE2E2; color: #B91C1C; }
+  .badge.tier-unknown   { background: #F3F4F6; color: #6B7280; }
+  .badge.conf-high   { background: #DCFCE7; color: #166534; }
+  .badge.conf-medium { background: #FEF3C7; color: #92400E; }
+  .badge.conf-low    { background: #FEE2E2; color: #991B1B; }
+  .provenance { background: #F8FAFC; border: 1px dashed var(--border);
+    border-radius: 10px; padding: 10px 12px; margin: 10px 0 6px;
+    font-size: 12px; color: var(--muted); }
+  .provenance .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .provenance .row > span { display: inline-flex; align-items: center; gap: 4px; }
+  .provenance .src-link { color: var(--accent); text-decoration: none;
+    max-width: 380px; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; vertical-align: bottom; }
+  .provenance .src-link:hover { text-decoration: underline; }
+  .provenance .recruiter-name { color: var(--ink); font-weight: 600; }
+  .provenance.low {
+    background: #FEF2F2; border-color: #FECACA; color: #991B1B;
+  }
+  .provenance.low strong { color: #B91C1C; }
   .subject { font-size: 15px; font-weight: 700; margin: 4px 0 10px; color: var(--ink); }
   textarea, input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid var(--border);
     border-radius: 10px; font-family: inherit; font-size: 14px; line-height: 1.55; resize: vertical;
@@ -213,12 +236,36 @@ function render() {
     </div>`;
     return;
   }
-  list.innerHTML = items.map(it => `
+  list.innerHTML = items.map(it => renderCard(it)).join("");
+}
+
+// Map a discovery tier name to (label, badge-class).
+function tierBadge(tier) {
+  const T = String(tier || "").toLowerCase();
+  if (T.startsWith("t1_careers"))    return { label: "Careers page",  cls: "tier-careers"  };
+  if (T.startsWith("t1_ai_extract")) return { label: "AI extract",    cls: "tier-ai"       };
+  if (T.startsWith("t2_linkedin"))   return { label: "LinkedIn",      cls: "tier-linkedin" };
+  if (T.startsWith("curated_market"))return { label: "Curated list",  cls: "tier-curated"  };
+  if (T.startsWith("t3_pattern"))    return { label: "Pattern guess", cls: "tier-pattern"  };
+  if (T.startsWith("t0_cache"))      return { label: "Cached hit",    cls: "tier-careers"  };
+  return { label: "Source unknown", cls: "tier-unknown" };
+}
+
+function renderCard(it) {
+  const tb = tierBadge(it.discovery_tier);
+  const conf = String(it.discovery_confidence || "").toLowerCase();
+  const confCls = conf === "high" ? "conf-high" : conf === "medium" ? "conf-medium" : "conf-low";
+  const confLabel = conf ? conf.charAt(0).toUpperCase() + conf.slice(1) + " confidence" : "Confidence unknown";
+  const isPatternGuess = String(it.discovery_tier || "").startsWith("t3_pattern") || !it.discovery_tier;
+  const sourceUrl = it.discovery_source || "";
+  const isHttpSrc = sourceUrl.startsWith("http://") || sourceUrl.startsWith("https://");
+  return `
     <article class="card" id="card-${it.id}">
       <div class="card-head">
         <div class="who">
           To: <span class="recipient">${esc(it.recipient)}</span>
           ${it.company ? `· <span class="company">${esc(it.company)}</span>` : ""}
+          ${it.recruiter_name ? `· <span class="recruiter-name">${esc(it.recruiter_name)}</span>` : ""}
           ${it.job_url ? ` · <a class="job-link" href="${esc(it.job_url)}" target="_blank" rel="noopener noreferrer">view job ↗</a>` : ""}
         </div>
         <div class="meta">
@@ -228,17 +275,44 @@ function render() {
           · queued ${esc(timeago(it.created_at))}
         </div>
       </div>
+      <div class="provenance ${isPatternGuess ? 'low' : ''}">
+        <div class="row">
+          <span><strong>How we found this:</strong></span>
+          <span class="badge ${tb.cls}">${tb.label}</span>
+          <span class="badge ${confCls}">${confLabel}</span>
+          ${isHttpSrc
+            ? `<span>· source: <a class="src-link" href="${esc(sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(sourceUrl)}</a></span>`
+            : sourceUrl
+              ? `<span>· source: <code>${esc(sourceUrl)}</code></span>`
+              : `<span>· no source recorded ${isPatternGuess ? "(pattern-guessed)" : ""}</span>`
+          }
+        </div>
+        ${isPatternGuess
+          ? `<div style="margin-top:6px"><strong>⚠ This address may be wrong.</strong>
+             It was guessed from a pattern, not scraped from a real source. Verify
+             before sending or click Skip.</div>`
+          : ""}
+      </div>
       <input type="text" class="subj" data-id="${it.id}" value="${esc(it.subject)}" />
       <textarea class="body" data-id="${it.id}">${esc(it.body)}</textarea>
       <div class="actions">
         <button class="btn" onclick="saveEdit(${it.id})">💾 Save edits</button>
+        <button class="btn" onclick="verifyAddress(${it.id})" title="Live SMTP probe">⚡ Re-verify address</button>
         <div class="right">
           <button class="btn btn-danger" onclick="skip(${it.id})">✗ Skip</button>
           <button class="btn btn-primary" onclick="send(${it.id})">↗ Send</button>
         </div>
       </div>
     </article>
-  `).join("");
+  `;
+}
+
+async function verifyAddress(id) {
+  try {
+    const data = await apiPOST("/api/verify/" + id);
+    if (data.ok) toast("Address looks deliverable (" + data.probe_code + ")");
+    else toast("Verify failed: " + (data.error || "unknown"), "error");
+  } catch (e) { toast("Verify failed: " + e.message, "error"); }
 }
 
 function timeago(iso) {
@@ -432,6 +506,12 @@ class QueueHandler(BaseHTTPRequestHandler):
             ok = db.mark_pending_skipped(pid, "user_skipped_in_ui")
             return self._send_json({"ok": ok})
 
+        if path.startswith("/api/verify/"):
+            pid = _to_int(path.rsplit("/", 1)[-1])
+            if pid is None:
+                return self._send_json({"ok": False, "error": "bad_id"}, 400)
+            return self._send_json(_verify_pending(pid))
+
         self._send_json({"ok": False, "error": "not_found"}, status=404)
 
 
@@ -441,6 +521,26 @@ def _to_int(s: str) -> Optional[int]:
         return n if n > 0 else None
     except Exception:
         return None
+
+
+def _verify_pending(pid: int) -> Dict[str, Any]:
+    """Live SMTP RCPT probe on a queued address. Used by the UI's
+    "Re-verify address" button so the customer can sanity-check
+    deliverability before clicking Send.
+    """
+    from core.finders import smtp_probe  # local import to keep cold start fast
+    row = db.get_pending_email(pid)
+    if not row:
+        return {"ok": False, "error": "not_found"}
+    code, msg = smtp_probe.probe(row["recipient"])
+    if smtp_probe.looks_invalid(code):
+        # Hard reject: mark address invalid + skip the queue row so the
+        # customer can't accidentally send to a known-bad mailbox.
+        db.mark_invalid_email(row["recipient"], f"smtp_probe {code}", code)
+        db.mark_pending_skipped(pid, f"verify_5xx_{code}")
+        return {"ok": False, "error": f"server says {code}: {msg[:60]}",
+                "probe_code": code}
+    return {"ok": True, "probe_code": code, "message": msg[:60]}
 
 
 def _send_pending(pid: int) -> Dict[str, Any]:

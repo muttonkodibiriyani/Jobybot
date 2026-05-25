@@ -178,28 +178,58 @@ def init_db() -> None:
             -- here first so the customer can review the recipient + body before
             -- a single message leaves the laptop. Sent rows are kept for audit.
             CREATE TABLE IF NOT EXISTS pending_emails (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                recipient   TEXT NOT NULL,
-                company     TEXT,
-                category    TEXT,
-                subject     TEXT NOT NULL,
-                body        TEXT NOT NULL,
-                job_id      TEXT,
-                job_title   TEXT,
-                job_url     TEXT,
-                followup    INTEGER DEFAULT 0,
-                created_at  TEXT NOT NULL,
-                edited_at   TEXT,
-                status      TEXT NOT NULL DEFAULT 'pending',
-                            -- pending | sent | skipped | failed | edited
-                sent_at     TEXT,
-                send_reason TEXT,
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipient       TEXT NOT NULL,
+                company         TEXT,
+                category        TEXT,
+                subject         TEXT NOT NULL,
+                body            TEXT NOT NULL,
+                job_id          TEXT,
+                job_title       TEXT,
+                job_url         TEXT,
+                followup        INTEGER DEFAULT 0,
+                created_at      TEXT NOT NULL,
+                edited_at       TEXT,
+                status          TEXT NOT NULL DEFAULT 'pending',
+                                -- pending | sent | skipped | failed | edited
+                sent_at         TEXT,
+                send_reason     TEXT,
+                -- Discovery provenance: where did this email address come
+                -- from? Shown in the review UI so the customer can verify
+                -- before clicking Send.
+                discovery_tier  TEXT,
+                                -- t0_cache | t1_careers | t1_ai_extract |
+                                -- t2_linkedin | t3_pattern | curated_market
+                discovery_source TEXT,
+                                -- URL the email was scraped from (careers
+                                -- page, LinkedIn profile) or "markets/X.json"
+                                -- for curated lists.
+                discovery_confidence TEXT,
+                                -- "high" | "medium" | "low"
+                recruiter_name   TEXT,
+                                -- Their name, if we got it from a profile
+                                -- scrape — used to address the email and
+                                -- to help the customer verify.
                 UNIQUE(recipient, followup, job_id) ON CONFLICT IGNORE
             );
             CREATE INDEX IF NOT EXISTS idx_pending_status  ON pending_emails(status);
             CREATE INDEX IF NOT EXISTS idx_pending_created ON pending_emails(created_at);
             """
         )
+
+        # Migration: add discovery_* columns to legacy rows. SQLite ignores
+        # the ADD COLUMN if it's already present in older versions of the
+        # file (would throw), so guard each one.
+        for col, ddl in (
+            ("discovery_tier",       "TEXT"),
+            ("discovery_source",     "TEXT"),
+            ("discovery_confidence", "TEXT"),
+            ("recruiter_name",       "TEXT"),
+        ):
+            try:
+                c.execute(f"ALTER TABLE pending_emails ADD COLUMN {col} {ddl}")
+            except Exception:
+                pass  # column already exists
 
 
 # ─── Jobs ──────────────────────────────────────────────────────────
@@ -406,9 +436,18 @@ def queue_pending_email(
     job_title: str = "",
     job_url: str = "",
     followup: int = 0,
+    discovery_tier: str = "",
+    discovery_source: str = "",
+    discovery_confidence: str = "",
+    recruiter_name: str = "",
 ) -> Optional[int]:
     """Save an email for human review instead of sending it. Returns row id
-    or None if (recipient, followup, job) was already queued or sent."""
+    or None if (recipient, followup, job) was already queued or sent.
+
+    The `discovery_*` and `recruiter_name` params are shown to the
+    customer in the review UI so they can verify provenance BEFORE
+    clicking Send.
+    """
     if already_emailed(recipient, followup):
         return None
     with _conn() as c:
@@ -423,8 +462,10 @@ def queue_pending_email(
         cur = c.execute(
             "INSERT INTO pending_emails "
             "(recipient, company, category, subject, body, job_id, job_title, "
-            " job_url, followup, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " job_url, followup, created_at, "
+            " discovery_tier, discovery_source, discovery_confidence, "
+            " recruiter_name) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 recipient,
                 company,
@@ -436,6 +477,10 @@ def queue_pending_email(
                 job_url[:500],
                 followup,
                 dt.datetime.utcnow().isoformat(),
+                (discovery_tier or "")[:40],
+                (discovery_source or "")[:500],
+                (discovery_confidence or "")[:20],
+                (recruiter_name or "")[:80],
             ),
         )
         return cur.lastrowid
@@ -446,7 +491,9 @@ def list_pending_emails(limit: int = 200) -> List[Dict[str, Any]]:
     with _conn() as c:
         rows = c.execute(
             "SELECT id, recipient, company, category, subject, body, job_id, "
-            "job_title, job_url, followup, created_at, edited_at "
+            "job_title, job_url, followup, created_at, edited_at, "
+            "discovery_tier, discovery_source, discovery_confidence, "
+            "recruiter_name "
             "FROM pending_emails WHERE status = 'pending' "
             "ORDER BY created_at ASC LIMIT ?",
             (limit,),

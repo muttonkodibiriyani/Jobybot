@@ -143,19 +143,46 @@ def run_easy_apply(settings: Any) -> dict:
         f"headless={settings.easy_apply_headless}"
     )
 
+    # Persistent browser profile -- KEY to LinkedIn reliability.
+    # When you boot a fresh Chromium every time, LinkedIn sees a new
+    # canvas/audio/font fingerprint each visit and quickly puts you on a
+    # security challenge. A persistent profile dir means the same
+    # fingerprint + the same localStorage history every time, so LinkedIn
+    # treats you like a returning real user.
+    profile_dir = Path("data") / "browser_profiles" / "linkedin"
+    profile_dir.mkdir(parents=True, exist_ok=True)
+
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(
+        context = pw.chromium.launch_persistent_context(
+            user_data_dir=str(profile_dir.resolve()),
             headless=bool(settings.easy_apply_headless),
-            args=["--start-maximized"],
-        )
-        context = browser.new_context(
+            args=[
+                "--start-maximized",
+                "--disable-blink-features=AutomationControlled",
+                "--no-default-browser-check",
+            ],
             viewport={"width": 1440, "height": 900},
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/124.0.0.0 Safari/537.36"
             ),
+            locale="en-US",
+            timezone_id="Asia/Dubai",
         )
+        # Hide the obvious "this is a bot" signals that LinkedIn's
+        # detector watches for. Removes navigator.webdriver and the
+        # missing chrome.runtime + plugins length defaults.
+        context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            window.chrome = window.chrome || { runtime: {} };
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5]
+            });
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en']
+            });
+        """)
         context.add_cookies([{
             "name":   "li_at",
             "value":  settings.linkedin_cookie.strip(),
@@ -165,6 +192,9 @@ def run_easy_apply(settings: Any) -> dict:
             "httpOnly": True,
             "sameSite": "None",
         }])
+        # Persistent context exposes pages via `.pages` (it already has
+        # an about:blank tab). Use that or create a new one.
+        browser = None  # not used with persistent context — alias for cleanup
 
         page = context.new_page()
         try:
@@ -228,9 +258,13 @@ def run_easy_apply(settings: Any) -> dict:
         finally:
             try:
                 context.close()
-                browser.close()
             except Exception:
                 pass
+            if browser is not None:
+                try:
+                    browser.close()
+                except Exception:
+                    pass
 
     logger.success(
         f"Easy Apply done · applied={stats['applied']} skipped={stats['skipped']} "
@@ -265,13 +299,32 @@ def _polite_sleep(lo: int, hi: int) -> None:
 
 
 def _verify_logged_in(page: Page) -> bool:
-    try:
-        page.goto("https://www.linkedin.com/feed/", wait_until="domcontentloaded", timeout=15_000)
-    except PWTimeout:
-        pass
-    # If we got bounced to /login or /uas/login, the cookie is bad.
-    url = (page.url or "").lower()
-    return "login" not in url and "uas/login" not in url and "checkpoint" not in url
+    """Confirm the li_at cookie is still good by hitting an authenticated URL.
+
+    We try /feed/, then /mynetwork/, then /jobs/. LinkedIn occasionally
+    enters a redirect loop on /feed/ when bot detection trips (yields
+    ERR_TOO_MANY_REDIRECTS). The fallback URLs are less likely to trigger
+    the same protection. If ALL three URLs land on a login/checkpoint
+    page, we treat the cookie as expired.
+    """
+    for url in (
+        "https://www.linkedin.com/jobs/",
+        "https://www.linkedin.com/feed/",
+        "https://www.linkedin.com/mynetwork/",
+    ):
+        try:
+            page.goto(url, wait_until="domcontentloaded", timeout=15_000)
+        except PWTimeout:
+            continue
+        except Exception as e:
+            # ERR_TOO_MANY_REDIRECTS / net errors -> try the next URL
+            logger.debug(f"verify_logged_in: {url} -> {e}")
+            continue
+        landed = (page.url or "").lower()
+        if "login" in landed or "uas/login" in landed or "checkpoint" in landed:
+            continue
+        return True
+    return False
 
 
 def _search(

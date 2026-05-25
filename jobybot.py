@@ -313,6 +313,13 @@ def do_email_blast(settings: Settings) -> int:
                 company=c["company"],
                 category=c.get("category", "Employer"),
                 profile=profile,
+                # Curated markets/*.json contacts: source is the file
+                # that vouches for them. Confidence is medium because
+                # the file is human-curated but the address may still
+                # be old or pattern-guessed at curation time.
+                discovery_tier="curated_market",
+                discovery_source=f"markets/{country.lower().replace(' ', '_')}.json",
+                discovery_confidence="medium",
             )
             if ok:
                 sent += 1
@@ -422,6 +429,9 @@ def do_jobs_blast(settings: Settings, top_n: int = 20) -> int:
             recruiter_first_name=disc.first_name or "",
             job_title=j["title"] or "",
             job_description=j["description"] or "",
+            discovery_tier=getattr(disc, "tier", "") or "",
+            discovery_source=getattr(disc, "source_url", "") or "",
+            discovery_confidence=getattr(disc, "confidence", "") or "",
         )
         if ok:
             sent += 1
@@ -768,6 +778,86 @@ def status() -> None:
     else:
         print("  Health: ATTENTION - scheduler is not running, start it now.")
     print()
+
+
+@cli.command(name="login-linkedin")
+@click.option("--minutes", type=int, default=5,
+              help="How long to keep Chromium open while you log in.")
+def login_linkedin_cmd(minutes: int) -> None:
+    """Interactive LinkedIn login that persists for ALL future Easy Apply runs.
+
+    Why this exists: cold-injecting just the `li_at` cookie often triggers
+    LinkedIn's anti-automation redirect loop because we're missing the
+    companion cookies (JSESSIONID, bcookie, bscookie, lidc). The fix is
+    to log in interactively ONCE into a persistent browser profile.
+    Every subsequent `jobybot easy-apply` reuses that profile so LinkedIn
+    sees a returning real user, not a fresh-fingerprint scraper.
+
+    Steps:
+      1. Chromium opens
+      2. You log in manually (handle 2FA / captcha as you would any browser)
+      3. Once you see your LinkedIn feed, close the window or wait
+      4. All cookies + localStorage + canvas/audio fingerprint are saved
+         under ``data/browser_profiles/linkedin/``
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        click.echo("Playwright not installed. Run:")
+        click.echo("  .venv\\Scripts\\python.exe -m pip install playwright")
+        click.echo("  .venv\\Scripts\\python.exe -m playwright install chromium")
+        return
+
+    profile_dir = Path("data") / "browser_profiles" / "linkedin"
+    profile_dir.mkdir(parents=True, exist_ok=True)
+    click.echo(f"Opening Chromium with profile: {profile_dir.resolve()}")
+    click.echo(f"Log in to LinkedIn. The window stays open for {minutes} minutes.")
+    click.echo("Once you see your feed, you can close the window early.")
+
+    with sync_playwright() as pw:
+        ctx = pw.chromium.launch_persistent_context(
+            user_data_dir=str(profile_dir.resolve()),
+            headless=False,
+            args=[
+                "--start-maximized",
+                "--disable-blink-features=AutomationControlled",
+            ],
+            viewport={"width": 1440, "height": 900},
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            locale="en-US",
+            timezone_id="Asia/Dubai",
+        )
+        ctx.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get:()=>undefined});"
+        )
+        page = ctx.pages[0] if ctx.pages else ctx.new_page()
+        page.goto("https://www.linkedin.com/login", wait_until="domcontentloaded")
+        # Block for up to `minutes` mins or until user closes the browser
+        import time
+        deadline = time.time() + minutes * 60
+        try:
+            while time.time() < deadline:
+                time.sleep(1)
+                # If the user has navigated to /feed/ we know they logged in
+                if "/feed" in (page.url or ""):
+                    click.echo("✓ Detected /feed/ — you're logged in.")
+                    # Give a few more seconds to make sure cookies settle
+                    time.sleep(3)
+                    break
+        except KeyboardInterrupt:
+            pass
+        except Exception:
+            pass
+        try:
+            ctx.close()
+        except Exception:
+            pass
+
+    click.echo("Saved. From now on `jobybot easy-apply` reuses this session.")
 
 
 @cli.command(name="live-mode")

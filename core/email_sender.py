@@ -78,12 +78,20 @@ def send_application(
     recruiter_first_name: str = "",
     job_title: str = "",
     job_description: str = "",
+    discovery_tier: str = "",
+    discovery_source: str = "",
+    discovery_confidence: str = "",
 ) -> bool:
     """High-level: render + send + log. Returns True if sent.
 
     If ``recruiter_first_name`` is provided (typically discovered by the
     LinkedIn finder), the generated email opens with the recruiter's first
     name, which materially lifts reply rates.
+
+    ``discovery_*`` parameters are forwarded to the review queue so the
+    customer can see WHERE this recruiter email was scraped from before
+    clicking Send. If the address was a pattern-guess these will be empty
+    and the UI will flag it as low-confidence.
     """
 
     if db.already_emailed(recipient, followup):
@@ -186,6 +194,10 @@ def send_application(
             job_title=job_title,
             job_url="",
             followup=followup,
+            discovery_tier=discovery_tier,
+            discovery_source=discovery_source,
+            discovery_confidence=discovery_confidence,
+            recruiter_name=recruiter_first_name,
         )
         if queued_id:
             db.log_event(

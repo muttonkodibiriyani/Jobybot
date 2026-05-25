@@ -28,7 +28,9 @@ from loguru import logger
 
 from core import db
 from core import email_finder as legacy
-from core.finders import careers_page, linkedin_login, smtp_probe
+from core.finders import (
+    careers_page, linkedin_login, smtp_probe, ai_extract,
+)
 
 
 # Per-country fallback TLDs and local-parts. Used by T3.
@@ -209,6 +211,39 @@ def find_email_v2(
             db.cache_email(company, _domain_from_url(t1.source_url) or domain_hint, t1.email)
             return t1
 
+    # T1.5 — AI extraction from the company's own /careers, /contact, /team
+    # pages. Reads the *full text* with Gemini Flash (not regex) so it
+    # understands "send your CV to ... " sentences and extracts the
+    # *intended* recruiter contact, not the first email it sees.
+    if domain_hint:
+        urls = [
+            f"https://{domain_hint}/careers",
+            f"https://{domain_hint}/about/contact",
+            f"https://{domain_hint}/contact-us",
+        ]
+        for u in urls:
+            contacts = ai_extract.extract_from_url(
+                u, company=company, company_domain=domain_hint,
+            )
+            for c in contacts:
+                if db.is_invalid_email(c.email):
+                    continue
+                if enable_smtp_probe:
+                    code, _ = smtp_probe.probe(c.email)
+                    if smtp_probe.looks_invalid(code):
+                        db.mark_invalid_email(c.email, "smtp_probe 5xx after T1.5")
+                        db.log_discovery(
+                            company, tier="t1_ai_extract",
+                            decision="probe_5xx",
+                            candidate_email=c.email, probe_code=code,
+                        )
+                        continue
+                db.cache_email(company, domain_hint, c.email)
+                return Discovery(
+                    email=c.email, first_name=(c.name.split() or [""])[0],
+                    source_url=u, tier="t1_ai_extract", confidence="high",
+                )
+
     # T2 — LinkedIn poster info
     t2 = _try_t2_linkedin(company, job_url, domain_hint,
                           cookie=linkedin_cookie or os.environ.get("LINKEDIN_COOKIE", ""))
@@ -221,11 +256,24 @@ def find_email_v2(
             db.cache_email(company, domain_hint or "", t2.email)
             return t2
 
-    # T3 — country-aware patterns with SMTP gating
-    t3 = _try_t3_patterns(company, market=market, domain_hint=domain_hint)
-    if t3 and t3.email and not db.is_invalid_email(t3.email):
-        db.cache_email(company, domain_hint or "", t3.email)
-        return t3
+    # T3 — country-aware patterns with SMTP gating.
+    #
+    # IMPORTANT: T3 has historically been the source of every junk email
+    # we ever sent — it pattern-guesses addresses like `saudi@kpmg.com`
+    # that statistically have a 3% chance of being real, and even when
+    # SMTP probes return 2xx the address is usually a catch-all that
+    # silently drops cold outreach.
+    #
+    # New policy: T3 is GATED behind an env flag. Default = disabled.
+    # The bot now prefers "no email found" over "pattern guess" — much
+    # better for sender reputation and the customer's confidence.
+    if os.environ.get("ALLOW_PATTERN_GUESS", "0").lower() in {"1", "true", "yes"}:
+        t3 = _try_t3_patterns(company, market=market, domain_hint=domain_hint)
+        if t3 and t3.email and not db.is_invalid_email(t3.email):
+            db.cache_email(company, domain_hint or "", t3.email)
+            return t3
+    else:
+        db.log_discovery(company, tier="t3_pattern", decision="disabled_by_policy")
 
     db.log_discovery(company, tier="final", decision="not_found")
     return Discovery(email=None)

@@ -25,16 +25,39 @@ from core.net_safety import open_get as _http_get
 
 
 CANDIDATE_PATHS: Tuple[str, ...] = (
+    # Standard
     "/",
     "/careers",
     "/careers/contact",
+    "/careers/contact-us",
+    "/careers/our-people",
+    "/careers/team",
     "/about/contact",
     "/about/careers",
+    "/about/team",
+    "/about/people",
     "/contact",
     "/contact-us",
     "/contactus",
     "/jobs",
+    "/jobs/contact",
     "/work-with-us",
+    "/join-us",
+    # Less common but high-signal
+    "/team",
+    "/people",
+    "/leadership",
+    "/press",
+    "/press-contact",
+    "/media",
+    "/investor-relations",
+    "/investors",
+    # Region-coded sub-paths used by big consultancies
+    "/uae/contact",
+    "/me/contact",
+    "/ae/contact",
+    "/en-ae/contact",
+    "/en/contact",
 )
 
 MAILTO_RE = re.compile(r'href\s*=\s*["\']mailto:([A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,})', re.IGNORECASE)
@@ -96,7 +119,7 @@ def _extract_emails(html: str, domain: str) -> Set[str]:
 
 
 def discover_from_domain(domain: str, *, timeout: float = 6.0,
-                         max_paths: int = 4) -> List[Tuple[str, str]]:
+                         max_paths: int = 8) -> List[Tuple[str, str]]:
     """Crawl up to ``max_paths`` likely pages on the company domain and
     return distinct (email, source_url) pairs in order of preference.
     """

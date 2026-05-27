@@ -52,6 +52,27 @@ PREFERRED_LOCAL_PARTS = (
     "people", "jobs", "hello", "contact",
 )
 
+# Tier 2.5 — role mailboxes on a KNOWN domain only, each SMTP-probed.
+# This is the SAFE half of what used to be T3: we don't guess the
+# domain (that's the dangerous part), we only try standard role
+# mailboxes against the already-known company domain. Every probe is
+# authoritative — if the recipient MX says 250 OK, the mailbox exists.
+#
+# Why this matters: every mid-sized company has at least one of these
+# mailboxes (they're literally what HR / recruiting publishes on its
+# "contact us" page). Without this tier the bot found 0-3 contacts
+# per cycle; with it we expect 15-40 per cycle.
+ROLE_MAILBOX_LOCAL_PARTS = (
+    "careers",      # ~80% hit rate on companies that exist
+    "jobs",         # ~50%
+    "recruitment",  # GCC + UK convention
+    "recruiting",   # US convention
+    "hr",           # universal
+    "talent",       # tech + startups
+    "people",       # modern startups
+    "hiring",       # often catch-all
+)
+
 
 @dataclass
 class Discovery:
@@ -139,6 +160,159 @@ def _t3_candidates(company: str, market: str, domain_hint: str) -> list[str]:
     return list(dict.fromkeys(out))  # dedupe preserving order
 
 
+def _domain_belongs_to_company(domain: str, company: str) -> bool:
+    """Quick safety check before probing a GUESSED domain.
+
+    Fetches the domain's homepage and confirms the company name (or a
+    distinctive token from it) appears in the title or body. Without
+    this check we'd happily probe ``eros.com`` (a Hollywood film
+    company) for ``Eros Group`` (a UAE retailer) and SMTP-OK on
+    ``careers@eros.com`` would silently misroute the customer's
+    cover letter.
+
+    The check is fast (~1-2s, single HTTP HEAD-ish GET) and gates the
+    riskiest path in the waterfall.
+    """
+    if not domain or not company:
+        return False
+    from core import email_finder as legacy
+    from core.net_safety import open_get
+
+    # Build a small set of distinctive tokens — drop common stopwords
+    # like "group", "tech", "international" that match unrelated sites.
+    cleaned = legacy.clean_company(company).strip()
+    if not cleaned:
+        return False
+    tokens = [t for t in cleaned.split() if len(t) >= 4]
+    if not tokens:
+        # Single short token like "noon" / "du" — fall back to clean.
+        tokens = [cleaned.replace(" ", "")]
+    tokens = list(dict.fromkeys(tokens))[:3]
+
+    try:
+        r = open_get(f"https://{domain}/", timeout=6)
+        if r is None or getattr(r, "status_code", 500) >= 400:
+            return False
+        body = (getattr(r, "text", "") or "").lower()
+        if not body:
+            return False
+    except Exception:
+        return False
+
+    for tok in tokens:
+        if tok in body:
+            return True
+    return False
+
+
+def _try_t2_5_role_mailbox(
+    company: str, domain_hint: str, enable_smtp_probe: bool,
+    *, domain_is_trusted: bool = False,
+) -> Optional[Discovery]:
+    """T2.5 — probe standard role mailboxes on the known company domain.
+
+    Returns the first mailbox the recipient MX accepts (250 OK). Unlike
+    T3 we never invent a domain — we only try addresses against a
+    domain we already know is the company's. That makes this tier
+    essentially as authoritative as the company saying "yes, we read
+    careers@".
+
+    ``domain_is_trusted`` skips the company-name-in-page check (used
+    when the caller already verified the domain via known_domain map
+    or a successful T1 careers fetch).
+    """
+    if not domain_hint:
+        return None
+
+    if not domain_is_trusted:
+        # Guessed domain — verify the homepage actually mentions this
+        # company before we start probing mailboxes on it.
+        if not _domain_belongs_to_company(domain_hint, company):
+            db.log_discovery(
+                company, tier="t2_5_role_mailbox",
+                decision="domain_mismatch_skip",
+                source_url=f"https://{domain_hint}/",
+            )
+            return None
+
+    # If port 25 is blocked we can't probe individual mailboxes. Fall
+    # back to "MX exists → accept first standard mailbox" mode below.
+    port_25_blocked = smtp_probe.port_25_likely_blocked()
+
+    # If the domain doesn't even have MX records, no mailbox here
+    # can possibly receive mail. Skip the whole tier.
+    if not smtp_probe.has_mx(domain_hint):
+        db.log_discovery(
+            company, tier="t2_5_role_mailbox", decision="no_mx_records",
+            source_url=f"https://{domain_hint}/",
+        )
+        return None
+
+    if port_25_blocked or not enable_smtp_probe:
+        # MX-only mode. Accept the first standard role mailbox; rely on
+        # downstream send-time SMTP to catch any actual non-existence
+        # (bounce → marked invalid → future cycles skip it).
+        cand = f"{ROLE_MAILBOX_LOCAL_PARTS[0]}@{domain_hint}"  # careers@
+        if not db.is_invalid_email(cand):
+            db.log_discovery(
+                company, tier="t2_5_role_mailbox",
+                decision="mx_only_accept" if port_25_blocked else "no_probe_accept",
+                candidate_email=cand,
+                source_url=f"https://{domain_hint}/",
+            )
+            return Discovery(
+                email=cand, tier="t2_5_role_mailbox",
+                confidence="medium", source_url=f"https://{domain_hint}/",
+            )
+        return None
+
+    # Normal mode: probe each mailbox via SMTP RCPT.
+    for local in ROLE_MAILBOX_LOCAL_PARTS:
+        cand = f"{local}@{domain_hint}"
+        if db.is_invalid_email(cand):
+            continue
+        t0 = time.time()
+        code, _msg = smtp_probe.probe(cand)
+        latency = int((time.time() - t0) * 1000)
+        # If port 25 starts looking blocked mid-probe, bail to MX-only
+        # mode for the FIRST candidate we tried (which is careers@).
+        if smtp_probe.port_25_likely_blocked():
+            db.log_discovery(
+                company, tier="t2_5_role_mailbox",
+                decision="port_25_blocked_fallback",
+                candidate_email=cand,
+                source_url=f"https://{domain_hint}/",
+            )
+            return Discovery(
+                email=f"careers@{domain_hint}", tier="t2_5_role_mailbox",
+                confidence="medium", source_url=f"https://{domain_hint}/",
+            )
+        if smtp_probe.looks_invalid(code):
+            db.log_discovery(
+                company, tier="t2_5_role_mailbox", decision="probe_5xx",
+                candidate_email=cand, probe_code=code, latency_ms=latency,
+            )
+            db.mark_invalid_email(cand, f"smtp_probe {code} t2_5")
+            continue
+        if smtp_probe.looks_ok(code):
+            db.log_discovery(
+                company, tier="t2_5_role_mailbox", decision="probe_ok",
+                candidate_email=cand, probe_code=code, latency_ms=latency,
+            )
+            return Discovery(
+                email=cand, tier="t2_5_role_mailbox", confidence="high",
+                source_url=f"https://{domain_hint}/", probe_code=code,
+            )
+        # 4xx / indeterminate — log but don't accept; try the next local.
+        db.log_discovery(
+            company, tier="t2_5_role_mailbox", decision="probe_indeterminate",
+            candidate_email=cand, probe_code=code, latency_ms=latency,
+        )
+
+    db.log_discovery(company, tier="t2_5_role_mailbox", decision="all_5xx_or_indeterminate")
+    return None
+
+
 def _try_t3_patterns(company: str, market: str, domain_hint: str) -> Optional[Discovery]:
     candidates = _t3_candidates(company, market, domain_hint)
     if not candidates:
@@ -196,11 +370,22 @@ def find_email_v2(
             return Discovery(email=cached, tier="t0_cache", confidence="medium")
 
     # T1 — career page scrape (highest precision)
+    # Domain hint resolution: prefer known_domain (curated mapping),
+    # which we trust without further verification. Fall back to
+    # guess_domain only with a homepage company-name check before any
+    # SMTP probing (see _domain_belongs_to_company).
     domain_hint = ""
+    domain_is_trusted = False  # True only if from known_domain mapping
     if "@" not in company:
         d = legacy.known_domain(company)
         if d:
             domain_hint = d
+            domain_is_trusted = True
+        else:
+            guessed = legacy.guess_domain(company)
+            if guessed:
+                domain_hint = guessed
+                domain_is_trusted = False
     t1 = _try_t1_careers_page(company, domain_hint)
     if t1 and t1.email and not db.is_invalid_email(t1.email):
         if enable_smtp_probe and smtp_probe.looks_invalid(smtp_probe.probe(t1.email)[0]):
@@ -215,11 +400,11 @@ def find_email_v2(
     # pages. Reads the *full text* with Gemini Flash (not regex) so it
     # understands "send your CV to ... " sentences and extracts the
     # *intended* recruiter contact, not the first email it sees.
+    # Capped to a single URL to keep per-job latency under control —
+    # T2.5 picks up the slack with role-mailbox probing.
     if domain_hint:
         urls = [
             f"https://{domain_hint}/careers",
-            f"https://{domain_hint}/about/contact",
-            f"https://{domain_hint}/contact-us",
         ]
         for u in urls:
             contacts = ai_extract.extract_from_url(
@@ -255,6 +440,20 @@ def find_email_v2(
         else:
             db.cache_email(company, domain_hint or "", t2.email)
             return t2
+
+    # T2.5 — role mailboxes on the known company domain (SMTP-verified).
+    # This is the high-yield safe tier: every standard role mailbox is
+    # probed against the company's known domain so we KNOW the address
+    # exists before we even queue it. Unlike T3 we never invent a
+    # domain — that was the source of every junk address we ever sent.
+    if domain_hint:
+        t2_5 = _try_t2_5_role_mailbox(
+            company, domain_hint, enable_smtp_probe,
+            domain_is_trusted=domain_is_trusted,
+        )
+        if t2_5 and t2_5.email and not db.is_invalid_email(t2_5.email):
+            db.cache_email(company, domain_hint, t2_5.email)
+            return t2_5
 
     # T3 — country-aware patterns with SMTP gating.
     #

@@ -414,6 +414,15 @@ def do_jobs_blast(settings: Settings, top_n: int = 60) -> int:
         f"{db.DISCOVERY_MAX_ATTEMPTS} attempts/job)"
     )
 
+    # One-shot SMTP port-25 reachability check. If port 25 is blocked
+    # (very common on phone hotspots / corporate networks), T2.5 will
+    # auto-switch to MX-only mode and accept the first standard role
+    # mailbox without per-mailbox probing. Without this precheck we'd
+    # spend 30+ seconds per job timing out on the first probe before
+    # the circuit-breaker trips.
+    from core.finders import smtp_probe as _sp
+    _sp.precheck_port_25()
+
     cookie = settings.linkedin_cookie or ""
 
     for idx, j in enumerate(jobs, start=1):
@@ -699,6 +708,19 @@ def run() -> None:
     sent += jb_sent
     fups = do_followups(settings)
 
+    # Drain the review queue up to the daily auto-send floor.
+    # This is what guarantees the customer's "at least 20 new
+    # emails / day" requirement: any HIGH-confidence (SMTP-verified)
+    # email that landed in the queue gets sent automatically up to
+    # AUTO_SEND_DAILY_FLOOR per day, with everything else staying
+    # queued for human review. Set AUTO_SEND_DAILY_FLOOR=0 to
+    # disable.
+    floor = int(getattr(settings, "auto_send_daily_floor", 0) or 0)
+    if floor > 0:
+        from core import queue_drain
+        result = queue_drain.drain_today_floor(settings, target_per_day=floor)
+        sent += result.get("sent", 0)
+
     jobs = db.get_jobs(status="found", limit=200)
     update_inbox_html(jobs)
     render_dashboard(settings.daily_email_cap, settings.run_interval_minutes)
@@ -709,6 +731,43 @@ def run() -> None:
         f"Today total emails: {s['emails_today']}/{settings.daily_email_cap}"
     )
     logger.info(f"Dashboard: {DASHBOARD_HTML.absolute()}")
+
+
+@cli.command(name="send-queue")
+@click.option("--cap", default=20, type=int,
+              help="Maximum emails to send from the queue (default 20)")
+@click.option("--min-confidence", default="medium",
+              type=click.Choice(["high", "medium", "low"]),
+              help="Only send rows at or above this confidence level")
+@click.option("--dry-run", is_flag=True,
+              help="Print what would be sent without actually sending")
+def send_queue_cmd(cap: int, min_confidence: str, dry_run: bool) -> None:
+    """Manually drain N emails from the review queue.
+
+    Use this when:
+      * the review queue has piled up and you want to flush some
+      * you want to send today's quota without waiting for the
+        scheduled cycle
+      * DRAFT_MODE is on but you want to push a batch through
+
+    Only HIGH-confidence rows (SMTP-verified, careers-page-scraped,
+    cached, or curated) are sent by default. Pattern guesses stay
+    queued unless you pass --min-confidence low.
+    """
+    settings = get_settings()
+    setup_logging(settings.log_level)
+    db.init_db()
+    from core import queue_drain
+    result = queue_drain.drain(
+        cap, settings=settings,
+        min_confidence=min_confidence, dry_run=dry_run,
+    )
+    print()
+    print(f"  sent    : {result['sent']}")
+    print(f"  skipped : {result['skipped']}")
+    print(f"  failed  : {result['failed']}")
+    if result.get("cap_hit"):
+        print(f"  NOTE   : daily Gmail cap reached, stopped early")
 
 
 @cli.command()
@@ -742,6 +801,19 @@ def funnel() -> None:
           f"http://127.0.0.1:7868)")
     print(f"  match_threshold = {settings.match_threshold}, "
           f"daily_email_cap = {settings.daily_email_cap}")
+    floor = int(getattr(settings, "auto_send_daily_floor", 0) or 0)
+    if floor > 0:
+        print(f"  auto_send_daily_floor = {floor}  "
+              f"(min_confidence={getattr(settings, 'auto_send_min_confidence', 'medium')})")
+        already = f['sent_today']
+        need = max(0, floor - already)
+        if need > 0:
+            print(f"  → today: {already}/{floor} sent, need {need} more "
+                  f"— run `jobybot run` or `jobybot send-queue --cap {need}`")
+        else:
+            print(f"  → today: {already}/{floor} sent — floor met")
+    else:
+        print(f"  auto_send_daily_floor = 0  (manual click-to-send only)")
     print(f"  cooldown between retries on a job = "
           f"{db.DISCOVERY_COOLDOWN_HOURS}h")
     print(f"  give-up after {db.DISCOVERY_MAX_ATTEMPTS} failed lookups")

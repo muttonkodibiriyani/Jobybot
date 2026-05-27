@@ -118,8 +118,8 @@ def _extract_emails(html: str, domain: str) -> Set[str]:
     return {a for a in found if _likely_recruiter_email(a, domain)}
 
 
-def discover_from_domain(domain: str, *, timeout: float = 6.0,
-                         max_paths: int = 8) -> List[Tuple[str, str]]:
+def discover_from_domain(domain: str, *, timeout: float = 3.5,
+                         max_paths: int = 5) -> List[Tuple[str, str]]:
     """Crawl up to ``max_paths`` likely pages on the company domain and
     return distinct (email, source_url) pairs in order of preference.
     """

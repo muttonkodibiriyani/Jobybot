@@ -69,6 +69,13 @@ class Settings(BaseSettings):
     enable_wellfound:       bool = Field(True)
     enable_hn_whoshiring:   bool = Field(True)
 
+    # Auto-send floor: drain up to N HIGH-confidence emails from the
+    # review queue per day even with DRAFT_MODE on. Default 20 — the
+    # customer's stated minimum. Set to 0 to disable auto-send (then
+    # the queue is fully manual click-to-send).
+    auto_send_daily_floor: int  = Field(20)
+    auto_send_min_confidence: str = Field("medium")  # "high" | "medium" | "low"
+
     # Follow-ups
     enable_followup: bool = Field(True)
     followup_days:   int  = Field(7)

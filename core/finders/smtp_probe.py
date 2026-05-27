@@ -22,18 +22,124 @@ from loguru import logger
 from core import db
 
 
+# Public DNS resolvers — the system resolver on corporate networks /
+# phone hotspots / VPNs often blackholes MX queries. We've observed this
+# producing thousands of false "mx_missing" probes that incorrectly
+# quarantine perfectly-good recruiter mailboxes (careers@bayzat.com,
+# careers@foodics.com, etc. all SMTP-validated via 1.1.1.1 even when the
+# system resolver returned timeout).
+_PUBLIC_DNS_RESOLVERS = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]
+
+
 def _best_mx(domain: str, timeout: float = 4.0) -> Optional[str]:
-    """Lowest-preference (highest priority) MX host for the domain."""
-    try:
-        r = dns.resolver.Resolver()
-        r.timeout = timeout
-        r.lifetime = timeout
-        answers = sorted(r.resolve(domain, "MX"), key=lambda a: a.preference)
-        if answers:
-            return str(answers[0].exchange).rstrip(".")
-    except Exception:
+    """Lowest-preference (highest priority) MX host for the domain.
+
+    Falls back from system resolver to public resolvers so a broken
+    LAN resolver doesn't poison thousands of probes.
+    """
+    if not domain:
         return None
+
+    def _query(resolver: dns.resolver.Resolver) -> Optional[str]:
+        try:
+            answers = sorted(resolver.resolve(domain, "MX"),
+                             key=lambda a: a.preference)
+            if answers:
+                return str(answers[0].exchange).rstrip(".")
+        except Exception:
+            return None
+        return None
+
+    # 1. System resolver (fast path when it works).
+    r = dns.resolver.Resolver()
+    r.timeout = timeout
+    r.lifetime = timeout
+    mx = _query(r)
+    if mx:
+        return mx
+
+    # 2. Public DNS fallback — won't be blocked by phone hotspots etc.
+    for ns in _PUBLIC_DNS_RESOLVERS:
+        try:
+            pub = dns.resolver.Resolver(configure=False)
+            pub.nameservers = [ns]
+            pub.timeout = timeout
+            pub.lifetime = timeout
+            mx = _query(pub)
+            if mx:
+                return mx
+        except Exception:
+            continue
     return None
+
+
+# Track whether outbound SMTP (port 25) is reachable on this network.
+# If it's not, every probe will time out and we'd reject valid mailboxes
+# en masse. We detect this after a small number of failures and then
+# stop probing for the rest of the process lifetime — callers should
+# fall back to "MX exists → accept with medium confidence" mode.
+_PORT_25_BLOCKED_FAILURES = 0
+_PORT_25_BLOCKED_THRESHOLD = 3
+_PORT_25_BLOCKED = False
+
+
+def port_25_likely_blocked() -> bool:
+    """Set by ``probe()`` once we've seen enough connection timeouts
+    to conclude the network is blocking outbound port 25 (a very
+    common ISP / corporate policy)."""
+    return _PORT_25_BLOCKED
+
+
+def _bump_port25_block() -> None:
+    """Mark a connection failure. After 3 in a row we set the global
+    ``_PORT_25_BLOCKED`` flag so callers can switch to MX-only mode."""
+    global _PORT_25_BLOCKED_FAILURES, _PORT_25_BLOCKED
+    _PORT_25_BLOCKED_FAILURES += 1
+    if _PORT_25_BLOCKED_FAILURES >= _PORT_25_BLOCKED_THRESHOLD:
+        if not _PORT_25_BLOCKED:
+            logger.warning(
+                "SMTP port 25 appears blocked on this network. "
+                "Switching probe path to 'MX exists → accept' mode "
+                "(role mailboxes get medium confidence instead of high)."
+            )
+        _PORT_25_BLOCKED = True
+
+
+def has_mx(domain: str, timeout: float = 4.0) -> bool:
+    """Public helper: True iff the domain has at least one MX record."""
+    return _best_mx(domain, timeout=timeout) is not None
+
+
+def precheck_port_25(test_domain: str = "google.com",
+                     timeout: float = 5.0) -> bool:
+    """Try one quick TCP connect to a known MX. Returns True iff we
+    can reach port 25. Sets the global block flag on failure so the
+    rest of the cycle skips full-probe paths.
+
+    Call this once at the start of a cycle to avoid wasting 30s on
+    timeouts per job. Idempotent."""
+    global _PORT_25_BLOCKED
+    mx = _best_mx(test_domain, timeout=3.0)
+    if not mx:
+        return False  # DNS broken; treat as blocked-ish
+    try:
+        with smtplib.SMTP(mx, 25, timeout=timeout) as s:
+            try:
+                s.ehlo("jobybots.com")
+                s.quit()
+            except Exception:
+                pass
+        return True
+    except (socket.timeout, TimeoutError, OSError, ConnectionError):
+        _PORT_25_BLOCKED = True
+        logger.info(
+            f"SMTP precheck: outbound port 25 is BLOCKED on this network "
+            f"(can't reach {mx}:25). Falling back to MX-only validation "
+            f"for role mailboxes."
+        )
+        return False
+    except Exception:
+        return False
 
 
 def probe(
@@ -41,7 +147,7 @@ def probe(
     *,
     from_address: str = "",
     helo_host: str = "jobybots.com",
-    timeout: float = 7.0,
+    timeout: float = 4.0,
 ) -> Tuple[str, str]:
     """Return ``(code, message)`` after an SMTP RCPT probe.
 
@@ -87,9 +193,11 @@ def probe(
             except Exception:
                 pass
     except (socket.timeout, TimeoutError):
+        _bump_port25_block()
         db.cache_smtp_probe(email, "timeout", "")
         return "timeout", ""
     except (socket.gaierror, ConnectionError, OSError) as e:
+        _bump_port25_block()
         db.cache_smtp_probe(email, "connect_failed", str(e)[:120])
         return "connect_failed", str(e)[:120]
     except smtplib.SMTPException as e:

@@ -231,6 +231,38 @@ def init_db() -> None:
             except Exception:
                 pass  # column already exists
 
+        # Migration: track per-job discovery progress so the jobs blast
+        # doesn't keep retrying the same dead-end top-20 every cycle.
+        # Before this migration the funnel was: scrape 2,289 jobs, pick the
+        # top 20 by match_score, fail discovery on all 20 (they were FAANG
+        # companies that don't publish recruiter emails), log "0 sent",
+        # repeat — for 72 cycles. Every other job in the DB was never
+        # examined. These columns let us mark each attempt so the next
+        # cycle moves on to fresh jobs.
+        for col, ddl in (
+            ("discovery_attempts",  "INTEGER NOT NULL DEFAULT 0"),
+            ("last_discovery_at",   "TEXT"),
+            ("discovery_status",    "TEXT NOT NULL DEFAULT 'pending'"),
+            # pending | queued | sent | no_email | exhausted | blocked
+            ("discovered_email",    "TEXT"),
+            ("pending_email_id",    "INTEGER"),
+        ):
+            try:
+                c.execute(f"ALTER TABLE jobs ADD COLUMN {col} {ddl}")
+            except Exception:
+                pass  # column already exists
+
+        try:
+            c.execute("CREATE INDEX IF NOT EXISTS idx_jobs_disc_status "
+                      "ON jobs(discovery_status)")
+        except Exception:
+            pass
+        try:
+            c.execute("CREATE INDEX IF NOT EXISTS idx_jobs_last_disc "
+                      "ON jobs(last_discovery_at)")
+        except Exception:
+            pass
+
 
 # ─── Jobs ──────────────────────────────────────────────────────────
 def upsert_job(job: Dict[str, Any]) -> bool:
@@ -277,6 +309,159 @@ def update_job_status(job_id: str, status: str, notes: str = "") -> None:
             "UPDATE jobs SET status=?, applied_at=?, notes=? WHERE id=?",
             (status, dt.datetime.utcnow().isoformat(), notes, job_id),
         )
+
+
+# Maximum attempts before a job is parked. After 3 failed discoveries we
+# accept that this company doesn't expose a public recruiter email and
+# stop wasting cycle time on it. The customer can re-enable individual
+# jobs via `jobybot retry-job <id>` (or by setting discovery_status
+# back to 'pending' in the DB).
+DISCOVERY_MAX_ATTEMPTS = 3
+
+# How long to wait before re-attempting a job that already had a
+# discovery attempt today. Without this, a single cycle would burn 30s
+# per job × hundreds of jobs trying the same dead URLs.
+DISCOVERY_COOLDOWN_HOURS = 20
+
+
+def jobs_for_outreach(
+    *, match_threshold: int, limit: int = 60
+) -> List[Dict[str, Any]]:
+    """Return jobs eligible for an email outreach attempt RIGHT NOW.
+
+    Rules (the bug this is fixing — see commit message):
+      * status='found' AND discovery_status='pending' (never tried yet) OR
+        discovery_status='no_email' (tried but didn't find one — retry
+        rarely)
+      * not exhausted (attempts < MAX)
+      * not retried within COOLDOWN window
+      * match_score >= threshold
+      * not previously queued OR sent for this job (cross-checked via
+        pending_emails / emails_sent)
+
+    Ordering: NEW jobs first (no attempts yet), then highest score, then
+    oldest first. This rotation is critical — without it the queue is
+    permanently dominated by the same FAANG companies that block
+    discovery, while smaller employers with public recruiter mailboxes
+    never get a turn.
+    """
+    cooldown_iso = (
+        dt.datetime.utcnow() - dt.timedelta(hours=DISCOVERY_COOLDOWN_HOURS)
+    ).isoformat()
+    with _conn() as c:
+        rows = c.execute(
+            """
+            SELECT j.*
+              FROM jobs j
+             WHERE j.status = 'found'
+               AND j.match_score >= ?
+               AND COALESCE(j.discovery_attempts, 0) < ?
+               AND COALESCE(j.discovery_status, 'pending')
+                     IN ('pending', 'no_email')
+               AND (j.last_discovery_at IS NULL
+                    OR j.last_discovery_at < ?)
+               AND j.id NOT IN (
+                     SELECT job_id FROM emails_sent
+                      WHERE job_id IS NOT NULL AND job_id != ''
+                   )
+               AND j.id NOT IN (
+                     SELECT job_id FROM pending_emails
+                      WHERE job_id IS NOT NULL AND job_id != ''
+                        AND status IN ('pending', 'sent')
+                   )
+             ORDER BY COALESCE(j.discovery_attempts, 0) ASC,
+                      j.match_score DESC,
+                      j.found_at ASC
+             LIMIT ?
+            """,
+            (match_threshold, DISCOVERY_MAX_ATTEMPTS, cooldown_iso, limit),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def mark_discovery_attempt(
+    job_id: str,
+    *,
+    found_email: Optional[str] = None,
+    pending_email_id: Optional[int] = None,
+    new_status: Optional[str] = None,
+) -> None:
+    """Record one discovery attempt against a job.
+
+    `new_status` overrides the automatic decision (e.g. caller passes
+    'queued' when the email landed in pending_emails, 'sent' if it went
+    straight out, 'blocked' if the company is on a deny-list).
+    Otherwise we default to 'no_email' on miss; on hit without an
+    explicit status we mark it 'queued' if we got a pending row, or
+    'sent' if not.
+    """
+    now = dt.datetime.utcnow().isoformat()
+    with _conn() as c:
+        cur = c.execute(
+            "SELECT discovery_attempts FROM jobs WHERE id=?", (job_id,)
+        ).fetchone()
+        if not cur:
+            return
+        attempts = (cur["discovery_attempts"] or 0) + 1
+
+        if new_status is None:
+            if found_email:
+                new_status = "queued" if pending_email_id else "sent"
+            else:
+                # Park the job after MAX attempts so we stop wasting cycle
+                # time on it. Anything below that stays 'no_email' so the
+                # cooldown window can let it try again later.
+                if attempts >= DISCOVERY_MAX_ATTEMPTS:
+                    new_status = "exhausted"
+                else:
+                    new_status = "no_email"
+
+        c.execute(
+            "UPDATE jobs SET "
+            "discovery_attempts = ?, "
+            "last_discovery_at = ?, "
+            "discovery_status = ?, "
+            "discovered_email = COALESCE(?, discovered_email), "
+            "pending_email_id = COALESCE(?, pending_email_id) "
+            "WHERE id = ?",
+            (attempts, now, new_status, found_email, pending_email_id, job_id),
+        )
+
+
+def funnel_counts() -> Dict[str, int]:
+    """Pipeline-stage counts for the dashboard / `jobybot funnel`."""
+    with _conn() as c:
+        out: Dict[str, int] = {}
+        out["jobs_total"] = c.execute(
+            "SELECT COUNT(*) FROM jobs"
+        ).fetchone()[0]
+        out["jobs_found_pending"] = c.execute(
+            "SELECT COUNT(*) FROM jobs WHERE status='found' "
+            "AND COALESCE(discovery_status,'pending')='pending'"
+        ).fetchone()[0]
+        out["jobs_queued"] = c.execute(
+            "SELECT COUNT(*) FROM jobs WHERE discovery_status='queued'"
+        ).fetchone()[0]
+        out["jobs_emailed"] = c.execute(
+            "SELECT COUNT(*) FROM jobs WHERE discovery_status='sent'"
+        ).fetchone()[0]
+        out["jobs_no_email"] = c.execute(
+            "SELECT COUNT(*) FROM jobs WHERE discovery_status='no_email'"
+        ).fetchone()[0]
+        out["jobs_exhausted"] = c.execute(
+            "SELECT COUNT(*) FROM jobs WHERE discovery_status='exhausted'"
+        ).fetchone()[0]
+        out["pending_queue"] = c.execute(
+            "SELECT COUNT(*) FROM pending_emails WHERE status='pending'"
+        ).fetchone()[0]
+        out["sent_total"] = c.execute(
+            "SELECT COUNT(*) FROM emails_sent"
+        ).fetchone()[0]
+        out["sent_today"] = c.execute(
+            "SELECT COUNT(*) FROM emails_sent "
+            "WHERE sent_at >= datetime('now','-1 day')"
+        ).fetchone()[0]
+        return out
 
 
 # ─── Emails ────────────────────────────────────────────────────────

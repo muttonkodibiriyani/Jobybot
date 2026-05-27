@@ -9,7 +9,7 @@ import random
 import datetime as dt
 import webbrowser
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 import click
 from loguru import logger
@@ -36,6 +36,8 @@ from sources.bayt             import Bayt
 from sources.remoteok         import RemoteOK
 from sources.gulftalent       import GulfTalent
 from sources.company_careers  import CompanyCareers
+from sources.wellfound        import Wellfound
+from sources.hn_whoshiring    import HNWhoIsHiring
 
 
 # â”€â”€ Logging setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -101,6 +103,13 @@ def active_sources(settings: Settings) -> List:
         src.append(RemoteOK())
     if settings.enable_company_careers:
         src.append(CompanyCareers())
+    # Worldwide startup pipelines — much higher email-discovery yield
+    # than FAANG career pages because startups publish recruiter
+    # emails directly on their listings.
+    if getattr(settings, "enable_wellfound", True):
+        src.append(Wellfound())
+    if getattr(settings, "enable_hn_whoshiring", True):
+        src.append(HNWhoIsHiring())
     return src
 
 
@@ -354,47 +363,60 @@ def do_email_blast(settings: Settings) -> int:
     return sent
 
 
-def do_jobs_blast(settings: Settings, top_n: int = 20) -> int:
-    """Discover-and-send blast against the highest-matched jobs in the DB.
+def do_jobs_blast(settings: Settings, top_n: int = 60) -> int:
+    """Discover-and-send (or queue) outreach for jobs in the DB.
 
-    For every "found" job above MATCH_THRESHOLD that we haven't already
-    emailed via this job_id, run the 5-tier email_finder_v2 waterfall to
-    locate a real recruiter address (career-page mailto, LinkedIn poster,
-    pattern + SMTP probe). If one passes the SMTP gate, send a tailored
-    email referencing the actual job title and description.
+    For every eligible "found" job above MATCH_THRESHOLD, run the
+    email-finder waterfall (career-page mailto -> Gemini AI extract ->
+    LinkedIn poster -> pattern + SMTP probe). On hit, send (or in
+    DRAFT_MODE, queue) a tailored email referencing the actual job
+    title. On miss, mark the job so the next cycle moves on to fresh
+    candidates instead of grinding through the same dead-end top-20.
 
-    Limited to `top_n` jobs per cycle to keep cycle time bounded.
+    Eligibility is decided by ``db.jobs_for_outreach`` which enforces
+    a 20-hour cool-off between attempts on the same job and parks a
+    job after ``DISCOVERY_MAX_ATTEMPTS`` failed lookups. This is the
+    fix for the funnel bug where 1,949 jobs sat unprocessed because
+    the cycle kept picking the same blocked top-20 every time.
     """
     if (settings.email_finder_tier or "off").lower() == "off":
         return 0
 
     profile = load_profile()
     sent = 0
+    queued = 0
+    no_email = 0
+    exhausted_now = 0
 
-    # Pull top jobs sorted by match_score desc that haven't already been
-    # emailed (no row in emails_sent with this job_id).
-    import sqlite3
-    con = sqlite3.connect(db.DB_PATH)
-    con.row_factory = sqlite3.Row
-    jobs = con.execute(
-        "SELECT * FROM jobs WHERE status='found' "
-        "AND match_score >= ? "
-        "AND id NOT IN (SELECT job_id FROM emails_sent WHERE job_id IS NOT NULL) "
-        "ORDER BY match_score DESC LIMIT ?",
-        (settings.match_threshold, top_n),
-    ).fetchall()
-    con.close()
+    jobs = db.jobs_for_outreach(
+        match_threshold=settings.match_threshold,
+        limit=top_n,
+    )
 
     if not jobs:
-        logger.info("Jobs blast: no fresh high-match jobs to outreach")
+        # Help the customer understand WHY nothing is happening. Without
+        # this they see "Jobs blast: 0 sent" and assume the bot is
+        # broken; in reality there may simply be no eligible jobs in
+        # the rotation right now.
+        f = db.funnel_counts()
+        logger.info(
+            "Jobs blast: nothing eligible this cycle "
+            f"(total={f['jobs_total']}, pending={f['jobs_found_pending']}, "
+            f"no_email={f['jobs_no_email']}, exhausted={f['jobs_exhausted']}, "
+            f"queued={f['jobs_queued']}, emailed={f['jobs_emailed']})"
+        )
         return 0
 
     db.log_event("jobs_blast_start", f"top_n={top_n} candidates={len(jobs)}")
-    logger.info(f"Jobs blast: trying to discover recruiters for {len(jobs)} top-scored jobs")
+    logger.info(
+        f"Jobs blast: {len(jobs)} eligible job(s) — running discovery "
+        f"(cooldown {db.DISCOVERY_COOLDOWN_HOURS}h, max "
+        f"{db.DISCOVERY_MAX_ATTEMPTS} attempts/job)"
+    )
 
     cookie = settings.linkedin_cookie or ""
 
-    for j in jobs:
+    for idx, j in enumerate(jobs, start=1):
         if db.emails_sent_today() >= settings.daily_email_cap:
             logger.warning("Daily cap reached, jobs blast stopping")
             break
@@ -402,6 +424,13 @@ def do_jobs_blast(settings: Settings, top_n: int = 20) -> int:
         company = j["company"]
         job_url = j["url"]
         market = _country_from_location(j["location"] or "")
+
+        # Progress beat every 5 jobs so the customer sees motion.
+        if idx == 1 or idx % 5 == 0:
+            logger.info(
+                f"  [{idx}/{len(jobs)}] {company[:40]} ({market}) "
+                f"— attempts={j.get('discovery_attempts', 0)}"
+            )
 
         try:
             disc = find_email_v2(
@@ -416,7 +445,21 @@ def do_jobs_blast(settings: Settings, top_n: int = 20) -> int:
             disc = None
 
         if not disc or not disc.email:
-            db.log_event("jobs_blast_no_email", f"{company} ({j['source']})")
+            db.mark_discovery_attempt(j["id"])
+            db.log_event(
+                "jobs_blast_no_email", f"{company} ({j['source']})"
+            )
+            no_email += 1
+            # If this attempt was the one that tipped over the max,
+            # log it loud — the customer should see WHY a job is parked.
+            new_attempts = (j.get("discovery_attempts") or 0) + 1
+            if new_attempts >= db.DISCOVERY_MAX_ATTEMPTS:
+                exhausted_now += 1
+                logger.info(
+                    f"  ⏸  {company[:40]} parked after "
+                    f"{new_attempts} failed lookups — no public "
+                    f"recruiter email findable"
+                )
             continue
 
         ok = send_application(
@@ -434,12 +477,67 @@ def do_jobs_blast(settings: Settings, top_n: int = 20) -> int:
             discovery_confidence=getattr(disc, "confidence", "") or "",
         )
         if ok:
-            sent += 1
+            # In DRAFT_MODE the email is in pending_emails (not
+            # emails_sent). Either way, mark the job as having
+            # advanced — that's the whole point of this fix.
+            if getattr(settings, "draft_mode", False):
+                pid = _latest_pending_id_for_job(j["id"])
+                db.mark_discovery_attempt(
+                    j["id"],
+                    found_email=disc.email,
+                    pending_email_id=pid,
+                    new_status="queued",
+                )
+                queued += 1
+                logger.success(
+                    f"  ✓ {company[:40]} → queued #{pid} "
+                    f"({disc.email}) [{disc.tier}]"
+                )
+            else:
+                db.mark_discovery_attempt(
+                    j["id"],
+                    found_email=disc.email,
+                    new_status="sent",
+                )
+                sent += 1
             jitter_sleep(settings.min_delay_sec, settings.max_delay_sec)
+        else:
+            # Send-application returned False — either dedup,
+            # already-emailed, or the SMTP send itself rejected.
+            # Record the attempt but don't park the job yet.
+            db.mark_discovery_attempt(
+                j["id"], found_email=disc.email, new_status="no_email"
+            )
+            no_email += 1
 
-    db.log_event("jobs_blast_done", f"{sent} sent")
-    logger.success(f"Jobs blast: {sent} discover-and-send emails")
-    return sent
+    db.log_event(
+        "jobs_blast_done",
+        f"sent={sent} queued={queued} no_email={no_email} "
+        f"parked={exhausted_now}",
+    )
+    logger.success(
+        f"Jobs blast complete — sent={sent}  queued={queued}  "
+        f"no_email={no_email}  parked={exhausted_now}"
+    )
+    return sent + queued
+
+
+def _latest_pending_id_for_job(job_id: str) -> Optional[int]:
+    """Look up the pending_emails id we just inserted for this job.
+    Used to back-link jobs -> their queue row.
+    """
+    if not job_id:
+        return None
+    try:
+        with db._conn() as c:  # type: ignore[attr-defined]
+            r = c.execute(
+                "SELECT id FROM pending_emails WHERE job_id=? "
+                "ORDER BY id DESC LIMIT 1",
+                (job_id,),
+            ).fetchone()
+            return r["id"] if r else None
+    except Exception:
+        return None
 
 
 def _country_from_location(location: str) -> str:
@@ -594,7 +692,10 @@ def run() -> None:
 
     new = do_search(settings)
     sent = do_email_blast(settings)
-    jb_sent = do_jobs_blast(settings, top_n=20)
+    # Bumped to 60 jobs/cycle (was 20) now that the funnel correctly
+    # marks each attempt — without that mark, the cycle was wasting
+    # all 20 slots on the same FAANG-tier blocked companies forever.
+    jb_sent = do_jobs_blast(settings, top_n=60)
     sent += jb_sent
     fups = do_followups(settings)
 
@@ -608,6 +709,90 @@ def run() -> None:
         f"Today total emails: {s['emails_today']}/{settings.daily_email_cap}"
     )
     logger.info(f"Dashboard: {DASHBOARD_HTML.absolute()}")
+
+
+@cli.command()
+def funnel() -> None:
+    """Show the current state of the job→email pipeline.
+
+    Use this when "the bot isn't sending emails" — it tells you
+    exactly where in the funnel jobs are getting stuck.
+    """
+    settings = get_settings()
+    setup_logging(settings.log_level)
+    db.init_db()
+    f = db.funnel_counts()
+    print()
+    print("  ===========================================================")
+    print("  JOBYBOT FUNNEL — where every job stands right now")
+    print("  ===========================================================")
+    print(f"  jobs saved in DB (lifetime)        : {f['jobs_total']:>6}")
+    print(f"  jobs above match threshold,")
+    print(f"    awaiting first discovery attempt : {f['jobs_found_pending']:>6}")
+    print(f"  jobs queued for one-click review   : {f['jobs_queued']:>6}")
+    print(f"  jobs whose email was sent          : {f['jobs_emailed']:>6}")
+    print(f"  jobs with no findable email yet    : {f['jobs_no_email']:>6}")
+    print(f"  jobs PARKED (3 failed lookups)     : {f['jobs_exhausted']:>6}")
+    print()
+    print(f"  pending_emails queued (all sources): {f['pending_queue']:>6}")
+    print(f"  emails sent in last 24h            : {f['sent_today']:>6}")
+    print(f"  emails sent lifetime               : {f['sent_total']:>6}")
+    print()
+    print(f"  DRAFT_MODE = {settings.draft_mode}  (queue server: "
+          f"http://127.0.0.1:7868)")
+    print(f"  match_threshold = {settings.match_threshold}, "
+          f"daily_email_cap = {settings.daily_email_cap}")
+    print(f"  cooldown between retries on a job = "
+          f"{db.DISCOVERY_COOLDOWN_HOURS}h")
+    print(f"  give-up after {db.DISCOVERY_MAX_ATTEMPTS} failed lookups")
+    print()
+
+    # Top parked companies — the ones eating cycle time.
+    import sqlite3
+    con = sqlite3.connect(db.DB_PATH)
+    con.row_factory = sqlite3.Row
+    rows = con.execute(
+        "SELECT company, COUNT(*) AS n FROM jobs "
+        "WHERE discovery_status='exhausted' "
+        "GROUP BY company ORDER BY n DESC LIMIT 10"
+    ).fetchall()
+    if rows:
+        print("  Top parked companies (no public recruiter email):")
+        for r in rows:
+            print(f"    {r['company'][:40]:<40s} {r['n']}")
+        print()
+    con.close()
+
+
+@cli.command()
+@click.argument("job_id", required=False)
+def retry_job(job_id: str) -> None:
+    """Reset a parked job so the next cycle re-runs discovery on it.
+
+    With no JOB_ID it resets ALL parked / no_email jobs back to
+    pending (useful after the bot learns new tricks — e.g. fresh
+    LinkedIn cookie).
+    """
+    db.init_db()
+    import sqlite3
+    con = sqlite3.connect(db.DB_PATH)
+    con.row_factory = sqlite3.Row
+    if job_id:
+        con.execute(
+            "UPDATE jobs SET discovery_status='pending', "
+            "discovery_attempts=0, last_discovery_at=NULL WHERE id=?",
+            (job_id,),
+        )
+        print(f"  reset job {job_id}")
+    else:
+        cur = con.execute(
+            "UPDATE jobs SET discovery_status='pending', "
+            "discovery_attempts=0, last_discovery_at=NULL "
+            "WHERE discovery_status IN ('exhausted','no_email')"
+        )
+        print(f"  reset {cur.rowcount} parked/no_email job(s)")
+    con.commit()
+    con.close()
 
 
 @cli.command()

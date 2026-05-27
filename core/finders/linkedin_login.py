@@ -58,7 +58,43 @@ def _session(cookie: str) -> requests.Session:
         "Pragma": "no-cache",
     })
     s.cookies.set("li_at", cookie, domain=".linkedin.com")
+    # Cap redirects hard. LinkedIn's login-wall path can bounce
+    # 30+ times across www / mobile / checkpoint subdomains when the
+    # cookie has expired — without this cap a single dead lookup
+    # eats 30-60 seconds. We'd rather fail fast and let the cycle
+    # move on to the next job.
+    s.max_redirects = 3
     return s
+
+
+# Circuit breaker: after N consecutive redirect / login-wall failures
+# in a single process, disable LinkedIn lookups for the rest of the
+# cycle. Without this, an expired cookie burns the entire cycle on
+# dead LinkedIn requests instead of working through the careers-page
+# and AI-extract tiers that DON'T need a cookie.
+_LI_CIRCUIT_MAX_FAILS = 3
+_li_state = {"fails": 0, "tripped": False}
+
+
+def _li_record_failure() -> None:
+    _li_state["fails"] += 1
+    if _li_state["fails"] >= _LI_CIRCUIT_MAX_FAILS and not _li_state["tripped"]:
+        _li_state["tripped"] = True
+        logger.warning(
+            f"LinkedIn finder: circuit-broken after {_li_state['fails']} "
+            "consecutive failures — likely an expired cookie. "
+            "Run `jobybot login-linkedin` to refresh. Skipping T2 for "
+            "the rest of this cycle."
+        )
+
+
+def _li_record_success() -> None:
+    _li_state["fails"] = 0
+    _li_state["tripped"] = False
+
+
+def _li_circuit_open() -> bool:
+    return _li_state["tripped"]
 
 
 def _check_login_wall(resp: requests.Response) -> bool:
@@ -188,6 +224,10 @@ def find_recruiter(
     if not job_url or "linkedin.com" not in job_url:
         return None
 
+    if _li_circuit_open():
+        # Cookie is dead; skip without burning request budget.
+        return None
+
     if not _within_quota():
         logger.info(
             f"LinkedIn finder: daily cap ({LINKEDIN_FINDER_DAILY_CAP}) reached, "
@@ -200,11 +240,19 @@ def find_recruiter(
         r = s.get(job_url, timeout=10, allow_redirects=True)
         db.bump_linkedin_lookup()
     except Exception as e:
+        # "Exceeded N redirects" == cookie expired and we're bouncing
+        # round the login-wall. Trip the circuit breaker so we don't
+        # waste 30-60s on every subsequent LinkedIn lookup this cycle.
+        msg = str(e).lower()
+        if "redirect" in msg or "connection" in msg:
+            _li_record_failure()
         logger.warning(f"LinkedIn finder: job fetch failed: {e}")
         return None
     if _check_login_wall(r):
+        _li_record_failure()
         logger.warning("LinkedIn finder: login wall / 999 — cookie likely expired.")
         return None
+    _li_record_success()
 
     profile_url = _extract_poster_profile(r.text)
     if not profile_url:

@@ -66,6 +66,8 @@ class Settings(BaseSettings):
     enable_gulftalent:      bool = Field(True)
     enable_remoteok:        bool = Field(True)
     enable_company_careers: bool = Field(True)
+    enable_wellfound:       bool = Field(True)
+    enable_hn_whoshiring:   bool = Field(True)
 
     # Follow-ups
     enable_followup: bool = Field(True)

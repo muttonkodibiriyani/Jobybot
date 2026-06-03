@@ -1065,19 +1065,28 @@ def login_linkedin_cmd(minutes: int) -> None:
         click.echo("  .venv\\Scripts\\python.exe -m playwright install chromium")
         return
 
-    profile_dir = Path("data") / "browser_profiles" / "linkedin"
-    profile_dir.mkdir(parents=True, exist_ok=True)
-    click.echo(f"Opening Chromium with profile: {profile_dir.resolve()}")
+    settings = get_settings()
+    # Use the same profile resolution logic as Easy Apply so the
+    # session you log into here is the one Easy Apply will reuse.
+    from core.easy_apply import _resolve_browser_profile
+    profile_dir, channel, source = _resolve_browser_profile(settings)
+    click.echo(f"Browser profile: {profile_dir.resolve()}")
+    click.echo(f"Profile source : {source}  (channel={channel or 'chromium'})")
+    if channel == "chrome":
+        click.echo("NOTE: pointing at your real Chrome profile. "
+                   "Close ALL Chrome windows first or this will fail "
+                   "with a profile lock error.")
     click.echo(f"Log in to LinkedIn. The window stays open for {minutes} minutes.")
     click.echo("Once you see your feed, you can close the window early.")
 
     with sync_playwright() as pw:
-        ctx = pw.chromium.launch_persistent_context(
+        launch_kwargs = dict(
             user_data_dir=str(profile_dir.resolve()),
             headless=False,
             args=[
                 "--start-maximized",
                 "--disable-blink-features=AutomationControlled",
+                "--no-first-run",
             ],
             viewport={"width": 1440, "height": 900},
             user_agent=(
@@ -1088,22 +1097,43 @@ def login_linkedin_cmd(minutes: int) -> None:
             locale="en-US",
             timezone_id="Asia/Dubai",
         )
+        if channel:
+            launch_kwargs["channel"] = channel
+        try:
+            ctx = pw.chromium.launch_persistent_context(**launch_kwargs)
+        except Exception as e:
+            msg = str(e)
+            if "ProcessSingleton" in msg or "lock" in msg.lower() or "in use" in msg.lower():
+                click.echo("ERROR: Chrome profile is locked. Close ALL Chrome "
+                           "windows and try again.")
+            else:
+                click.echo(f"ERROR opening browser: {e}")
+            return
         ctx.add_init_script(
             "Object.defineProperty(navigator, 'webdriver', {get:()=>undefined});"
         )
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         page.goto("https://www.linkedin.com/login", wait_until="domcontentloaded")
-        # Block for up to `minutes` mins or until user closes the browser
         import time
         deadline = time.time() + minutes * 60
+        last_url = ""
         try:
             while time.time() < deadline:
                 time.sleep(1)
-                # If the user has navigated to /feed/ we know they logged in
-                if "/feed" in (page.url or ""):
-                    click.echo("✓ Detected /feed/ — you're logged in.")
-                    # Give a few more seconds to make sure cookies settle
-                    time.sleep(3)
+                try:
+                    cur = page.url or ""
+                except Exception:
+                    # Window closed by the user — that's our "done" signal.
+                    break
+                if cur != last_url:
+                    last_url = cur
+                    click.echo(f"  · navigated to {cur[:80]}")
+                # /feed/ is the only URL that DEFINITELY means the
+                # login succeeded. /checkpoint/ and /uas/login mean
+                # we're still in the auth funnel (2FA, captcha).
+                if "/feed" in cur or "/in/" in cur:
+                    click.echo("✓ Detected logged-in URL — saving cookies…")
+                    time.sleep(4)  # let cookies settle to disk
                     break
         except KeyboardInterrupt:
             pass
@@ -1114,7 +1144,23 @@ def login_linkedin_cmd(minutes: int) -> None:
         except Exception:
             pass
 
-    click.echo("Saved. From now on `jobybot easy-apply` reuses this session.")
+    # Verify what actually landed in the profile so the user knows
+    # whether login succeeded or they need to retry.
+    from core.easy_apply import _profile_has_linkedin_session
+    if _profile_has_linkedin_session(profile_dir):
+        click.echo("")
+        click.echo("✓ SUCCESS — LinkedIn session saved to the profile.")
+        click.echo("  Next: run `jobybot easy-apply` and the bot will use this session.")
+    else:
+        click.echo("")
+        click.echo("✗ NO LinkedIn session was saved.")
+        click.echo("  This usually means the login form was never completed.")
+        click.echo("  Retry: `.\\.venv\\Scripts\\python.exe jobybot.py login-linkedin --minutes 15`")
+        click.echo("  Then in the Chromium window:")
+        click.echo("    1. Sign in with your email + password")
+        click.echo("    2. Complete any 2FA / captcha LinkedIn shows you")
+        click.echo("    3. WAIT until you see your feed (linkedin.com/feed/)")
+        click.echo("    4. The script will auto-detect and save — leave window alone")
 
 
 @cli.command(name="live-mode")

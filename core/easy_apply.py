@@ -115,9 +115,12 @@ def run_easy_apply(settings: Any) -> dict:
             f"(import error: {_PW_IMPORT_ERROR})"
         )
         return stats
-    if not (settings.linkedin_cookie or "").strip():
-        logger.error("LINKEDIN_COOKIE not set in .env — cannot Easy Apply.")
-        return stats
+    # NOTE: We no longer hard-require LINKEDIN_COOKIE in .env. The
+    # preferred login path is the persistent browser profile (set up via
+    # `jobybot login-linkedin` or by pointing
+    # EASY_APPLY_CHROME_USER_DATA_DIR at your real Chrome profile).
+    # The `.env` cookie is only used as a one-time bootstrap when the
+    # profile is brand new.
 
     daily_cap = int(getattr(settings, "easy_apply_daily_cap", 10))
     already_today = db.easy_applies_today()
@@ -149,27 +152,53 @@ def run_easy_apply(settings: Any) -> dict:
     # security challenge. A persistent profile dir means the same
     # fingerprint + the same localStorage history every time, so LinkedIn
     # treats you like a returning real user.
-    profile_dir = Path("data") / "browser_profiles" / "linkedin"
-    profile_dir.mkdir(parents=True, exist_ok=True)
+    profile_dir, channel, profile_source = _resolve_browser_profile(settings)
+    profile_was_new = not _profile_has_linkedin_session(profile_dir)
+    logger.info(
+        f"Browser profile: {profile_dir}  (source={profile_source}, "
+        f"channel={channel or 'chromium'}, fresh={profile_was_new})"
+    )
 
     with sync_playwright() as pw:
-        context = pw.chromium.launch_persistent_context(
-            user_data_dir=str(profile_dir.resolve()),
-            headless=bool(settings.easy_apply_headless),
-            args=[
-                "--start-maximized",
-                "--disable-blink-features=AutomationControlled",
-                "--no-default-browser-check",
-            ],
-            viewport={"width": 1440, "height": 900},
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
-            ),
-            locale="en-US",
-            timezone_id="Asia/Dubai",
-        )
+        try:
+            launch_kwargs = dict(
+                user_data_dir=str(profile_dir.resolve()),
+                headless=bool(settings.easy_apply_headless),
+                args=[
+                    "--start-maximized",
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-default-browser-check",
+                    "--no-first-run",
+                ],
+                viewport={"width": 1440, "height": 900},
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                ),
+                locale="en-US",
+                timezone_id="Asia/Dubai",
+            )
+            if channel:
+                launch_kwargs["channel"] = channel
+            context = pw.chromium.launch_persistent_context(**launch_kwargs)
+        except Exception as e:
+            # Common when EASY_APPLY_CHROME_USER_DATA_DIR points at the
+            # user's live Chrome — Chrome locks the profile while it's
+            # running. Surface a clear actionable message instead of a
+            # cryptic playwright stack trace.
+            msg = str(e)
+            if "ProcessSingleton" in msg or "lock" in msg.lower() or "in use" in msg.lower():
+                logger.error(
+                    "Could not open the Chrome profile because Chrome is "
+                    "already running. Close ALL Chrome windows and try again. "
+                    "(Alternatively, unset EASY_APPLY_CHROME_USER_DATA_DIR to "
+                    "use the bot's own dedicated profile.)"
+                )
+            else:
+                logger.error(f"Could not launch browser: {e}")
+            return stats
+
         # Hide the obvious "this is a bot" signals that LinkedIn's
         # detector watches for. Removes navigator.webdriver and the
         # missing chrome.runtime + plugins length defaults.
@@ -183,23 +212,45 @@ def run_easy_apply(settings: Any) -> dict:
                 get: () => ['en-US', 'en']
             });
         """)
-        context.add_cookies([{
-            "name":   "li_at",
-            "value":  settings.linkedin_cookie.strip(),
-            "domain": ".linkedin.com",
-            "path":   "/",
-            "secure": True,
-            "httpOnly": True,
-            "sameSite": "None",
-        }])
-        # Persistent context exposes pages via `.pages` (it already has
-        # an about:blank tab). Use that or create a new one.
-        browser = None  # not used with persistent context — alias for cleanup
 
-        page = context.new_page()
+        # ONLY inject the .env cookie when the profile is brand new
+        # (i.e. no LinkedIn cookies on disk yet) AND a cookie is set.
+        # Otherwise the fresh persisted cookies from your last login
+        # win and we don't overwrite them with a stale .env value —
+        # which was the root cause of "LinkedIn rejected the li_at
+        # cookie" even for users who had just logged in.
+        env_cookie = (settings.linkedin_cookie or "").strip()
+        if profile_was_new and env_cookie:
+            logger.info(
+                "Seeding LINKEDIN_COOKIE from .env (profile is fresh). "
+                "Future runs will rely on persisted cookies."
+            )
+            context.add_cookies([{
+                "name":   "li_at",
+                "value":  env_cookie,
+                "domain": ".linkedin.com",
+                "path":   "/",
+                "secure": True,
+                "httpOnly": True,
+                "sameSite": "None",
+            }])
+
+        page = context.pages[0] if context.pages else context.new_page()
         try:
             if not _verify_logged_in(page):
-                logger.error("LinkedIn rejected the li_at cookie — please refresh it.")
+                logger.error(
+                    "LinkedIn session is not active in this profile.\n"
+                    "  → Fix: close this window, then run:\n"
+                    "      .\\.venv\\Scripts\\python.exe jobybot.py login-linkedin\n"
+                    "    A Chromium window will open — log in manually with "
+                    "your normal email + password (handle 2FA / captcha as "
+                    "you would in any browser). Once you see your feed, "
+                    "close the window. Then re-run easy-apply.\n"
+                    "  → Or: point EASY_APPLY_CHROME_USER_DATA_DIR in .env at "
+                    "your real Chrome User Data folder so the bot uses the "
+                    "Chrome profile where you're already logged in. Close "
+                    "Chrome first."
+                )
                 return stats
 
             applied_this_run = 0
@@ -260,11 +311,6 @@ def run_easy_apply(settings: Any) -> dict:
                 context.close()
             except Exception:
                 pass
-            if browser is not None:
-                try:
-                    browser.close()
-                except Exception:
-                    pass
 
     logger.success(
         f"Easy Apply done · applied={stats['applied']} skipped={stats['skipped']} "
@@ -274,6 +320,90 @@ def run_easy_apply(settings: Any) -> dict:
 
 
 # ── internals ─────────────────────────────────────────────────────
+def _resolve_browser_profile(settings) -> Tuple[Path, Optional[str], str]:
+    """Pick which on-disk browser profile to use, in this order:
+
+      1. EASY_APPLY_CHROME_USER_DATA_DIR — your real Chrome User Data
+         folder (e.g. ``%LOCALAPPDATA%\\Google\\Chrome\\User Data``).
+         If EASY_APPLY_CHROME_PROFILE_NAME is also set we open the
+         matching sub-profile (Default, Profile 1, ...). channel=chrome
+         so Playwright drives the SYSTEM Chrome (where you're already
+         signed into your email).
+      2. EASY_APPLY_USER_DATA_DIR — any custom path you want to point at.
+      3. ``data/browser_profiles/linkedin/`` — the bot's own dedicated
+         Chromium profile, populated by ``jobybot login-linkedin``.
+
+    Returns (path, channel, source_label).
+    """
+    import os
+    chrome_root = (getattr(settings, "easy_apply_chrome_user_data_dir", "") or "").strip()
+    if not chrome_root:
+        chrome_root = os.environ.get("EASY_APPLY_CHROME_USER_DATA_DIR", "").strip()
+    if chrome_root:
+        chrome_root_p = Path(chrome_root).expanduser()
+        sub = (getattr(settings, "easy_apply_chrome_profile_name", "") or "").strip()
+        if not sub:
+            sub = os.environ.get("EASY_APPLY_CHROME_PROFILE_NAME", "").strip()
+        # When pointing at the real Chrome user data dir we still pass
+        # the ROOT to Playwright (Chrome figures out the active profile
+        # from --profile-directory). Setting --profile-directory is the
+        # standard way to pick "Default" / "Profile 1" / etc.
+        if sub:
+            os.environ.setdefault("CHROMIUM_FLAGS",
+                                  f'--profile-directory="{sub}"')
+        return chrome_root_p, "chrome", f"system-chrome:{sub or 'Default'}"
+
+    custom = (getattr(settings, "easy_apply_user_data_dir", "") or "").strip()
+    if not custom:
+        custom = os.environ.get("EASY_APPLY_USER_DATA_DIR", "").strip()
+    if custom:
+        return Path(custom).expanduser(), None, "custom"
+
+    default = Path("data") / "browser_profiles" / "linkedin"
+    default.mkdir(parents=True, exist_ok=True)
+    return default, None, "bot-managed"
+
+
+def _profile_has_linkedin_session(profile_dir: Path) -> bool:
+    """True iff the profile actually has a LinkedIn ``li_at`` cookie.
+
+    We open the Cookies SQLite directly and count rows where
+    ``host_key`` matches LinkedIn. This is strict on purpose — a
+    profile that has been *opened* but never *logged into* will have
+    a Cookies DB on disk but zero LinkedIn rows, and we want to treat
+    that case as "fresh" so the bootstrap cookie path still runs.
+    """
+    if not profile_dir.exists():
+        return False
+    cookies_db = None
+    for candidate in (
+        profile_dir / "Default" / "Network" / "Cookies",
+        profile_dir / "Default" / "Cookies",
+        profile_dir / "Cookies",
+    ):
+        if candidate.exists() and candidate.stat().st_size > 0:
+            cookies_db = candidate
+            break
+    if not cookies_db:
+        return False
+    try:
+        import sqlite3
+        con = sqlite3.connect(f"file:{cookies_db}?mode=ro", uri=True, timeout=2.0)
+        try:
+            row = con.execute(
+                "SELECT COUNT(*) FROM cookies "
+                "WHERE host_key LIKE '%linkedin.com' AND name='li_at'"
+            ).fetchone()
+            return bool(row and row[0] > 0)
+        finally:
+            con.close()
+    except Exception:
+        # If we can't read the DB (locked, schema mismatch) be
+        # conservative: assume it might have a session, don't clobber
+        # with the stale .env cookie.
+        return True
+
+
 def _locations_for(market: str) -> List[str]:
     """Reuse the same country -> city mapping as the scraper cycle."""
     cmap = {

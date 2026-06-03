@@ -126,6 +126,19 @@ class Settings(BaseSettings):
     easy_apply_skip_keywords: str = Field("us citizen,security clearance,senior director", description="Comma-sep keywords that mean SKIP the job.")
     easy_apply_max_years:     int  = Field(8,     description="Skip jobs whose description requires more than this many years of experience.")
 
+    # Browser profile selection. By default the bot uses its own
+    # dedicated Chromium profile under data/browser_profiles/linkedin/,
+    # populated by `jobybot login-linkedin`. To reuse your real Chrome
+    # profile (where you're already signed in with your email), set
+    # EASY_APPLY_CHROME_USER_DATA_DIR to your Chrome User Data folder
+    # — e.g. C:\Users\<you>\AppData\Local\Google\Chrome\User Data —
+    # and EASY_APPLY_CHROME_PROFILE_NAME to the profile sub-folder
+    # ("Default", "Profile 1", etc.). You MUST close all Chrome
+    # windows before running so the profile lock is released.
+    easy_apply_chrome_user_data_dir: str = Field("", description="Path to system Chrome 'User Data' dir to reuse your logged-in profile (close Chrome first).")
+    easy_apply_chrome_profile_name:  str = Field("", description="Sub-profile name inside the Chrome User Data dir (e.g. 'Default', 'Profile 1').")
+    easy_apply_user_data_dir:        str = Field("", description="Custom Chromium profile path (advanced; overridden by EASY_APPLY_CHROME_USER_DATA_DIR).")
+
     # Profile defaults pulled into Easy Apply forms (override in .env to
     # override the answer the bot picks for the corresponding question).
     profile_years_experience: int  = Field(7,     description="Default 'years of experience' answer.")

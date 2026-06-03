@@ -23,3 +23,8 @@ playwright==1.50.0
 # ── Optional: AI fallback for unknown Easy Apply questions ───────
 # Used only if a GEMINI_API_KEY is set. Free tier is generous.
 google-generativeai==0.8.6
+# ── Optional: import cookies from system browsers (advanced) ─────
+# Used by future `jobybot import-linkedin-cookies` flow. Chrome 127+
+# requires admin rights to decrypt cookies (Application-Bound
+# Encryption); for everyday use prefer `jobybot login-linkedin`.
+browser-cookie3==0.20.1
